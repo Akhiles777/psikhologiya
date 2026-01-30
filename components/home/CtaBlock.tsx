@@ -1,38 +1,25 @@
 import Link from "next/link";
 
-/** Последний блок: призыв найти психолога + контакты. */
+/** Призыв к действию и контакты. */
 export function CtaBlock() {
   return (
-    <section className="px-4 py-24 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-5xl rounded-3xl bg-[#5858E2] px-10 py-20 text-center sm:px-16 sm:py-24 animate-fade-in-up initial-opacity">
-        <h2 className="font-display text-4xl font-bold text-white sm:text-5xl">
+    <section className="border-t border-neutral-200 px-4 py-14 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-4xl rounded-xl border border-[#5858E2]/20 bg-[#5858E2] px-6 py-12 text-center sm:px-10 sm:py-14">
+        <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
           Найди своего психолога
         </h2>
-        <p className="mx-auto mt-8 max-w-xl text-xl leading-relaxed text-white/90">
-          Открой каталог, задай фильтры по подходу, цене и уровню — и выбери специалиста, с которым будет комфортно работать.
+        <p className="mx-auto mt-4 max-w-xl text-base text-white/90 sm:text-lg">
+          Открой каталог, задай фильтры по подходу, цене и уровню — выбери специалиста.
         </p>
-        <div className="mt-12">
-          <Link
-            href="/psy-list"
-            className="inline-block rounded-2xl bg-[#A7FF5A] px-10 py-5 text-lg font-semibold text-foreground transition hover:bg-[#8ee64a]"
-          >
+        <div className="mt-8">
+          <Link href="/psy-list" className="inline-block rounded-xl bg-white px-6 py-3 font-semibold text-[#5858E2] hover:bg-white/95">
             Подобрать психолога
           </Link>
         </div>
-        <p className="mt-12 text-base text-white/80">
-          Вопросы по реестру и сертификации:{" "}
-          <a
-            href="https://t.me/psy_smirnov"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:no-underline"
-          >
-            Telegram @psy_smirnov
-          </a>
+        <p className="mt-8 text-sm text-white/80">
+          Вопросы: <a href="https://t.me/psy_smirnov" target="_blank" rel="noopener noreferrer" className="underline hover:no-underline">Telegram @psy_smirnov</a>
           {" · "}
-          <Link href="/contacts" className="underline hover:no-underline">
-            Контакты
-          </Link>
+          <Link href="/contacts" className="underline hover:no-underline">Контакты</Link>
         </p>
       </div>
     </section>

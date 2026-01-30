@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { paradigmLabel } from "@/lib/paradigm-labels";
 import type { Paradigm } from "@/types/catalog";
 import { buildMetadata, canonicalUrl, personJsonLd } from "@/lib/seo";
+import { normalizeImageSrc, isExternalImageSrc } from "@/lib/image-src";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -94,12 +95,13 @@ export default async function PsychologistPage({ params }: PageProps) {
               {firstImage && firstImage !== "" ? (
                 <div className="relative h-64 w-full shrink-0 sm:h-72 sm:w-56">
                   <Image
-                    src={firstImage}
+                    src={normalizeImageSrc(firstImage)}
                     alt={psychologist.fullName}
                     fill
                     className="rounded-button object-cover"
                     sizes="(max-width: 640px) 100vw, 224px"
                     priority
+                    unoptimized={isExternalImageSrc(firstImage)}
                   />
                 </div>
               ) : (

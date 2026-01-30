@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { isDbSyncError } from "@/lib/db-error";
 
 /** Список всех психологов для админки */
 export async function getPsychologistsList() {
@@ -21,8 +22,7 @@ export async function getPsychologistsList() {
   });
   return list;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("does not exist") || msg.includes("Unknown column")) return [];
+    if (isDbSyncError(err)) return [];
     throw err;
   }
 }
@@ -36,8 +36,7 @@ export async function getPsychologistById(id: string) {
     });
     return p;
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("does not exist") || msg.includes("Unknown column")) return null;
+    if (isDbSyncError(err)) return null;
     throw err;
   }
 }
@@ -86,27 +85,32 @@ export async function createPsychologist(formData: FormData) {
     }
   }
 
-  await prisma.psychologist.create({
-    data: {
-      fullName,
-      slug,
-      gender,
-      birthDate,
-      city,
-      workFormat,
-      firstDiplomaDate: firstDiplomaStr ? new Date(firstDiplomaStr) : null,
-      lastCertificationDate: lastCertStr ? new Date(lastCertStr) : null,
-      mainParadigm,
-      certificationLevel,
-      shortBio,
-      longBio,
-      price,
-      contactInfo,
-      isPublished,
-      images,
-      education,
-    },
-  });
+  try {
+    await prisma.psychologist.create({
+      data: {
+        fullName,
+        slug,
+        gender,
+        birthDate,
+        city,
+        workFormat,
+        firstDiplomaDate: firstDiplomaStr ? new Date(firstDiplomaStr) : null,
+        lastCertificationDate: lastCertStr ? new Date(lastCertStr) : null,
+        mainParadigm,
+        certificationLevel,
+        shortBio,
+        longBio,
+        price,
+        contactInfo,
+        isPublished,
+        images,
+        education,
+      },
+    });
+  } catch (err) {
+    if (isDbSyncError(err)) redirect("/admin/psychologists?error=db_sync");
+    throw err;
+  }
 
   revalidatePath("/admin/psychologists");
   revalidatePath("/psy-list");
@@ -149,28 +153,33 @@ export async function updatePsychologist(id: string, formData: FormData) {
     }
   }
 
-  await prisma.psychologist.update({
-    where: { id },
-    data: {
-      fullName,
-      slug,
-      gender,
-      birthDate,
-      city,
-      workFormat,
-      firstDiplomaDate: firstDiplomaStr ? new Date(firstDiplomaStr) : null,
-      lastCertificationDate: lastCertStr ? new Date(lastCertStr) : null,
-      mainParadigm,
-      certificationLevel,
-      shortBio,
-      longBio,
-      price,
-      contactInfo,
-      isPublished,
-      images,
-      education,
-    },
-  });
+  try {
+    await prisma.psychologist.update({
+      where: { id },
+      data: {
+        fullName,
+        slug,
+        gender,
+        birthDate,
+        city,
+        workFormat,
+        firstDiplomaDate: firstDiplomaStr ? new Date(firstDiplomaStr) : null,
+        lastCertificationDate: lastCertStr ? new Date(lastCertStr) : null,
+        mainParadigm,
+        certificationLevel,
+        shortBio,
+        longBio,
+        price,
+        contactInfo,
+        isPublished,
+        images,
+        education,
+      },
+    });
+  } catch (err) {
+    if (isDbSyncError(err)) redirect("/admin/psychologists?error=db_sync");
+    throw err;
+  }
 
   revalidatePath("/admin/psychologists");
   revalidatePath("/psy-list");
@@ -181,7 +190,12 @@ export async function updatePsychologist(id: string, formData: FormData) {
 /** Удалить психолога */
 export async function deletePsychologist(id: string) {
   if (!prisma) throw new Error("База данных недоступна");
-  await prisma.psychologist.delete({ where: { id } });
+  try {
+    await prisma.psychologist.delete({ where: { id } });
+  } catch (err) {
+    if (isDbSyncError(err)) redirect("/admin/psychologists?error=db_sync");
+    throw err;
+  }
   revalidatePath("/admin/psychologists");
   revalidatePath("/psy-list");
   redirect("/admin/psychologists");

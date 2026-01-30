@@ -1,14 +1,27 @@
 import Link from "next/link";
 import { getPsychologistsList } from "@/lib/actions/admin-psychologists";
+import { DB_SYNC_MESSAGE } from "@/lib/db-error";
 
 /**
  * Список психологов в админке.
  */
-export default async function PsychologistsListPage() {
+export default async function PsychologistsListPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const showDbSyncBanner = params.error === "db_sync";
   const list = await getPsychologistsList();
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+      {showDbSyncBanner && (
+        <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-amber-800">
+          <p className="font-medium">Ошибка базы данных</p>
+          <p className="mt-1 text-sm">{DB_SYNC_MESSAGE}</p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-foreground">
           Психологи

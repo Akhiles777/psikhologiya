@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui";
 import { Badge } from "@/components/ui";
+import { normalizeImageSrc, isExternalImageSrc } from "@/lib/image-src";
 import type { PsychologistCatalogItem } from "@/types/catalog";
 
 export interface PsychologistCardProps {
@@ -21,7 +22,9 @@ export function PsychologistCard({ psychologist }: PsychologistCardProps) {
     educationCount,
     coursesCount,
   } = psychologist;
-  const imageSrc = images[0] ?? null;
+  const rawImage = images[0] ?? null;
+  const imageSrc = rawImage ? normalizeImageSrc(rawImage) : null;
+  const unoptimized = rawImage ? isExternalImageSrc(rawImage) : false;
 
   return (
     <Card glass padding="none" className="overflow-hidden">
@@ -34,6 +37,7 @@ export function PsychologistCard({ psychologist }: PsychologistCardProps) {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 340px"
+              unoptimized={unoptimized}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-neutral font-sans text-sm">

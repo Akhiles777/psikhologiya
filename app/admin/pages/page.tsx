@@ -1,14 +1,27 @@
 import Link from "next/link";
 import { getPagesList } from "@/lib/actions/admin-pages";
+import { DB_SYNC_MESSAGE } from "@/lib/db-error";
 
 /**
  * Список страниц сайта в админке.
  */
-export default async function PagesListPage() {
+export default async function PagesListPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const showDbSyncBanner = params.error === "db_sync";
   const list = await getPagesList();
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+      {showDbSyncBanner && (
+        <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-amber-800">
+          <p className="font-medium">Ошибка базы данных</p>
+          <p className="mt-1 text-sm">{DB_SYNC_MESSAGE}</p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-foreground">
           Страницы сайта

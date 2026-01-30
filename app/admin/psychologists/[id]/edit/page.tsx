@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPsychologistById, updatePsychologist } from "@/lib/actions/admin-psychologists";
 import { DeletePsychologistButton } from "@/components/admin/DeletePsychologistButton";
+import { ImageUrlsField } from "@/components/admin/ImageUrlsField";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -174,13 +175,10 @@ export default async function EditPsychologistPage({ params }: PageProps) {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground">URL фото (по одному на строку)</label>
-          <textarea
-            name="images"
-            rows={3}
-            defaultValue={imagesStr}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
+          <label className="block text-sm font-medium text-foreground">Фото (основное + до 4 доп.)</label>
+          <div className="mt-1">
+            <ImageUrlsField name="images" defaultValue={imagesStr} maxUrls={5} />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground">Образование (JSON)</label>

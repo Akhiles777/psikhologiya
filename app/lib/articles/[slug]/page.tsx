@@ -5,6 +5,7 @@ import { getArticleBySlug } from "@/app/actions/articles";
 import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
 import { buildMetadata } from "@/lib/seo";
+import { normalizeImageSrc, isExternalImageSrc } from "@/lib/image-src";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -74,11 +75,12 @@ export default async function ArticlePage({ params }: PageProps) {
               {mainImage && mainImage !== "" ? (
                 <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl">
                   <Image
-                    src={mainImage}
+                    src={normalizeImageSrc(mainImage)}
                     alt={author.fullName}
                     fill
                     className="object-cover"
                     sizes="128px"
+                    unoptimized={isExternalImageSrc(mainImage)}
                   />
                 </div>
               ) : (
