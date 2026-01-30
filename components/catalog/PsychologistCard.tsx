@@ -22,6 +22,8 @@ export function PsychologistCard({ psychologist }: PsychologistCardProps) {
     educationCount,
     coursesCount,
   } = psychologist;
+
+  
   const rawImage = images[0] ?? null;
   const imageSrc = rawImage ? normalizeImageSrc(rawImage) : null;
   const unoptimized = rawImage ? isExternalImageSrc(rawImage) : false;

@@ -20,7 +20,7 @@ export function HowBlock() {
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {steps.map((step) => (
             <div key={step.num} className="flex flex-col rounded-xl border border-neutral-200 bg-[#F5F5F7] p-5">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#5858E2] font-display text-lg font-bold text-white">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#5858E2] font-display text-lg font-bold text-white shadow-md">
                 {step.num}
               </span>
               <h3 className="mt-3 font-display text-lg font-semibold text-foreground">{step.title}</h3>

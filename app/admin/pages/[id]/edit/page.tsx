@@ -3,26 +3,46 @@ import { notFound } from "next/navigation";
 import { getPageById, updatePage } from "@/lib/actions/admin-pages";
 import { DeletePageButton } from "@/components/admin/DeletePageButton";
 
-type PageProps = { params: Promise<{ id: string }> };
+const EDIT_ERRORS: Record<string, string> = {
+  fill_title_slug: "Укажите название и slug (латиница, цифры, дефис).",
+  duplicate_slug: "Страница с таким slug уже есть.",
+  update_failed: "Не удалось сохранить. Проверьте данные.",
+  db_sync: "Ошибка базы данных. Выполните: npx prisma db push",
+};
+
+type PageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
 
 /**
  * Форма редактирования страницы.
  */
-export default async function EditPageForm({ params }: PageProps) {
+export default async function EditPageForm({ params, searchParams }: PageProps) {
   const { id } = await params;
   const page = await getPageById(id);
   if (!page) notFound();
 
+  const sp = await searchParams;
+  const errorCode = typeof sp.error === "string" ? sp.error : "";
+  const errorMessage = errorCode ? EDIT_ERRORS[errorCode] ?? "Ошибка сохранения." : null;
+
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+    <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
       <h1 className="font-display text-2xl font-bold text-foreground">
         Редактировать: {page.title}
       </h1>
       <p className="mt-2 text-sm text-neutral-dark">
-        /s/{page.slug}
+        Адрес: {["courses", "lib", "connect", "contacts"].includes(page.slug) ? `/${page.slug}` : `/s/${page.slug}`}
       </p>
 
-      <form action={updatePage.bind(null, id)} className="mt-8 space-y-6">
+      {errorMessage && (
+        <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-800">
+          <p className="font-medium">{errorMessage}</p>
+        </div>
+      )}
+
+      <form action={updatePage.bind(null, id)} method="post" className="mt-8 space-y-6">
         <div>
           <label className="block text-sm font-medium text-foreground">Название *</label>
           <input
@@ -64,14 +84,16 @@ export default async function EditPageForm({ params }: PageProps) {
           />
         </div>
         <div className="flex items-center gap-2">
+          <input type="hidden" name="isPublished" value="off" />
           <input
             type="checkbox"
             name="isPublished"
             id="isPublished"
+            value="on"
             defaultChecked={page.isPublished}
           />
           <label htmlFor="isPublished" className="text-sm font-medium text-foreground">
-            Опубликовать
+            Опубликовать (показывать на сайте)
           </label>
         </div>
         <div className="flex flex-wrap gap-4">

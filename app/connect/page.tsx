@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { getPageBySlug } from "@/lib/page-content";
 import { buildMetadata } from "@/lib/seo";
+import { PageContent } from "@/components/PageContent";
 
 export const metadata = buildMetadata({
   title: "Для психологов — Давай вместе",
@@ -8,7 +10,13 @@ export const metadata = buildMetadata({
   path: "/connect",
 });
 
-export default function ConnectPage() {
+export default async function ConnectPage() {
+  const page = await getPageBySlug("connect");
+
+  if (page) {
+    return <PageContent title={page.title} template={page.template} content={page.content} />;
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="font-display text-3xl font-bold tracking-tighter text-foreground md:text-4xl">
@@ -43,21 +51,18 @@ export default function ConnectPage() {
           Уровни сертификации
         </h2>
         <p className="mt-4 leading-relaxed text-neutral-dark">
-          В реестре используются три уровня сертификации. Они отражают объём подготовки и практики специалиста. Подробное описание уровней и критериев — на отдельной странице.
+          В реестре используются три уровня сертификации. Подробное описание — на отдельной странице.
         </p>
         <p className="mt-4">
-<Link
-              href="/certification-levels"
-              className="text-[#5858E2] underline hover:no-underline"
-            >
-              Что такое уровни сертификации? →
-            </Link>
+          <Link href="/certification-levels" className="text-[#5858E2] underline hover:no-underline">
+            Что такое уровни сертификации? →
+          </Link>
         </p>
       </section>
 
       <p className="mt-12">
         <Link href="/contacts" className="text-[#5858E2] underline hover:no-underline">
-          Контакты для связи
+          Контакты
         </Link>
         {" · "}
         <Link href="/psy-list" className="text-[#5858E2] underline hover:no-underline">

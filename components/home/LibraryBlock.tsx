@@ -9,13 +9,16 @@ export function LibraryBlock() {
           Библиотека
         </h2>
         <p className="mt-4 max-w-2xl text-lg text-neutral-dark">
-          Тематические статьи от психологов реестра: не реклама, а материалы о психике, терапии и выборе специалиста. У каждой статьи указан автор — можно перейти на его анкету. Фильтр по тегам, хронологический порядок.
+          Тематические статьи от психологов реестра: не реклама, а материалы о психике, терапии и выборе специалиста. У каждой статьи указан автор — можно перейти на его анкету.
+        </p>
+        <p className="mt-2 text-sm text-neutral-dark">
+          Фильтр по тегам, хронологический порядок. Статьи помогают сориентироваться в подходах и темах до обращения к специалисту.
         </p>
         <div className="mt-10 flex flex-wrap gap-4">
-          <Link href="/lib" className="inline-block rounded-xl bg-[#5858E2] px-6 py-3 font-semibold text-white hover:bg-[#4848d0]">
+          <Link href="/lib" className="inline-block rounded-xl bg-[#5858E2] px-6 py-3 font-semibold text-white shadow-md hover:bg-[#4848d0]">
             В библиотеку
           </Link>
-          <Link href="/lib/articles" className="inline-block rounded-xl border-2 border-neutral-300 px-6 py-3 font-semibold text-foreground hover:border-[#5858E2] hover:text-[#5858E2]">
+          <Link href="/lib/articles" className="inline-block rounded-xl border-2 border-[#A7FF5A] bg-[#A7FF5A]/20 px-6 py-3 font-semibold text-foreground hover:bg-[#A7FF5A]/40">
             Все статьи
           </Link>
         </div>

@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PageProps) {
   if (!prisma) return buildMetadata({ title: "Психолог", path: `/psy-list/${slug}` });
   try {
     const p = await prisma.psychologist.findUnique({
-      where: { slug, isPublished: true },
+      where: { slug },
       select: { fullName: true, shortBio: true },
     });
     if (!p) return buildMetadata({ title: "Психолог", path: `/psy-list/${slug}` });
@@ -52,7 +52,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
   let psychologist: Awaited<ReturnType<typeof prisma.psychologist.findUnique>>;
   try {
     psychologist = await prisma.psychologist.findUnique({
-      where: { slug, isPublished: true },
+      where: { slug },
     });
   } catch (err) {
     if (isDbError(err)) notFound();
@@ -91,6 +91,13 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
         >
           ← Назад в каталог
         </Link>
+
+        {!psychologist.isPublished && (
+          <div className="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 text-amber-800">
+            <p className="font-medium">Анкета не опубликована и не отображается в каталоге.</p>
+            <p className="mt-1 text-sm">Включите «Отображать на сайте» в админке, чтобы она появилась в подборе.</p>
+          </div>
+        )}
 
         <article className="rounded-2xl border border-neutral-light/80 bg-white/70 shadow-[var(--shadow-glass)] overflow-hidden backdrop-blur-sm">
           <div className="p-6 sm:p-8">

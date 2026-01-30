@@ -1,9 +1,9 @@
-/** Блок «Ценности». */
+/** Блок «Ценности». Синий и лайм акценты. */
 export function ValuesBlock() {
   const items = [
-    { title: "Прозрачность", text: "Вы видите каждый диплом и сертификат. Год, организация, тип образования. Только то, что психолог готов подтвердить." },
-    { title: "Безопасность", text: "Каждый профиль проверяется. В реестре только специалисты с указанным образованием и уровнем сертификации." },
-    { title: "Доступность", text: "Каталог с фильтрами по цене, городу, подходу и формату работы. Плюс библиотека статей от психологов реестра." },
+    { title: "Прозрачность", text: "Вы видите каждый диплом и сертификат. Год, организация, тип образования. Только то, что психолог готов подтвердить.", accent: "border-l-[#5858E2]" },
+    { title: "Безопасность", text: "Каждый профиль проверяется. В реестре только специалисты с указанным образованием и уровнем сертификации.", accent: "border-l-[#A7FF5A]" },
+    { title: "Доступность", text: "Каталог с фильтрами по цене, городу, подходу и формату работы. Плюс библиотека статей от психологов реестра.", accent: "border-l-[#5858E2]" },
   ];
 
   return (
@@ -17,7 +17,7 @@ export function ValuesBlock() {
         </p>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {items.map((item) => (
-            <article key={item.title} className="rounded-xl border border-neutral-200 bg-white p-5">
+            <article key={item.title} className={`rounded-xl border-2 border-neutral-200 border-l-4 bg-white p-5 ${item.accent}`}>
               <h3 className="font-display text-xl font-semibold text-foreground">{item.title}</h3>
               <p className="mt-4 leading-relaxed text-neutral-dark">{item.text}</p>
             </article>

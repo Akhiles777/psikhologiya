@@ -1,4 +1,7 @@
+import Link from "next/link";
+import { getPageBySlug } from "@/lib/page-content";
 import { buildMetadata } from "@/lib/seo";
+import { PageContent } from "@/components/PageContent";
 
 export const metadata = buildMetadata({
   title: "Контакты — Давай вместе",
@@ -6,7 +9,13 @@ export const metadata = buildMetadata({
   path: "/contacts",
 });
 
-export default function ContactsPage() {
+export default async function ContactsPage() {
+  const page = await getPageBySlug("contacts");
+
+  if (page) {
+    return <PageContent title={page.title} template={page.template} content={page.content} />;
+  }
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
       <h1 className="font-display text-3xl font-bold tracking-tighter text-foreground md:text-4xl">
@@ -32,9 +41,9 @@ export default function ContactsPage() {
         </p>
       </div>
       <p className="mt-8">
-        <a href="/" className="text-[#5858E2] underline hover:no-underline">
+        <Link href="/" className="text-[#5858E2] underline hover:no-underline">
           ← На главную
-        </a>
+        </Link>
       </p>
     </div>
   );

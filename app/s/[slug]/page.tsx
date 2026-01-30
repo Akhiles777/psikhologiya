@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildMetadata } from "@/lib/seo";
+import { getPageBySlug } from "@/lib/page-content";
+import { PageContent } from "@/components/PageContent";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -24,36 +26,7 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function PageBySlugRoute({ params }: PageProps) {
   const { slug } = await params;
-  if (!prisma) notFound();
-  let page: { title: string; template: string; content: string } | null;
-  try {
-    page = await prisma.page.findUnique({
-      where: { slug, isPublished: true },
-      select: { title: true, template: true, content: true },
-    });
-  } catch {
-    notFound();
-  }
+  const page = await getPageBySlug(slug);
   if (!page) notFound();
-
-  if (page.template === "empty") {
-    return (
-      <div
-        className="min-h-screen [&_img]:max-w-full [&_a]:text-[#5858E2] [&_a]:underline"
-        dangerouslySetInnerHTML={{ __html: page.content || "" }}
-      />
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-      <h1 className="font-display text-3xl font-bold tracking-tighter text-foreground">
-        {page.title}
-      </h1>
-      <div
-        className="mt-8 prose prose-neutral max-w-none text-foreground [&_a]:text-[#5858E2] [&_a]:underline [&_ul]:list-disc [&_ol]:list-decimal"
-        dangerouslySetInnerHTML={{ __html: page.content || "" }}
-      />
-    </div>
-  );
+  return <PageContent title={page.title} template={page.template} content={page.content} />;
 }

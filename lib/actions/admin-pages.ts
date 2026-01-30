@@ -34,25 +34,29 @@ export async function getPageById(id: string) {
   }
 }
 
-/** Создать страницу */
+/** Создать страницу. При ошибке — редирект с ?error=... */
 export async function createPage(formData: FormData) {
-  if (!prisma) throw new Error("База данных недоступна");
+  if (!prisma) redirect("/admin/pages/new?error=db_unavailable");
 
   const title = (formData.get("title") as string)?.trim();
-  const slug = (formData.get("slug") as string)?.trim().toLowerCase().replace(/\s+/g, "-");
-  if (!title || !slug) throw new Error("Укажите название и slug");
+  const rawSlug = (formData.get("slug") as string)?.trim();
+  const slug = rawSlug ? rawSlug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-_]/g, "") : "";
+  if (!title || !slug) redirect("/admin/pages/new?error=fill_title_slug");
 
   const template = ((formData.get("template") as string)?.trim() === "empty" ? "empty" : "text") as "text" | "empty";
   const content = (formData.get("content") as string)?.trim() || "";
-  const isPublished = formData.get("isPublished") === "on";
+  const publishedVal = formData.getAll("isPublished");
+  const isPublished = publishedVal[publishedVal.length - 1] === "on";
 
   try {
     await prisma.page.create({
       data: { title, slug, template, content, isPublished },
     });
-  } catch (err) {
+  } catch (err: unknown) {
     if (isDbSyncError(err)) redirect("/admin/pages?error=db_sync");
-    throw err;
+    const msg = err && typeof (err as { code?: string }).code === "string" ? (err as { code: string }).code : "";
+    if (msg === "P2002") redirect("/admin/pages/new?error=duplicate_slug&slug=" + encodeURIComponent(slug));
+    redirect("/admin/pages/new?error=create_failed");
   }
 
   revalidatePath("/admin/pages");
@@ -60,17 +64,19 @@ export async function createPage(formData: FormData) {
   redirect("/admin/pages");
 }
 
-/** Обновить страницу */
+/** Обновить страницу. Вызывается из формы: updatePage(id, formData). */
 export async function updatePage(id: string, formData: FormData) {
-  if (!prisma) throw new Error("База данных недоступна");
+  if (!prisma) redirect("/admin/pages?error=db_unavailable");
 
   const title = (formData.get("title") as string)?.trim();
-  const slug = (formData.get("slug") as string)?.trim().toLowerCase().replace(/\s+/g, "-");
-  if (!title || !slug) throw new Error("Укажите название и slug");
+  const rawSlug = (formData.get("slug") as string)?.trim();
+  const slug = rawSlug ? rawSlug.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-_]/g, "") : "";
+  if (!title || !slug) redirect("/admin/pages/" + id + "/edit?error=fill_title_slug");
 
   const template = ((formData.get("template") as string)?.trim() === "empty" ? "empty" : "text") as "text" | "empty";
   const content = (formData.get("content") as string)?.trim() || "";
-  const isPublished = formData.get("isPublished") === "on";
+  const publishedVal = formData.getAll("isPublished");
+  const isPublished = publishedVal[publishedVal.length - 1] === "on";
 
   try {
     const old = await prisma.page.findUnique({ where: { id }, select: { slug: true } });
@@ -81,21 +87,23 @@ export async function updatePage(id: string, formData: FormData) {
     revalidatePath("/admin/pages");
     revalidatePath(`/s/${slug}`);
     if (old?.slug !== slug) revalidatePath(`/s/${old?.slug}`);
-  } catch (err) {
+  } catch (err: unknown) {
     if (isDbSyncError(err)) redirect("/admin/pages?error=db_sync");
-    throw err;
+    const code = err && typeof (err as { code?: string }).code === "string" ? (err as { code: string }).code : "";
+    if (code === "P2002") redirect("/admin/pages/" + id + "/edit?error=duplicate_slug");
+    redirect("/admin/pages/" + id + "/edit?error=update_failed");
   }
   redirect("/admin/pages");
 }
 
-/** Удалить страницу */
-export async function deletePage(id: string) {
-  if (!prisma) throw new Error("База данных недоступна");
+/** Удалить страницу. Вызывается из формы: deletePage(id) или deletePage(id, formData). */
+export async function deletePage(id: string, _formData?: FormData) {
+  if (!prisma) redirect("/admin/pages?error=db_unavailable");
   try {
     await prisma.page.delete({ where: { id } });
-  } catch (err) {
+  } catch (err: unknown) {
     if (isDbSyncError(err)) redirect("/admin/pages?error=db_sync");
-    throw err;
+    redirect("/admin/pages?error=delete_failed");
   }
   revalidatePath("/admin/pages");
   redirect("/admin/pages");

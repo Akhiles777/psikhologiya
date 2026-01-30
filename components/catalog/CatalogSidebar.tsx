@@ -41,6 +41,8 @@ export function CatalogSidebar({ initialParams }: Props) {
     const formData = new FormData(form);
     const priceMin = (formData.get("priceMin") as string)?.trim() ?? "";
     const priceMax = (formData.get("priceMax") as string)?.trim() ?? "";
+    const city = (formData.get("city") as string)?.trim() ?? "";
+    const gender = (formData.get("gender") as string)?.trim() ?? "";
     const paradigm = (formData.get("paradigm") as string)?.trim() ?? "";
     const level = (formData.get("level") as string)?.trim() ?? "";
     const sort = (formData.get("sort") as string)?.trim() ?? "createdAt-desc";
@@ -48,6 +50,8 @@ export function CatalogSidebar({ initialParams }: Props) {
     apply({
       priceMin,
       priceMax,
+      city,
+      gender,
       paradigms: paradigm ? [paradigm] : [],
       levels: level ? [level] : [],
       sortBy: sortBy || "createdAt",
@@ -86,6 +90,28 @@ export function CatalogSidebar({ initialParams }: Props) {
               className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
             />
           </div>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-neutral-dark">Город</label>
+          <input
+            type="text"
+            name="city"
+            defaultValue={get("city")}
+            placeholder="Москва"
+            className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-neutral-dark">Пол</label>
+          <select
+            name="gender"
+            defaultValue={get("gender") || ""}
+            className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+          >
+            <option value="">Не важно</option>
+            <option value="М">М</option>
+            <option value="Ж">Ж</option>
+          </select>
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-neutral-dark">Метод</label>

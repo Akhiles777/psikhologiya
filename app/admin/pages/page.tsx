@@ -11,15 +11,21 @@ export default async function PagesListPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const showDbSyncBanner = params.error === "db_sync";
+  const errorCode = typeof params.error === "string" ? params.error : "";
+  const errorMessages: Record<string, string> = {
+    db_sync: DB_SYNC_MESSAGE,
+    db_unavailable: "База данных недоступна.",
+    delete_failed: "Не удалось удалить страницу.",
+  };
+  const errorBanner = errorCode ? errorMessages[errorCode] ?? "Произошла ошибка." : null;
+
   const list = await getPagesList();
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
-      {showDbSyncBanner && (
-        <div className="mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 text-amber-800">
-          <p className="font-medium">Ошибка базы данных</p>
-          <p className="mt-1 text-sm">{DB_SYNC_MESSAGE}</p>
+    <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
+      {errorBanner && (
+        <div className="mb-6 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-800">
+          <p className="font-medium">{errorBanner}</p>
         </div>
       )}
       <div className="flex items-center justify-between">
@@ -57,20 +63,20 @@ export default async function PagesListPage({
                   </span>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Link
                   href={`/admin/pages/${page.id}/edit`}
-                  className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-foreground hover:bg-white"
+                  className="rounded-lg bg-[#5858E2] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#4848d0]"
                 >
                   Редактировать
                 </Link>
                 <Link
-                  href={`/s/${page.slug}`}
+                  href={["courses", "lib", "connect", "contacts"].includes(page.slug) ? `/${page.slug}` : `/s/${page.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-foreground hover:bg-white"
+                  className="rounded-lg border-2 border-[#A7FF5A] px-3 py-1.5 text-sm font-medium text-foreground hover:bg-[#A7FF5A]/20"
                 >
-                  Открыть
+                  Открыть на сайте
                 </Link>
               </div>
             </li>

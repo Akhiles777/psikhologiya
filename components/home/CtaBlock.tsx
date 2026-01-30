@@ -3,8 +3,8 @@ import Link from "next/link";
 /** Призыв к действию и контакты. */
 export function CtaBlock() {
   return (
-    <section className="border-t border-neutral-200 px-4 py-14 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-4xl rounded-xl border border-[#5858E2]/20 bg-[#5858E2] px-6 py-12 text-center sm:px-10 sm:py-14">
+    <section className="border-t-4 border-[#A7FF5A] bg-[#F5F5F7] px-4 py-14 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-4xl rounded-2xl border-4 border-[#5858E2]/30 bg-[#5858E2] px-6 py-12 text-center shadow-xl sm:px-10 sm:py-14">
         <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
           Найди своего психолога
         </h2>
@@ -12,7 +12,7 @@ export function CtaBlock() {
           Открой каталог, задай фильтры по подходу, цене и уровню — выбери специалиста.
         </p>
         <div className="mt-8">
-          <Link href="/psy-list" className="inline-block rounded-xl bg-white px-6 py-3 font-semibold text-[#5858E2] hover:bg-white/95">
+          <Link href="/psy-list" className="inline-block rounded-xl bg-[#A7FF5A] px-6 py-3 font-semibold text-foreground shadow-lg hover:bg-[#8ee64a]">
             Подобрать психолога
           </Link>
         </div>

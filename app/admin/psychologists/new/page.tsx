@@ -1,20 +1,45 @@
+import { EducationForm } from "@/components/admin/EducationForm";
 import Link from "next/link";
 import { createPsychologist } from "@/lib/actions/admin-psychologists";
 import { PARADIGM_OPTIONS } from "@/lib/paradigm-options";
 import { ImageUrlsField } from "@/components/admin/ImageUrlsField";
 
+
+
+
 /**
- * Форма добавления психолога.
+ * Форма добавления психолога. Ошибки из ?error=...
  */
-export default function NewPsychologistPage() {
+export default async function NewPsychologistPage({
+  searchParams,
+  
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const errorCode = typeof params.error === "string" ? params.error : "";
+  const errorMessage = errorCode === "duplicate_slug"
+    ? "Психолог с таким slug уже есть. Укажите другой адрес страницы."
+    : null;
+
+
+
+
+
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+    <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
       <h1 className="font-display text-2xl font-bold text-foreground">
         Добавить психолога
       </h1>
       <p className="mt-2 text-sm text-neutral-dark">
-        Заполните поля. Slug — короткий адрес для страницы (латиница, дефисы). Образование — JSON-массив, см. подсказку ниже.
+        Заполните поля. Slug можно оставить пустым — подставится из ФИО. Образование — JSON-массив, см. подсказку ниже.
       </p>
+
+      {errorMessage && (
+        <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-800">
+          <p className="font-medium">{errorMessage}</p>
+        </div>
+      )}
 
       <form action={createPsychologist} className="mt-8 space-y-6">
         <div>
@@ -27,14 +52,14 @@ export default function NewPsychologistPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground">Slug * (адрес страницы)</label>
+          <label className="block text-sm font-medium text-foreground">Slug (адрес страницы)</label>
           <input
             type="text"
             name="slug"
-            required
-            placeholder="ivanov-ivan"
+            placeholder="Оставьте пустым — подставится из ФИО (ivanov-ivan)"
             className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
           />
+          <p className="mt-1 text-xs text-neutral-dark">Страница будет: /psy-list/[slug]</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
@@ -104,8 +129,9 @@ export default function NewPsychologistPage() {
             className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
           />
           <p className="mt-1 text-xs text-neutral-dark">
-            Варианты: {PARADIGM_OPTIONS.slice(0, 5).map((o) => o.label).join(", ")} и др.
+            Варианты: {PARADIGM_OPTIONS.slice(0, 5).map((o) => o.label).join(", ")}
           </p>
+        
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground">Уровень сертификации (1–3)</label>
@@ -160,25 +186,12 @@ export default function NewPsychologistPage() {
             <ImageUrlsField name="images" maxUrls={5} />
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground">Образование (JSON)</label>
-          <textarea
-            name="education"
-            rows={6}
-            placeholder='[{"year": 2020, "type": "диплом", "organization": "ВУЗ", "title": "Психология", "isDiploma": true}]'
-            className="mt-1 w-full font-mono text-sm rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-          <p className="mt-1 text-xs text-neutral-dark">
-            Массив объектов: year, type, organization, title, isDiploma (true/false).
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" name="isPublished" id="isPublished" />
-          <label htmlFor="isPublished" className="text-sm font-medium text-foreground">
-            Показывать на сайте
-          </label>
-        </div>
-        <div className="flex gap-4">
+
+<div>
+  <EducationForm/>
+</div>
+
+   <div className="flex gap-4">
           <button
             type="submit"
             className="rounded-xl bg-[#5858E2] px-6 py-2 font-medium text-white hover:bg-[#4848d0]"

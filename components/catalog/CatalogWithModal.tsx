@@ -22,6 +22,7 @@ type Props = {
  * Клик по карточке открывает модальное окно; из модалки можно перейти на полную страницу.
  */
 export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: Props) {
+  
   const [selected, setSelected] = useState<PsychologistCatalogItem | null>(null);
 
   const openModal = useCallback((p: PsychologistCatalogItem) => {
