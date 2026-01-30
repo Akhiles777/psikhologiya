@@ -1,0 +1,106 @@
+// Давай вместе — Database Schema
+// PostgreSQL 16, Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  MANAGER
+}
+
+enum Paradigm {
+  CBT
+  GESTALT
+  PSYCHODYNAMIC
+  HUMANISTIC
+  SYSTEMIC
+  SOLUTION_FOCUSED
+  EXISTENTIAL
+  INTEGRATIVE
+  TRANSACTIONAL_ANALYSIS
+  COGNITIVE_BEHAVIORAL
+  OTHER
+}
+
+// ---------------------------------------------------------------------------
+// Psychologist
+// ---------------------------------------------------------------------------
+
+model Psychologist {
+  id                String    @id @default(cuid())
+  slug              String    @unique
+  fullName          String
+  gender            String
+  birthDate         DateTime  @db.Date
+  city              String
+  mainParadigm      Paradigm[]
+  certificationLevel Int      // 1, 2, 3
+  shortBio          String   @db.VarChar(400)
+  longBio           String   @db.Text // HTML / WYSIWYG
+  price             Int
+  contactInfo       String   @db.Text // HTML
+  isPublished       Boolean  @default(false)
+  education         Json     // [{ year, type, organization, title, isDiploma }]
+  images            String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  articles Article[]
+
+  @@index([isPublished])
+  @@index([price])
+  @@index([city])
+  @@index([certificationLevel])
+  @@index([isPublished, price])
+  @@index([isPublished, city])
+  @@map("psychologists")
+}
+
+// ---------------------------------------------------------------------------
+// Article (Blog)
+// ---------------------------------------------------------------------------
+
+model Article {
+  id         String   @id @default(cuid())
+  title      String
+  slug       String   @unique
+  content    String   @db.Text // HTML
+  tags       String[]
+  authorId   String?
+  publishedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  author Psychologist? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([publishedAt])
+  @@map("articles")
+}
+
+// ---------------------------------------------------------------------------
+// Static Page (Landing / CMS blocks)
+// ---------------------------------------------------------------------------
+
+model StaticPage {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  blocks    Json     // [{ type: "Hero" | "Features" | "CatalogPreview", ...props }]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("static_pages")
+}

@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Давай вместе
 
-## Getting Started
+Каталог психологов: подбор по парадигме, цене, городу и уровню сертификации.
 
-First, run the development server:
+## Стек
+
+- **Next.js** (App Router)
+- **Tailwind CSS** — дизайн-система (primary #5858E2, accent #A7FF5A)
+- **Prisma** + **PostgreSQL** — база данных
+
+## Быстрый старт
+
+### 1. Установка
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. База данных
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Вариант А: Docker (PostgreSQL 16)**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+docker compose up -d
+```
 
-## Learn More
+В `.env` укажи:
 
-To learn more about Next.js, take a look at the following resources:
+```
+DATABASE_URL="postgresql://davay:davay_secret@localhost:5432/davay_vmeste?schema=public"
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Вариант Б: свой PostgreSQL**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Создай базу и в `.env` укажи свой `DATABASE_URL` (см. `.env.example`).
 
-## Deploy on Vercel
+### 3. Миграции и запуск
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npx prisma generate
+npx prisma db push
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Открой [http://localhost:3000](http://localhost:3000).
+
+Без `DATABASE_URL` сайт тоже запустится: каталог будет пустым, страницы психологов — 404.
+
+## Скрипты
+
+| Команда | Описание |
+|--------|----------|
+| `npm run dev` | Запуск dev-сервера (перед этим вызывается `prisma generate`) |
+| `npm run build` | Сборка (prisma generate + next build) |
+| `npm run start` | Запуск production-сервера |
+| `npx prisma db push` | Применить схему к БД без миграций |
+| `npx prisma migrate dev` | Создать и применить миграцию |
+
+## Структура
+
+- **Главная** (`/`) — лендинг, CTA в каталог
+- **Каталог** (`/catalog`) — фильтры, карточки, «Показать ещё»
+- **Психолог** (`/psychologist/[slug]`) — анкета: фото, био, образование, контакты
+- **Статические страницы** (`/s/[slug]`) — лендинги из БД (StaticPage.blocks → Block Renderer: Hero, Features, CatalogPreview)
+
+## Деплой на VPS
+
+1. Собери образ: `docker build -t davay-vmeste .`
+2. Запусти с переменной `DATABASE_URL` и портом 3000
+3. Либо используй `npm run build` и `npm run start` (нужен Node и PostgreSQL)
+
+## Дизайн
+
+- Primary: #5858E2 (кнопки, акценты)
+- Accent: #A7FF5A (бейджи Level 1–3, CTA)
+- Neutral: #BFBFBF (второстепенный текст)
+- Фон: #F8F7F4 (слоновая кость)
+- Стеклянные карточки (glassmorphism), скругление 1rem
