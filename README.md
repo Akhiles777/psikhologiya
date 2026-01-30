@@ -78,3 +78,4 @@ npm run dev
 - Стеклянные карточки (glassmorphism), скругление 1rem
 # psikhologiya
 # psikhologiya
+# psikhologiya
