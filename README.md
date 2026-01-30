@@ -77,3 +77,4 @@ npm run dev
 - Фон: #F8F7F4 (слоновая кость)
 - Стеклянные карточки (glassmorphism), скругление 1rem
 # psikhologiya
+# psikhologiya
