@@ -76,3 +76,4 @@ npm run dev
 - Neutral: #BFBFBF (второстепенный текст)
 - Фон: #F8F7F4 (слоновая кость)
 - Стеклянные карточки (glassmorphism), скругление 1rem
+# psikhologiya
