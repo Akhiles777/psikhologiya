@@ -82,7 +82,7 @@ export default async function PsychologistPage({ params }: PageProps) {
       />
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
         <Link
-          href="/catalog"
+          href="/psy-list"
           className="mb-6 inline-block text-sm text-neutral-dark hover:text-primary"
         >
           ← Назад в каталог
@@ -166,7 +166,7 @@ export default async function PsychologistPage({ params }: PageProps) {
             )}
 
             <div className="mt-8 flex justify-end">
-              <Link href="/catalog">
+              <Link href="/psy-list">
                 <Button variant="outline">В каталог</Button>
               </Link>
             </div>

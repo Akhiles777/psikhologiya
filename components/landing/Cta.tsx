@@ -21,7 +21,7 @@ export function Cta() {
           Открой каталог, задай фильтры и выбери специалиста по подходу, цене и уровню.
         </p>
         <div className="mt-10">
-          <Link href="/catalog">
+          <Link href="/psy-list">
             <Button
               variant="accent"
               size="lg"

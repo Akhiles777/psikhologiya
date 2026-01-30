@@ -16,7 +16,7 @@ export function SiteFooter() {
               Главная
             </Link>
             <Link
-              href="/catalog"
+              href="/psy-list"
               className="text-sm text-neutral-dark transition hover:text-primary"
             >
               Каталог

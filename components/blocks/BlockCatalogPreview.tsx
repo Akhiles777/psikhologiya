@@ -28,7 +28,7 @@ export async function BlockCatalogPreview({ block }: { block: BlockCatalogPrevie
           ))}
         </div>
         <div className="mt-10 text-center">
-          <Link href="/catalog">
+          <Link href="/psy-list">
             <Button variant="primary" size="lg">
               Весь каталог
             </Button>

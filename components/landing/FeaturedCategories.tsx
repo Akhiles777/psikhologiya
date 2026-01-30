@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 const categories = [
-  { label: "КПТ", href: "/catalog?paradigms=CBT", color: "bg-primary/10 border-primary/20 hover:bg-primary/15" },
-  { label: "Гештальт", href: "/catalog?paradigms=GESTALT", color: "bg-accent/20 border-accent/40 hover:bg-accent/30" },
-  { label: "Семейная", href: "/catalog?paradigms=SYSTEMIC", color: "bg-primary/10 border-primary/20 hover:bg-primary/15" },
+  { label: "КПТ", href: "/psy-list?paradigms=КПТ", color: "bg-primary/10 border-primary/20 hover:bg-primary/15" },
+  { label: "Гештальт", href: "/psy-list?paradigms=Гештальт-терапия", color: "bg-accent/20 border-accent/40 hover:bg-accent/30" },
+  { label: "Семейная", href: "/psy-list?paradigms=Семейная системная терапия", color: "bg-primary/10 border-primary/20 hover:bg-primary/15" },
 ];
 
 export function FeaturedCategories() {

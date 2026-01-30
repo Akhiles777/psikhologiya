@@ -1,31 +1,34 @@
-import { Cta } from "@/components/landing/Cta";
-import { FeaturedCategories } from "@/components/landing/FeaturedCategories";
-import { Hero } from "@/components/landing/Hero";
-import { HowItWorks } from "@/components/landing/HowItWorks";
-import { Library } from "@/components/landing/Library";
-import { SelectionAlgorithm } from "@/components/landing/SelectionAlgorithm";
-import { TrustBar } from "@/components/landing/TrustBar";
-import { Values } from "@/components/landing/Values";
+import { HeroBlock } from "@/components/home/HeroBlock";
+import { TrustBlock } from "@/components/home/TrustBlock";
+import { ValuesBlock } from "@/components/home/ValuesBlock";
+import { HowBlock } from "@/components/home/HowBlock";
+import { CatalogBlock } from "@/components/home/CatalogBlock";
+import { ForPsychologistsBlock } from "@/components/home/ForPsychologistsBlock";
+import { LibraryBlock } from "@/components/home/LibraryBlock";
+import { CtaBlock } from "@/components/home/CtaBlock";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
   title: "Давай вместе — Находим своего психолога вместе",
   description:
-    "Профессиональный реестр специалистов с прозрачной системой сертификации и честным подходом к терапии.",
+    "Реестр психологов с прозрачной сертификацией. Подбор по подходу, цене, городу. Каталог, фильтры, уровни 1–3.",
   path: "/",
 });
 
-export default function Home() {
+/**
+ * Главная страница: 8 больших блоков с полным контентом.
+ */
+export default function HomePage() {
   return (
     <>
-      <Hero />
-      <TrustBar />
-      <Values />
-      <HowItWorks />
-      <FeaturedCategories />
-      <SelectionAlgorithm />
-      <Library />
-      <Cta />
+      <HeroBlock />
+      <TrustBlock />
+      <ValuesBlock />
+      <HowBlock />
+      <CatalogBlock />
+      <ForPsychologistsBlock />
+      <LibraryBlock />
+      <CtaBlock />
     </>
   );
 }

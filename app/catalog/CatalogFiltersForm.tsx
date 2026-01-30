@@ -4,8 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useTransition } from "react";
 import { Button } from "@/components/ui";
 import { buildCatalogUrl, searchParamsToObject } from "@/lib/url";
-import { allParadigms, paradigmLabel } from "@/lib/paradigm-labels";
-import type { Paradigm } from "@/types/catalog";
+import { PARADIGM_OPTIONS } from "@/lib/paradigm-options";
 
 type CatalogFiltersFormProps = {
   initialSearchParams: Record<string, string | string[] | undefined>;
@@ -59,15 +58,21 @@ export function CatalogFiltersForm({
       const city = formData.get("city") as string;
       const paradigms = formData.getAll("paradigms") as string[];
       const levels = formData.getAll("levels") as string[];
+      const gender = formData.get("gender") as string;
+      const sortBy = formData.get("sortBy") as string;
+      const sortOrder = formData.get("sortOrder") as string;
       apply({
         priceMin: priceMin?.trim() || "",
         priceMax: priceMax?.trim() || "",
         ageMin: ageMin?.trim() || "",
         ageMax: ageMax?.trim() || "",
         city: city?.trim() || "",
+        gender: gender?.trim() || "",
         paradigms: paradigms.filter(Boolean),
         levels: levels.filter(Boolean),
-        cursor: "", // reset to first page when filters change
+        sortBy: sortBy?.trim() || "",
+        sortOrder: sortOrder?.trim() || "",
+        cursor: "",
       });
     },
     [apply]
@@ -75,7 +80,6 @@ export function CatalogFiltersForm({
 
   const selectedParadigms = getArray("paradigms");
   const selectedLevels = getArray("levels");
-  const paradigmsList = allParadigms();
   const certificationLevels: (1 | 2 | 3)[] = [1, 2, 3];
 
   return (
@@ -135,38 +139,78 @@ export function CatalogFiltersForm({
           />
         </div>
       </div>
-      <div className="mt-4">
-        <label className="mb-2 block text-sm font-medium text-foreground">
-          Город
-        </label>
-        <input
-          type="text"
-          name="city"
-          defaultValue={get("city")}
-          placeholder="Москва"
-          className="w-full max-w-xs rounded-button border border-neutral-light bg-white px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-        />
+      <div className="mt-4 flex flex-wrap gap-6">
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Город
+          </label>
+          <input
+            type="text"
+            name="city"
+            defaultValue={get("city")}
+            placeholder="Москва"
+            className="w-full max-w-xs rounded-button border border-neutral-light bg-white px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Пол
+          </label>
+          <select
+            name="gender"
+            defaultValue={get("gender")}
+            className="rounded-button border border-neutral-light bg-white px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">Не важно</option>
+            <option value="М">М</option>
+            <option value="Ж">Ж</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-2 block text-sm font-medium text-foreground">
+            Сортировка
+          </label>
+          <div className="flex gap-2">
+            <select
+              name="sortBy"
+              defaultValue={get("sortBy") || "createdAt"}
+              className="rounded-button border border-neutral-light bg-white px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">Дата</option>
+              <option value="price">Цена</option>
+              <option value="certificationLevel">Уровень</option>
+            </select>
+            <select
+              name="sortOrder"
+              defaultValue={get("sortOrder") || "desc"}
+              className="rounded-button border border-neutral-light bg-white px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="asc">По возрастанию</option>
+              <option value="desc">По убыванию</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div className="mt-4">
         <span className="mb-2 block text-sm font-medium text-foreground">
           Парадигмы
         </span>
         <div className="flex flex-wrap gap-2">
-          {paradigmsList.map((p) => {
-            const checked = selectedParadigms.includes(p);
+          {PARADIGM_OPTIONS.map((opt) => {
+            const checked = selectedParadigms.includes(opt.value);
             return (
               <label
-                key={p}
+                key={opt.value}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-button border border-neutral-light bg-white px-3 py-1.5 text-sm transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/10"
               >
                 <input
                   type="checkbox"
                   name="paradigms"
-                  value={p}
+                  value={opt.value}
                   defaultChecked={checked}
                   className="rounded border-neutral focus:ring-primary"
                 />
-                {paradigmLabel(p as Paradigm)}
+                {opt.label}
               </label>
             );
           })}
@@ -204,7 +248,7 @@ export function CatalogFiltersForm({
         <Button
           type="button"
           variant="ghost"
-          onClick={() => startTransition(() => router.push("/catalog"))}
+          onClick={() => startTransition(() => router.push("/psy-list"))}
           disabled={isPending}
         >
           Сбросить

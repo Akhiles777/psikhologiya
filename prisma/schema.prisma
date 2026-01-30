@@ -1,5 +1,5 @@
-// Давай вместе — Database Schema
-// PostgreSQL 16, Prisma
+// Давай вместе — dvmeste.ru
+// PostgreSQL, Prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -11,50 +11,55 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Enums
+// Роли админки
 // ---------------------------------------------------------------------------
 
 enum Role {
-  ADMIN
-  MANAGER
-}
-
-enum Paradigm {
-  CBT
-  GESTALT
-  PSYCHODYNAMIC
-  HUMANISTIC
-  SYSTEMIC
-  SOLUTION_FOCUSED
-  EXISTENTIAL
-  INTEGRATIVE
-  TRANSACTIONAL_ANALYSIS
-  COGNITIVE_BEHAVIORAL
-  OTHER
+  ADMIN    // всё, включая админов и списки данных
+  MANAGER // анкеты, статьи, страницы
 }
 
 // ---------------------------------------------------------------------------
-// Psychologist
+// Списки данных (редактирует только Администратор)
+// slug: paradigm, certification_level, work_format
+// ---------------------------------------------------------------------------
+
+model DataList {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  items     Json     // [{ "label": "...", "order": 0 }]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("data_lists")
+}
+
+// ---------------------------------------------------------------------------
+// Психолог
 // ---------------------------------------------------------------------------
 
 model Psychologist {
-  id                String    @id @default(cuid())
-  slug              String    @unique
-  fullName          String
-  gender            String
-  birthDate         DateTime  @db.Date
-  city              String
-  mainParadigm      Paradigm[]
-  certificationLevel Int      // 1, 2, 3
-  shortBio          String   @db.VarChar(400)
-  longBio           String   @db.Text // HTML / WYSIWYG
-  price             Int
-  contactInfo       String   @db.Text // HTML
-  isPublished       Boolean  @default(false)
-  education         Json     // [{ year, type, organization, title, isDiploma }]
-  images            String[]
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                   String    @id @default(cuid())
+  slug                 String    @unique
+  fullName             String
+  gender               String
+  birthDate            DateTime  @db.Date
+  city                 String
+  workFormat           String    // из списка данных work_format
+  firstDiplomaDate     DateTime? @db.Date
+  lastCertificationDate DateTime? @db.Date
+  mainParadigm         String[]  // метки из списка paradigm
+  certificationLevel   Int       // 1, 2, 3
+  shortBio             String   @db.VarChar(400)
+  longBio              String   @db.Text
+  price                Int
+  contactInfo          String   @db.Text
+  isPublished          Boolean  @default(false)
+  education            Json     // [{ year, type, organization, title, isDiploma }]
+  images               String[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   articles Article[]
 
@@ -62,25 +67,26 @@ model Psychologist {
   @@index([price])
   @@index([city])
   @@index([certificationLevel])
+  @@index([workFormat])
   @@index([isPublished, price])
-  @@index([isPublished, city])
   @@map("psychologists")
 }
 
 // ---------------------------------------------------------------------------
-// Article (Blog)
+// Статья в библиотеке
 // ---------------------------------------------------------------------------
 
 model Article {
-  id         String   @id @default(cuid())
-  title      String
-  slug       String   @unique
-  content    String   @db.Text // HTML
-  tags       String[]
-  authorId   String?
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String    @db.Text
+  tags        String[]
+  authorId    String?
+  catalogSlug String?   // внутренний каталог, напр. "26/sen"
   publishedAt DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   author Psychologist? @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
@@ -91,16 +97,34 @@ model Article {
 }
 
 // ---------------------------------------------------------------------------
-// Static Page (Landing / CMS blocks)
+// Страница сайта (текстовая или пустой HTML)
 // ---------------------------------------------------------------------------
 
-model StaticPage {
+model Page {
   id        String   @id @default(cuid())
   slug      String   @unique
   title     String
-  blocks    Json     // [{ type: "Hero" | "Features" | "CatalogPreview", ...props }]
+  template  String   // "text" | "empty"
+  content   String   @db.Text
+  isPublished Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("static_pages")
+  @@map("pages")
+}
+
+// ---------------------------------------------------------------------------
+// Пункт меню (дерево)
+// ---------------------------------------------------------------------------
+
+model MenuItem {
+  id       String   @id @default(cuid())
+  label    String
+  href     String
+  order    Int      @default(0)
+  parentId String?
+  parent   MenuItem?  @relation("MenuTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children MenuItem[] @relation("MenuTree")
+
+  @@map("menu_items")
 }

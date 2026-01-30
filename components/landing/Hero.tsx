@@ -22,7 +22,7 @@ export function Hero() {
           Профессиональный реестр специалистов с прозрачной системой сертификации и честным подходом к терапии.
         </p>
         <div className="mt-12">
-          <Link href="/catalog">
+          <Link href="/psy-list">
             <Button variant="primary" size="lg">
               Подобрать специалиста
             </Button>

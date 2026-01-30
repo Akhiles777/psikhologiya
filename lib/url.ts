@@ -34,7 +34,8 @@ export function buildCatalogUrl(
     }
   }
   const query = params.toString();
-  return query ? `/catalog?${query}` : "/catalog";
+  const base = "/psy-list";
+  return query ? `${base}?${query}` : base;
 }
 
 /**

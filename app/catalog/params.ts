@@ -1,5 +1,5 @@
 import { CATALOG_PAGE_SIZE, CATALOG_PAGE_SIZE_MAX } from "@/constants/catalog";
-import type { CatalogFilters, CatalogPagination, Paradigm } from "@/types/catalog";
+import type { CatalogFilters, CatalogPagination } from "@/types/catalog";
 
 function parseNum(value: string | string[] | undefined): number | undefined {
   if (value == null) return undefined;
@@ -21,30 +21,16 @@ function parseArray(value: string | string[] | undefined): string[] {
   return arr.filter((s): s is string => typeof s === "string" && s.length > 0);
 }
 
-const PARADIGM_VALUES = new Set<string>([
-  "CBT",
-  "GESTALT",
-  "PSYCHODYNAMIC",
-  "HUMANISTIC",
-  "SYSTEMIC",
-  "SOLUTION_FOCUSED",
-  "EXISTENTIAL",
-  "INTEGRATIVE",
-  "TRANSACTIONAL_ANALYSIS",
-  "COGNITIVE_BEHAVIORAL",
-  "OTHER",
-]);
-
 export function searchParamsToFilters(
   params: Record<string, string | string[] | undefined>
 ): CatalogFilters {
-  const paradigms = parseArray(params.paradigms).filter((p) =>
-    PARADIGM_VALUES.has(p)
-  ) as Paradigm[];
+  const paradigms = parseArray(params.paradigms);
   const certificationLevels = parseArray(params.levels)
     .map(Number)
     .filter((n) => n >= 1 && n <= 3) as (1 | 2 | 3)[];
 
+  const sortBy = parseStr(params.sortBy);
+  const sortOrder = parseStr(params.sortOrder);
   return {
     priceMin: parseNum(params.priceMin),
     priceMax: parseNum(params.priceMax),
@@ -54,6 +40,11 @@ export function searchParamsToFilters(
     certificationLevels:
       certificationLevels.length > 0 ? certificationLevels : undefined,
     city: parseStr(params.city),
+    gender: parseStr(params.gender),
+    sortBy:
+      sortBy === "price" || sortBy === "certificationLevel" ? sortBy : undefined,
+    sortOrder:
+      sortOrder === "asc" || sortOrder === "desc" ? sortOrder : undefined,
   };
 }
 

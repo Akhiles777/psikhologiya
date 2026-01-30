@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
-import { BlockRenderer } from "@/components/blocks/BlockRenderer";
 import { prisma } from "@/lib/db";
 import { buildMetadata } from "@/lib/seo";
-import type { PageBlock } from "@/types/blocks";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -10,7 +8,7 @@ export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   if (!prisma) return buildMetadata({ title: slug, path: `/s/${slug}` });
   try {
-    const page = await prisma.staticPage.findUnique({
+    const page = await prisma.page.findUnique({
       where: { slug },
       select: { title: true },
     });
@@ -24,33 +22,38 @@ export async function generateMetadata({ params }: PageProps) {
   }
 }
 
-export default async function StaticPageRoute({ params }: PageProps) {
+export default async function PageBySlugRoute({ params }: PageProps) {
   const { slug } = await params;
   if (!prisma) notFound();
-  let page: { title: string; blocks: unknown } | null;
+  let page: { title: string; template: string; content: string } | null;
   try {
-    page = await prisma.staticPage.findUnique({
-      where: { slug },
-      select: { title: true, blocks: true },
+    page = await prisma.page.findUnique({
+      where: { slug, isPublished: true },
+      select: { title: true, template: true, content: true },
     });
   } catch {
     notFound();
   }
   if (!page) notFound();
 
-  const blocks = page.blocks as PageBlock[];
-  if (!Array.isArray(blocks) || blocks.length === 0) {
+  if (page.template === "empty") {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <h1 className="font-display text-3xl font-bold text-foreground">{page.title}</h1>
-        <p className="mt-4 text-neutral-dark">Нет блоков для отображения.</p>
-      </div>
+      <div
+        className="min-h-screen [&_img]:max-w-full [&_a]:text-[#5858E2] [&_a]:underline"
+        dangerouslySetInnerHTML={{ __html: page.content || "" }}
+      />
     );
   }
 
   return (
-    <div>
-      <BlockRenderer blocks={blocks} />
+    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      <h1 className="font-display text-3xl font-bold tracking-tighter text-foreground">
+        {page.title}
+      </h1>
+      <div
+        className="mt-8 prose prose-neutral max-w-none text-foreground [&_a]:text-[#5858E2] [&_a]:underline [&_ul]:list-disc [&_ol]:list-decimal"
+        dangerouslySetInnerHTML={{ __html: page.content || "" }}
+      />
     </div>
   );
 }
