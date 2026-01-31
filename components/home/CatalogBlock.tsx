@@ -1,6 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 
-/** Блок про подбор психолога. Красочный акцент. */
+/** Блок про подбор психолога. Красочный акцент + изображение. */
 export function CatalogBlock() {
   const filters = [
     "Стоимость сессии (от и до)",
@@ -11,32 +12,45 @@ export function CatalogBlock() {
   ];
 
   return (
-    <section className="relative overflow-hidden border-y-4 border-[#A7FF5A]/50 bg-[#F5F5F7] px-4 py-16 sm:px-8 lg:px-12">
-      <div className="absolute left-0 top-1/2 h-72 w-72 -translate-y-1/2 rounded-full bg-[#5858E2]/10 blur-3xl" aria-hidden />
+    <section className="relative overflow-hidden border-y-4 border-[#A7FF5A]/50 bg-[#F5F5F7] px-4 py-10 sm:px-6 sm:py-16 md:px-8 lg:px-12">
+      <div className="absolute left-0 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-[#5858E2]/10 blur-3xl sm:h-72 sm:w-72" aria-hidden />
       <div className="relative mx-auto max-w-6xl">
-        <h2 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
-          Подобрать психолога
-        </h2>
-        <p className="mt-4 max-w-2xl text-lg text-neutral-dark">
-          В каталоге — все психологи реестра. Задайте критерии, нажмите «Найти» — получите список анкет. У каждого указаны фото, краткое «о себе», метод, уровень, количество дипломов и курсов.
-        </p>
-        <div className="mt-8 rounded-2xl border-2 border-[#5858E2]/30 bg-white/80 p-6 shadow-lg">
-          <p className="font-semibold text-foreground">Фильтры каталога:</p>
-          <ul className="mt-3 space-y-2">
-            {filters.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-neutral-dark">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#5858E2]" /> {f}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="mt-10 flex flex-wrap gap-4">
-          <Link href="/psy-list" className="inline-block rounded-xl bg-[#5858E2] px-6 py-3.5 font-semibold text-white shadow-lg hover:bg-[#4848d0]">
-            Перейти в каталог
-          </Link>
-          <Link href="/certification-levels" className="inline-block rounded-xl border-2 border-[#A7FF5A] bg-[#A7FF5A]/20 px-5 py-3 font-semibold text-foreground hover:bg-[#A7FF5A]/40">
-            Что такое уровни?
-          </Link>
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-xl font-bold text-foreground sm:text-2xl md:text-3xl lg:text-4xl">
+              Подобрать психолога
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm text-neutral-dark sm:mt-4 sm:text-base md:text-lg">
+              В каталоге — все психологи реестра. Задайте критерии, нажмите «Найти» — получите список анкет. У каждого указаны фото, краткое «о себе», метод, уровень, количество дипломов и курсов.
+            </p>
+            <div className="mt-6 rounded-xl border-2 border-[#5858E2]/30 bg-white/80 p-4 shadow-lg sm:mt-8 sm:rounded-2xl sm:p-6">
+              <p className="font-semibold text-foreground sm:text-base">Фильтры каталога:</p>
+              <ul className="mt-2 space-y-1.5 sm:mt-3 sm:space-y-2">
+                {filters.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm text-neutral-dark sm:text-base">
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#5858E2]" /> {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3 sm:mt-10 sm:gap-4">
+              <Link href="/psy-list" className="inline-block rounded-xl bg-[#5858E2] px-4 py-2.5 text-sm font-semibold text-white shadow-lg hover:bg-[#4848d0] sm:px-6 sm:py-3.5 sm:text-base">
+                Перейти в каталог
+              </Link>
+              <Link href="/certification-levels" className="inline-block rounded-xl border-2 border-[#A7FF5A] bg-[#A7FF5A]/20 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-[#A7FF5A]/40 sm:px-5 sm:py-3 sm:text-base">
+                Что такое уровни?
+              </Link>
+            </div>
+          </div>
+          <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl border-2 border-[#5858E2]/30 bg-white sm:h-56 lg:h-64 lg:w-96">
+            <Image
+              src="/images/image-4.JPG"
+              alt="Каталог психологов: подбор по фильтрам"
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 384px"
+            />
+          </div>
         </div>
       </div>
     </section>

@@ -3,6 +3,9 @@ import { CatalogWithModal } from "@/components/catalog/CatalogWithModal";
 import { buildMetadata } from "@/lib/seo";
 import { CATALOG_PAGE_SIZE } from "@/constants/catalog";
 import { searchParamsToFilters, searchParamsToPagination } from "@/app/catalog/params";
+import { MobileFilters } from "@/components/catalog/MobileFilters";
+import { CatalogSidebar } from "@/components/catalog/CatalogSidebar";
+import { Filter } from "lucide-react";
 
 export const metadata = buildMetadata({
   title: "Каталог психологов — Давай вместе",
@@ -76,6 +79,8 @@ export default async function PsyListPage({ searchParams }: PageProps) {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-32 bg-gradient-to-r from-lime-500 to-[#5858E2]"></div>
         
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+     
+
           {/* Фильтры и результаты */}
           <div className="mb-10">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -90,11 +95,13 @@ export default async function PsyListPage({ searchParams }: PageProps) {
               
               <div className="flex items-center gap-3">
                 <div className="hidden sm:flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-lime-500"></div>
+                  <div className="h-2 w-2 rounded-full bg-lime-500 animate-pulse"></div>
                   <span className="text-xs text-gray-600">Активный профиль</span>
                 </div>
-                <div className="h-8 w-px bg-gray-200"></div>
-                <div className="text-xs text-[#5858E2] font-medium">
+                <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
+                {/* Показываем "Фильтры • Сортировка" ТОЛЬКО на мобильных */}
+                <div className="text-xs text-[#5858E2] font-medium flex items-center gap-1 sm:hidden">
+                  <Filter className="w-3 h-3" />
                   Фильтры • Сортировка
                 </div>
               </div>
@@ -103,28 +110,44 @@ export default async function PsyListPage({ searchParams }: PageProps) {
 
           {/* Контейнер каталога */}
           <div className="relative">
-            {/* Геометрический фон */}
-            <div className="absolute inset-0 -z-10">
-              <div className="absolute top-0 left-0 h-32 w-32 border-2 border-gray-100 rounded-2xl opacity-30"></div>
-              <div className="absolute bottom-0 right-0 h-32 w-32 border-2 border-gray-100 rounded-2xl opacity-30"></div>
-            </div>
+            {/* Мобильные фильтры - ТОЛЬКО кнопка */}
+            <MobileFilters initialParams={params} />
             
-            {/* Основной контент */}
-            <div className="relative bg-white rounded-2xl border border-gray-200/50">
-              <div className="p-4 sm:p-6">
-                <CatalogWithModal
-                  items={items}
-                  nextCursor={nextCursor}
-                  hasMore={hasMore ?? false}
-                  searchParams={params}
-                />
+            <div className="flex gap-6">
+              {/* Десктопная версия фильтров - СКРЫТА НА МОБИЛЬНЫХ */}
+              <div className="hidden sm:block w-64 shrink-0">
+                <div className="sticky top-6">
+                  <CatalogSidebar initialParams={params} />
+                </div>
               </div>
+            
               
-              {/* Акцентные уголки */}
-              <div className="absolute top-0 left-0 h-6 w-6 border-t-2 border-l-2 border-lime-500 rounded-tl-lg"></div>
-              <div className="absolute top-0 right-0 h-6 w-6 border-t-2 border-r-2 border-[#5858E2] rounded-tr-lg"></div>
-              <div className="absolute bottom-0 left-0 h-6 w-6 border-b-2 border-l-2 border-[#5858E2] rounded-bl-lg"></div>
-              <div className="absolute bottom-0 right-0 h-6 w-6 border-b-2 border-r-2 border-lime-500 rounded-br-lg"></div>
+              {/* Основной контент */}
+              <div className="flex-1">
+                {/* Геометрический фон */}
+                <div className="absolute inset-0 -z-10">
+                  <div className="absolute top-0 left-0 h-32 w-32 border-2 border-gray-100 rounded-2xl opacity-30"></div>
+                  <div className="absolute bottom-0 right-0 h-32 w-32 border-2 border-gray-100 rounded-2xl opacity-30"></div>
+                </div>
+                
+                {/* Основной контент */}
+                <div className="relative bg-white rounded-2xl border border-gray-200/50">
+                  <div className="p-4 sm:p-6">
+                    <CatalogWithModal
+                      items={items}
+                      nextCursor={nextCursor}
+                      hasMore={hasMore ?? false}
+                      searchParams={params}
+                    />
+                  </div>
+                  
+                  {/* Акцентные уголки */}
+                  <div className="absolute top-0 left-0 h-6 w-6 border-t-2 border-l-2 border-lime-500 rounded-tl-lg"></div>
+                  <div className="absolute top-0 right-0 h-6 w-6 border-t-2 border-r-2 border-[#5858E2] rounded-tr-lg"></div>
+                  <div className="absolute bottom-0 left-0 h-6 w-6 border-b-2 border-l-2 border-[#5858E2] rounded-bl-lg"></div>
+                  <div className="absolute bottom-0 right-0 h-6 w-6 border-b-2 border-r-2 border-lime-500 rounded-br-lg"></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -191,8 +214,6 @@ export default async function PsyListPage({ searchParams }: PageProps) {
           </div>
         </div>
       </div>
-
-   
     </div>
   );
 }

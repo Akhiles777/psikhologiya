@@ -36,6 +36,15 @@ export default function AdminPage() {
             Страницы сайта — создать или изменить страницы (текст или свой HTML)
           </Link>
         </li>
+
+        <li>
+          <Link
+            href="/admin/pages"
+            className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
+          >
+            Менеджеры - менеджеры, добавление, удаление, управление
+          </Link>
+        </li>
       </ul>
     </div>
   );

@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { LayoutShell } from "@/components/layout/LayoutShell";
+
 import {
   buildMetadata,
   webSiteJsonLd,
   organizationJsonLd,
 } from "@/lib/seo";
 import "./globals.css";
+
 
 const inter = Inter({
   variable: "--font-inter",
@@ -84,6 +86,7 @@ export default function RootLayout({
           Перейти к содержимому
         </a>
         <LayoutShell>{children}</LayoutShell>
+     
       </body>
     </html>
   );

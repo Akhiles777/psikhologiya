@@ -109,9 +109,12 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
           >
             Отмена
           </Link>
-          <DeletePageButton id={id} />
         </div>
       </form>
+      <div className="mt-6 border-t border-neutral-200 pt-6">
+        <p className="mb-2 text-sm text-neutral-dark">Удаление страницы необратимо.</p>
+        <DeletePageButton id={id} />
+      </div>
     </div>
   );
 }

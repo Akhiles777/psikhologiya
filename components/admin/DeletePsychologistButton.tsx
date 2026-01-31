@@ -1,20 +1,15 @@
 "use client";
 
 import { deletePsychologist } from "@/lib/actions/admin-psychologists";
-import { useRouter } from "next/navigation";
 
 export function DeletePsychologistButton({ id }: { id: string }) {
-  const router = useRouter();
-  
   async function handleDelete() {
     if (!confirm("Удалить этого психолога? Это нельзя отменить.")) {
       return;
     }
     
     try {
-      // Создаем фиктивный FormData для вызова Server Action
-      const formData = new FormData();
-      await deletePsychologist(id, formData);
+      await deletePsychologist(id);
     } catch (error) {
       console.error("Ошибка удаления:", error);
     }

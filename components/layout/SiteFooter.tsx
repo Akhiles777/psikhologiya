@@ -3,9 +3,9 @@ import Link from "next/link";
 export function SiteFooter() {
   return (
       <footer className="border-t border-neutral-200/50 bg-white">
-        <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
           {/* Основная навигация */}
-          <div className="flex flex-col items-center gap-8 sm:flex-row sm:justify-between">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between sm:gap-8">
             {/* Лого */}
             <div className="text-center sm:text-left">
               <div className="text-xl font-bold text-gray-900">
@@ -31,7 +31,7 @@ export function SiteFooter() {
                 Каталог
               </Link>
               <Link
-                  href="/library"
+                  href="/lib"
                   className="text-sm text-gray-600 hover:text-gray-900"
               >
                 Библиотека

@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CatalogSidebar } from "./CatalogSidebar";
 import { CatalogModal } from "./CatalogModal";
 import { Badge } from "@/components/ui";
 import { buildCatalogUrl } from "@/lib/url";
@@ -18,7 +17,7 @@ type Props = {
 };
 
 /**
- * Каталог: слева — фильтры (чекбоксы), в центре — карточки психологов.
+ * Каталог: карточки психологов.
  * Клик по карточке открывает модальное окно; из модалки можно перейти на полную страницу.
  */
 export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: Props) {
@@ -36,19 +35,19 @@ export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: P
   const nextUrl = nextCursor != null ? buildCatalogUrl(searchParams, { cursor: nextCursor }) : null;
 
   return (
-    <div className="flex min-h-[60vh] gap-8">
-      <CatalogSidebar initialParams={searchParams} />
+    <div className="flex min-h-[60vh] flex-col gap-4 lg:flex-row lg:gap-8">
+      {/* УДАЛИТЬ ЭТО: <CatalogSidebar initialParams={searchParams} /> */}
       <div className="min-w-0 flex-1">
         {items.length === 0 ? (
-          <div className="rounded-2xl border-2 border-[#A7FF5A]/50 bg-white/80 p-12 text-center shadow-lg">
-            <p className="font-display text-lg font-semibold text-foreground">
+          <div className="rounded-xl border-2 border-[#A7FF5A]/50 bg-white/80 p-6 text-center shadow-lg sm:rounded-2xl sm:p-12">
+            <p className="font-display text-base font-semibold text-foreground sm:text-lg">
               По заданным фильтрам никого не найдено
             </p>
-            <p className="mt-2 text-sm text-neutral-dark">Попробуйте ослабить условия поиска</p>
+            <p className="mt-2 text-xs text-neutral-dark sm:text-sm">Попробуйте ослабить условия поиска</p>
           </div>
         ) : (
           <>
-            <div className="flex max-w-2xl flex-col gap-6">
+            <div className="flex max-w-2xl flex-col gap-4 sm:gap-6">
               {items.map((p) => (
                 <CardBlock
                   key={p.id}
@@ -58,10 +57,10 @@ export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: P
               ))}
             </div>
             {hasMore && nextUrl && (
-              <div className="mt-10 flex justify-center">
+              <div className="mt-6 flex justify-center sm:mt-10">
                 <Link
                   href={nextUrl}
-                  className="inline-block rounded-xl bg-[#5858E2] px-8 py-3 font-semibold text-white hover:bg-[#4848d0]"
+                  className="inline-block rounded-xl bg-[#5858E2] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#4848d0] sm:px-8 sm:py-3 sm:text-base"
                 >
                   Показать ещё
                 </Link>
@@ -92,9 +91,9 @@ function CardBlock({
     <button
       type="button"
       onClick={onClick}
-      className="group w-full rounded-2xl border border-neutral-200 bg-white p-0 text-left shadow-sm transition hover:border-[#5858E2]/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5858E2]"
+      className="group w-full rounded-xl border border-neutral-200 bg-white p-0 text-left shadow-sm transition hover:border-[#5858E2]/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5858E2] sm:rounded-2xl"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-2xl bg-[#F5F5F7]">
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-[#F5F5F7] sm:rounded-t-2xl">
         {imageSrc ? (
           <Image
             src={imageSrc}
@@ -111,24 +110,24 @@ function CardBlock({
           <Badge variant="level" level={certificationLevel as 1 | 2 | 3} />
         </div>
       </div>
-      <div className="p-4">
-        <h3 className="font-display font-semibold text-lg text-foreground group-hover:text-[#5858E2]">
+      <div className="p-3 sm:p-4">
+        <h3 className="font-display text-base font-semibold text-foreground group-hover:text-[#5858E2] sm:text-lg">
           {fullName}
         </h3>
-        <p className="mt-1 text-sm text-neutral-dark">{city}</p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <p className="mt-1 text-xs text-neutral-dark sm:text-sm">{city}</p>
+        <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-2 sm:gap-1.5">
           {mainParadigm.slice(0, 3).map((p) => (
             <Badge key={p} variant="primary">
               {p}
             </Badge>
           ))}
         </div>
-        <p className="mt-2 text-xs text-neutral-dark">
+        <p className="mt-1.5 text-xs text-neutral-dark sm:mt-2">
           Дипломов: {educationCount} · Курсов: {coursesCount}
         </p>
-        <p className="mt-3 line-clamp-3 text-sm text-foreground">{shortBio}</p>
-        <p className="mt-3 font-bold text-[#5858E2]">{price} ₽ / сессия</p>
-        <span className="mt-2 inline-block text-sm font-semibold text-[#5858E2] group-hover:underline">
+        <p className="mt-2 line-clamp-3 text-xs text-foreground sm:mt-3 sm:text-sm">{shortBio}</p>
+        <p className="mt-2 font-bold text-[#5858E2] sm:mt-3 sm:text-base">{price} ₽ / сессия</p>
+        <span className="mt-1.5 inline-block text-xs font-semibold text-[#5858E2] group-hover:underline sm:mt-2 sm:text-sm">
           Подробнее →
         </span>
       </div>
