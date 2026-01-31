@@ -29,6 +29,7 @@ export default function HomePage() {
       <ForPsychologistsBlock />
       <LibraryBlock />
       <CtaBlock />
+      
     </>
   );
 }

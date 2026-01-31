@@ -42,7 +42,7 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
         </div>
       )}
 
-      <form action={updatePage.bind(null, id)} method="post" className="mt-8 space-y-6">
+      <form action={updatePage.bind(null, id)}  className="mt-8 space-y-6">
         <div>
           <label className="block text-sm font-medium text-foreground">Название *</label>
           <input

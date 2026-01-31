@@ -15,7 +15,6 @@ const inter = Inter({
 
 const displayFont = Plus_Jakarta_Sans({
   variable: "--font-display",
-  subsets: ["latin", "cyrillic"],
   weight: ["600", "700", "800"],
 });
 

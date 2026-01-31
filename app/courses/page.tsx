@@ -19,6 +19,7 @@ export default async function CoursesPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      
       <h1 className="font-display text-3xl font-bold tracking-tighter text-foreground md:text-4xl">
         Курсы
       </h1>
@@ -30,6 +31,9 @@ export default async function CoursesPage() {
           ← На главную
         </Link>
       </p>
+
+      
+
     </div>
   );
 }
