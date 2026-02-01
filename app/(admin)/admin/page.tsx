@@ -39,7 +39,7 @@ export default function AdminPage() {
 
         <li>
           <Link
-            href="/admin/pages"
+            href="/admin/manager"
             className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
           >
             Менеджеры - менеджеры, добавление, удаление, управление
