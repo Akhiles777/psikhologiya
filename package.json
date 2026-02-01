@@ -9,8 +9,7 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "start": "next start",
-    "lint": "eslint",
-    "vercel-build": "next build"
+    "lint": "eslint"
   },
   "dependencies": {
     "@prisma/client": "^6",
