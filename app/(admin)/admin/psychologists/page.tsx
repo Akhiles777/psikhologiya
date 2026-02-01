@@ -67,7 +67,7 @@ export default async function PsychologistsListPage({
                   href={`/admin/psychologists/${p.id}/edit`}
                   className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-xs font-medium text-foreground hover:bg-white text-center sm:flex-none sm:px-3 sm:py-1.5 sm:text-sm"
                 >
-                  Редактировать1
+                  Редактировать
                 </Link>
                 <Link
                   href={`/psy-list/${p.slug}`}
