@@ -9,7 +9,7 @@ const ADMIN_SESSION_SECRET =
  * Защита админки: только с валидной сессией.
  * /admin/login — доступна всем, остальные /admin/* — только после входа.
  */
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith("/admin")) {
     return NextResponse.next();
   }

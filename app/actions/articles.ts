@@ -112,7 +112,11 @@ export async function getArticleBySlug(slug: string): Promise<{
         },
       },
     });
-    return a as typeof a & { author: NonNullable<typeof a.author> | null };
+if (!a) {
+  return null;
+}
+return { ...a, author: a.author ?? null };
+
   } catch {
     return null;
   }

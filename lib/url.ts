@@ -1,3 +1,4 @@
+import { ReadonlyURLSearchParams } from "next/navigation";
 /**
  * Утилиты для работы с URL каталога (фильтры и пагинация в searchParams).
  */

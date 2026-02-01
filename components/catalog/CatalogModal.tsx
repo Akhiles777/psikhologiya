@@ -102,7 +102,7 @@ export function CatalogModal({ psychologist, onClose }: Props) {
                   </Badge>
                 ))}
                 {mainParadigm.length > (isMobile ? 2 : 3) && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="default" className="text-xs">
                     +{mainParadigm.length - (isMobile ? 2 : 3)}
                   </Badge>
                 )}

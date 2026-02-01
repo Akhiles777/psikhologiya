@@ -96,9 +96,9 @@ export async function getPsychologists(
   let rows: Array<Record<string, unknown>>;
   try {
     rows = await prisma.psychologist.findMany({
-      where: where as Parameters<typeof prisma.psychologist.findMany>[0]["where"],
+      ...(where ? { where } : {}),
       select,
-      orderBy: orderBy as Parameters<typeof prisma.psychologist.findMany>[0]["orderBy"],
+      ...(orderBy ? { orderBy } : {}),
       take: take + 1,
       skip: cursor ? 1 : 0,
       cursor: cursor ? { id: cursor } : undefined,
@@ -116,7 +116,7 @@ export async function getPsychologists(
     throw err;
   }
 
-  let items = rows as (PsychologistCatalogItem & { education: unknown })[];
+  let items = rows as unknown as (PsychologistCatalogItem & { education: unknown })[];
   let nextCursor: string | null = null;
   if (items.length > take) {
     const last = items.pop();

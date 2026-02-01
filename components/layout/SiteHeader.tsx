@@ -34,7 +34,7 @@ export function SiteHeader() {
                   "href" in item ? (
                       <Link
                           key={item.href}
-                          href={item.href}
+                          href={item.href || "/"}
                           className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
                       >
                         {item.label}
@@ -96,7 +96,7 @@ export function SiteHeader() {
                             "href" in item ? (
                                 <Link
                                     key={item.href}
-                                    href={item.href}
+                                    href={item.href || "/"}
                                     className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
                                 >
                                   <div className="h-6 w-6 rounded-lg bg-[#5858E2]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
