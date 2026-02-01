@@ -181,7 +181,7 @@ export default async function NewPsychologistPage({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground">Фото (основное + до 4 доп.)</label>
+          <label className="block text-sm font-medium text-foreground">Фото (основное + до 4 доп.), (временно недоступен, в этапе разработки)</label>
           <div className="mt-1">
             <ImageUrlsField name="images" maxUrls={5} />
           </div>
