@@ -187,7 +187,7 @@ export default async function PagesListPage({
                 </div>
               </div>
 
-              {/* Информация о страницах */}
+              {/* ИНФОРМАЦИЯ О СТРАНИЦАХ - УБРАН onClick */}
               <div className="mt-4 flex flex-col gap-3 rounded-lg bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                 <div className="text-xs text-gray-600 sm:text-sm">
                   <span className="font-medium">{list.length}</span> страниц
@@ -201,12 +201,10 @@ export default async function PagesListPage({
                     <div className="flex h-2 w-2 rounded-full bg-amber-500"></div>
                     <span className="text-xs text-gray-600">Черновик</span>
                   </div>
-                  <button
-                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                    className="text-xs font-medium text-[#5858E2] hover:text-[#4848d0]"
-                  >
+                  {/* Простая ссылка вместо кнопки с onClick */}
+                  <a href="#" className="text-xs font-medium text-[#5858E2] hover:text-[#4848d0]">
                     Наверх ↑
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
