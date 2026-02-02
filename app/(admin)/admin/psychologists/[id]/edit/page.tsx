@@ -264,9 +264,7 @@ export default async function EditPsychologistPage({ params }: PageProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Образование и сертификации
-              </label>
+             
               {/* ПЕРЕДАЕМ ПРАВИЛЬНЫЕ ДАННЫЕ ИЗ БД */}
               <EducationFormEdit initialData={educationData} />
             </div>

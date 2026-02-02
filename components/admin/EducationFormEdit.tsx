@@ -69,7 +69,7 @@ console.log(educations)
               {/* Год */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Год получения
+                  Год получения документа
                 </label>
                 <input
                   type="text"
@@ -83,7 +83,7 @@ console.log(educations)
               {/* Тип документа */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Тип документа
+                  Тип образования
                 </label>
                 <select
                   name={`education[${index}][type]`}
@@ -91,20 +91,17 @@ console.log(educations)
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#5858E2] focus:ring-1 focus:ring-[#5858E2]"
                 >
                   <option value="">Выберите тип...</option>
-                  <option value="диплом">Диплом о высшем образовании</option>
+                  <option value="диплом">Диплом</option>
                   <option value="сертификат">Сертификат</option>
                   <option value="удостоверение">Удостоверение</option>
-                  <option value="справка">Справка</option>
-                  <option value="грамота">Грамота</option>
-                  <option value="благодарность">Благодарность</option>
-                  <option value="курсы">Курсы повышения квалификации</option>
+            
                 </select>
               </div>
 
               {/* Организация */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Учебное заведение / Организация
+                  Название организации, выдавшей документ
                 </label>
                 <input
                   type="text"
@@ -118,7 +115,7 @@ console.log(educations)
               {/* Название документа */}
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Название документа / Специальность
+                  Название документа
                 </label>
                 <input
                   type="text"
@@ -140,7 +137,7 @@ console.log(educations)
                   className="h-4 w-4 text-[#5858E2] rounded focus:ring-[#5858E2]"
                 />
                 <span className="text-sm font-medium text-gray-700">
-                  Это диплом о высшем образовании
+                  Это диплом
                 </span>
               </label>
             </div>

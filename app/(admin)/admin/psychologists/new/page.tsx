@@ -191,6 +191,8 @@ export default async function NewPsychologistPage({
   <EducationForm/>
 </div>
 
+
+
    <div className="flex gap-4">
           <button
             type="submit"
