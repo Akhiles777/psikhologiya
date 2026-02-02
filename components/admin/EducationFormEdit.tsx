@@ -1,165 +1,173 @@
-// components/admin/EducationFormEdit.tsx
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import type { EducationItem } from "@/lib/education-helpers";
+import { useState, useEffect } from 'react';
 
-type Props = {
-  initialData: EducationItem[];
-};
+export interface EducationItem {
+  year?: string;
+  type?: string;
+  organization?: string;
+  title?: string;
+  isDiploma?: boolean;
+}
 
-export function EducationFormEdit({ initialData }: Props) {
+interface Props {
+  initialData?: EducationItem[];
+}
 
-  const [educations, setEducations] = useState<EducationItem[]>(initialData);
+export function EducationFormEdit({ initialData = [] }: Props) {
+  // Используем initialData как начальное состояние
+  const [education, setEducation] = useState<EducationItem[]>(
+    initialData.length > 0 ? initialData : [{ year: '', type: '', organization: '', title: '', isDiploma: false }]
+  );
 
-  // Синхронизируем с initialData
+  // Добавляем скрытое поле для количества элементов
+  const [educationCount, setEducationCount] = useState(education.length);
+
+  // Синхронизируем счетчик при изменении массива
   useEffect(() => {
-    if (initialData && initialData.length > 0) {
-      setEducations(initialData);
-    }
-  }, [initialData]);
+    setEducationCount(education.length);
+  }, [education]);
 
   const addEducation = () => {
-    setEducations([
-      ...educations,
-      { year: "", type: "", organization: "", title: "", isDiploma: false }
-    ]);
+    setEducation([...education, { year: '', type: '', organization: '', title: '', isDiploma: false }]);
   };
 
   const removeEducation = (index: number) => {
-    if (educations.length <= 1) {
-      setEducations([{ year: "", type: "", organization: "", title: "", isDiploma: false }]);
-    } else {
-      const newEducations = [...educations];
-      newEducations.splice(index, 1);
-      setEducations(newEducations);
+    if (education.length > 1) {
+      const newEducation = [...education];
+      newEducation.splice(index, 1);
+      setEducation(newEducation);
     }
   };
 
-console.log(educations)
+  const updateEducation = (index: number, field: keyof EducationItem, value: any) => {
+    const newEducation = [...education];
+    newEducation[index] = {
+      ...newEducation[index],
+      [field]: field === 'isDiploma' ? Boolean(value) : value,
+    };
+    setEducation(newEducation);
+  };
+
+  // Проверяем данные
+  console.log('🎓 EducationFormEdit initialData:', initialData);
+  console.log('🎓 EducationFormEdit education state:', education);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
-          Образование и сертификации
-        </label>
-        <span className="text-xs text-gray-500">
-          {educations.filter(e => e.year && e.type && e.organization && e.title).length} заполненных
-        </span>
-      </div>
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-gray-800">Образование и квалификация</h2>
       
-      <div className="space-y-4">
-        {educations.map((edu, index) => (
-          <div key={index} className="relative p-4 border border-gray-300 rounded-lg bg-gray-50">
-            {/* Кнопка удаления */}
-            {educations.length > 1 && (
+      {/* Скрытое поле для количества элементов - ОЧЕНЬ ВАЖНО! */}
+      <input 
+        type="hidden" 
+        name="education_count" 
+        value={educationCount} 
+      />
+      
+      {education.map((item, index) => (
+        <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-medium text-gray-700">Образование #{index + 1}</h3>
+            {education.length > 1 && (
               <button
                 type="button"
                 onClick={() => removeEducation(index)}
-                className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-600"
-                title="Удалить запись"
+                className="text-sm text-red-600 hover:text-red-800"
               >
-                ✕
+                Удалить
               </button>
             )}
-
-            {/* ПОЛЯ ФОРМЫ С ДЕЙСТВИТЕЛЬНЫМИ ДАННЫМИ ИЗ БД */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Год */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Год получения документа
-                </label>
-                <input
-                  type="text"
-                  name={`education[${index}][year]`}
-                  defaultValue={edu.year}
-                  placeholder="2023"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#5858E2] focus:ring-1 focus:ring-[#5858E2]"
-                />
-              </div>
-
-              {/* Тип документа */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Тип образования
-                </label>
-                <select
-                  name={`education[${index}][type]`}
-                  defaultValue={edu.type}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#5858E2] focus:ring-1 focus:ring-[#5858E2]"
-                >
-                  <option value="">Выберите тип...</option>
-                  <option value="диплом">Диплом</option>
-                  <option value="сертификат">Сертификат</option>
-                  <option value="удостоверение">Удостоверение</option>
-            
-                </select>
-              </div>
-
-              {/* Организация */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Название организации, выдавшей документ
-                </label>
-                <input
-                  type="text"
-                  name={`education[${index}][organization]`}
-                  defaultValue={edu.organization}
-                  placeholder="МГУ им. М.В. Ломоносова"
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#5858E2] focus:ring-1 focus:ring-[#5858E2]"
-                />
-              </div>
-
-              {/* Название документа */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Название документа
-                </label>
-                <input
-                  type="text"
-                  name={`education[${index}][title]`}
-                  defaultValue={edu.title}
-                  placeholder="Психология, клиническая психология..."
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#5858E2] focus:ring-1 focus:ring-[#5858E2]"
-                />
-              </div>
-            </div>
-
-            {/* Чекбокс диплома */}
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name={`education[${index}][isDiploma]`}
-                  defaultChecked={edu.isDiploma}
-                  className="h-4 w-4 text-[#5858E2] rounded focus:ring-[#5858E2]"
-                />
-                <span className="text-sm font-medium text-gray-700">
-                  Это диплом
-                </span>
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Год
               </label>
+              <input
+                type="text"
+                name={`education[${index}][year]`}
+                value={item.year || ''}
+                onChange={(e) => updateEducation(index, 'year', e.target.value)}
+                placeholder="2023"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Тип
+              </label>
+              <select
+                name={`education[${index}][type]`}
+                value={item.type || ''}
+                onChange={(e) => updateEducation(index, 'type', e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+              >
+                <option value="">Выберите тип</option>
+                <option value="диплом">Диплом</option>
+                <option value="сертификат">Сертификат</option>
+                <option value="удостоверение">Удостоверение</option>
+                <option value="курс">Курс</option>
+              </select>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Кнопка добавления */}
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Организация
+            </label>
+            <input
+              type="text"
+              name={`education[${index}][organization]`}
+              value={item.organization || ''}
+              onChange={(e) => updateEducation(index, 'organization', e.target.value)}
+              placeholder="Название университета, института, организации..."
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Название программы / специальности
+            </label>
+            <input
+              type="text"
+              name={`education[${index}][title]`}
+              value={item.title || ''}
+              onChange={(e) => updateEducation(index, 'title', e.target.value)}
+              placeholder="Психология, Клиническая психология..."
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              name={`education[${index}][isDiploma]`}
+              id={`isDiploma-${index}`}
+              checked={item.isDiploma || false}
+              onChange={(e) => updateEducation(index, 'isDiploma', e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 text-[#5858E2] focus:ring-[#5858E2]"
+            />
+            <label htmlFor={`isDiploma-${index}`} className="text-sm text-gray-700">
+              Основной диплом психолога
+            </label>
+          </div>
+        </div>
+      ))}
+      
       <button
         type="button"
         onClick={addEducation}
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#5858E2] hover:text-[#4848d0] border border-[#5858E2] rounded-lg hover:bg-[#5858E2]/5 transition-colors"
+        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-gray-800 hover:border-gray-400 transition-colors"
       >
-        Добавить еще образование
+        + Добавить еще образование
       </button>
-
-      {/* Скрытое поле с количеством записей */}
-      <input
-        type="hidden"
-        name="education_count"
-        value={educations.length}
-      />
+      
+      <p className="text-sm text-gray-500">
+        Добавьте все дипломы, сертификаты и курсы психолога. Отметьте основной диплом.
+      </p>
     </div>
   );
 }

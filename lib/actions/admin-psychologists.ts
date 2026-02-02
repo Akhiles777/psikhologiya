@@ -502,42 +502,92 @@ export async function updatePsychologist(id: string, formData: FormData) {
     ? imagesStr.split("\n").map((s) => s.trim()).filter(Boolean) 
     : [];
   
-  // ОБРАБОТКА ОБРАЗОВАНИЯ
-  const educationCount = parseInt((formData.get("education_count") as string) || "0", 10);
+  // ОБРАБОТКА ОБРАЗОВАНИЯ - ИСПРАВЛЕННАЯ ВЕРСИЯ
   let education: EducationItem[] = [];
   
-  // Новый формат - поля формы
+  // Сначала пробуем получить данные из нового формата (поля формы)
+  const educationCount = parseInt((formData.get("education_count") as string) || "0", 10);
+  console.log(`🎓 Education count from form: ${educationCount}`);
+  
   for (let i = 0; i < educationCount; i++) {
-    const year = (formData.get(`education[${i}][year]`) as string)?.trim();
-    const type = (formData.get(`education[${i}][type]`) as string)?.trim();
-    const organization = (formData.get(`education[${i}][organization]`) as string)?.trim();
-    const title = (formData.get(`education[${i}][title]`) as string)?.trim();
+    const year = (formData.get(`education[${i}][year]`) as string)?.trim() || "";
+    const type = (formData.get(`education[${i}][type]`) as string)?.trim() || "";
+    const organization = (formData.get(`education[${i}][organization]`) as string)?.trim() || "";
+    const title = (formData.get(`education[${i}][title]`) as string)?.trim() || "";
     const isDiploma = formData.get(`education[${i}][isDiploma]`) === "on";
 
-    // Проверяем обязательные поля
-    if (year && type && organization && title) {
+    console.log(`📝 Education item ${i}:`, { year, type, organization, title, isDiploma });
+    
+    // Добавляем запись если есть хотя бы одно поле заполненное
+    if (year || type || organization || title) {
       education.push({
-        year,
-        type,
-        organization,
-        title,
+        year: year || "",
+        type: type || "",
+        organization: organization || "",
+        title: title || "",
         isDiploma
       });
+      console.log(`✅ Added education item ${i}`);
     }
   }
   
-  // Старый формат - JSON поле (используем только если новый формат не дал результатов)
+  console.log(`🎓 Education from new format: ${education.length} items`);
+  
+  // Если новый формат не дал результатов, пробуем старое JSON поле
   if (education.length === 0) {
+    console.log("🔄 Trying old JSON format...");
     const educationStr = (formData.get("education") as string)?.trim();
     if (educationStr) {
       try {
+        console.log("📄 Education string:", educationStr.substring(0, 100) + "...");
         const parsedEducation = JSON.parse(educationStr);
-        education = Array.isArray(parsedEducation) ? parsedEducation : [];
-      } catch {
+        console.log("✅ Parsed education:", parsedEducation);
+        
+        if (Array.isArray(parsedEducation)) {
+          education = parsedEducation.map(item => ({
+            year: item?.year || "",
+            type: item?.type || "",
+            organization: item?.organization || "",
+            title: item?.title || "",
+            isDiploma: Boolean(item?.isDiploma)
+          })).filter(item => item.year || item.type || item.organization || item.title);
+        }
+        console.log(`🎓 Education from old format: ${education.length} items`);
+      } catch (error) {
+        console.error("❌ Error parsing education JSON:", error);
         education = [];
+      }
+    } else {
+      console.log("📭 No education string found");
+    }
+  }
+
+  // Если все еще пусто, пробуем альтернативные имена полей
+  if (education.length === 0) {
+    console.log("🔄 Trying alternative field names...");
+    const altEducationStr = (formData.get("educationJson") as string)?.trim() || 
+                           (formData.get("education_data") as string)?.trim();
+    
+    if (altEducationStr) {
+      try {
+        const parsed = JSON.parse(altEducationStr);
+        if (Array.isArray(parsed)) {
+          education = parsed.map(item => ({
+            year: item?.year || "",
+            type: item?.type || "",
+            organization: item?.organization || "",
+            title: item?.title || "",
+            isDiploma: Boolean(item?.isDiploma)
+          })).filter(item => item.year || item.type || item.organization || item.title);
+        }
+        console.log(`🎓 Education from alternative field: ${education.length} items`);
+      } catch (error) {
+        console.error("❌ Error parsing alternative education JSON:", error);
       }
     }
   }
+
+  console.log(`🎯 Final education data:`, education);
 
   try {
     // Обновляем данные в базе
@@ -560,10 +610,12 @@ export async function updatePsychologist(id: string, formData: FormData) {
         contactInfo,
         isPublished,
         images,
-        education,
+        education: education.length > 0 ? education : [], // Всегда сохраняем как массив
       },
     });
+    console.log("✅ Psychologist updated successfully");
   } catch (err) {
+    console.error("💥 Update error:", err);
     if (isDbSyncError(err)) redirect("/admin/psychologists?error=db_sync");
     throw err;
   }

@@ -56,7 +56,7 @@ model Psychologist {
   price                Int
   contactInfo          String   @db.Text
   isPublished          Boolean  @default(false)
-  education            Json     // [{ year, type, organization, title, isDiploma }]
+  education            Json?   @db.Json     // [{ year, type, organization, title, isDiploma }]
   images               String[]
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

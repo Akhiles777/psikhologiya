@@ -50,6 +50,8 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
   const { slug } = await params;
   if (!prisma) notFound();
   let psychologist: Awaited<ReturnType<typeof prisma.psychologist.findUnique>>;
+
+
   try {
     psychologist = await prisma.psychologist.findUnique({
       where: { slug },
@@ -77,6 +79,8 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
 
   const education = (psychologist.education as EducationItem[] | null) ?? [];
   const mainParadigm = (psychologist.mainParadigm ?? []) as string[];
+
+  console.log(psychologist)
 
   console.log(education)
 
