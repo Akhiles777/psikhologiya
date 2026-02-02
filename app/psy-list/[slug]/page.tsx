@@ -78,6 +78,8 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
   const education = (psychologist.education as EducationItem[] | null) ?? [];
   const mainParadigm = (psychologist.mainParadigm ?? []) as string[];
 
+  console.log(education)
+
   return (
    <>
   <script
