@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui";
 import { buildCatalogUrl } from "@/lib/url";
 import { normalizeImageSrc, isExternalImageSrc } from "@/lib/image-src";
 import type { PsychologistCatalogItem } from "@/types/catalog";
+import { useRouter } from "next/navigation";
 
 type Props = {
   items: PsychologistCatalogItem[];
@@ -22,6 +23,9 @@ type Props = {
  */
 export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: Props) {
   
+  
+  const router = useRouter()
+
   const [selected, setSelected] = useState<PsychologistCatalogItem | null>(null);
 
   const openModal = useCallback((p: PsychologistCatalogItem) => {
@@ -34,8 +38,13 @@ export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: P
 
   const nextUrl = nextCursor != null ? buildCatalogUrl(searchParams, { cursor: nextCursor }) : null;
 
+  function routerClick()  {
+
+    router.push('/')
+  }
+
   return (
-    <div className="flex min-h-[60vh] flex-col gap-4 lg:flex-row lg:gap-8">
+    <div className="flex min-h-[60vh] ml-0 md:ml-15 flex-col gap-4 lg:flex-row lg:gap-8">
       {/* УДАЛИТЬ ЭТО: <CatalogSidebar initialParams={searchParams} /> */}
       <div className="min-w-0 flex-1">
         {items.length === 0 ? (

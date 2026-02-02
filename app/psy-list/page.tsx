@@ -116,7 +116,7 @@ export default async function PsyListPage({ searchParams }: PageProps) {
             <div className="flex gap-6">
               {/* Десктопная версия фильтров - СКРЫТА НА МОБИЛЬНЫХ */}
               <div className="hidden sm:block w-64 shrink-0">
-                <div className="sticky top-6">
+                <div id="list" className="sticky top-6">
                   <CatalogSidebar initialParams={params} />
                 </div>
               </div>
@@ -127,11 +127,11 @@ export default async function PsyListPage({ searchParams }: PageProps) {
                 {/* Геометрический фон */}
                 <div className="absolute inset-0 -z-10">
                   <div className="absolute top-0 left-0 h-32 w-32 border-2 border-gray-100 rounded-2xl opacity-30"></div>
-                  <div className="absolute bottom-0 right-0 h-32 w-32 border-2 border-gray-100 rounded-2xl opacity-30"></div>
+                  <div  className="absolute bottom-0 right-0 h-32 w-32 border-2 border-gray-100 rounded-2xl opacity-30"></div>
                 </div>
                 
                 {/* Основной контент */}
-                <div className="relative bg-white rounded-2xl border border-gray-200/50">
+                <div  className="relative bg-white rounded-2xl border border-gray-200/50">
                   <div className="p-4 sm:p-6">
                     <CatalogWithModal
                       items={items}

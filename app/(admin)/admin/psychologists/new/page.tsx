@@ -43,7 +43,7 @@ export default async function NewPsychologistPage({
 
       <form action={createPsychologist} className="mt-8 space-y-6">
         <div>
-          <label className="block text-sm font-medium text-foreground">ФИО *</label>
+          <label className="block text-sm font-medium text-foreground">ФИО </label>
           <input
             type="text"
             name="fullName"
@@ -52,7 +52,7 @@ export default async function NewPsychologistPage({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground">Slug (адрес страницы)</label>
+          <label className="block text-sm font-medium text-foreground">URL адрес страницы</label>
           <input
             type="text"
             name="slug"

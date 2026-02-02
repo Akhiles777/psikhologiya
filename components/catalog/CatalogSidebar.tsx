@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useTransition, useEffect } from "react";
+import { useCallback, useTransition, useState, useEffect } from "react";
 import { buildCatalogUrl, searchParamsToObject } from "@/lib/url";
 import { PARADIGM_OPTIONS } from "@/lib/paradigm-options";
+import { RefreshCw, X } from "lucide-react";
 
 const LEVELS: (1 | 2 | 3)[] = [1, 2, 3];
+const CURRENT_YEAR = 2026;
 
 type Props = {
   initialParams: Record<string, string | string[] | undefined>;
@@ -27,6 +29,12 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     [searchParams, initialParams]
   );
 
+  // Получаем начальные значения для возраста
+  const getAgeValue = (key: 'ageMin' | 'ageMax'): string => {
+    const value = get(key);
+    return value || "";
+  };
+
   const apply = useCallback(
     (updates: Record<string, string | string[]>) => {
       const current = searchParams ? searchParamsToObject(searchParams) : {};
@@ -40,10 +48,34 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     [router, searchParams, onFormSubmit]
   );
 
+  // Функция сброса всех фильтров
+  const resetFilters = () => {
+    startTransition(() => {
+      router.push("/psy-list#list"); // Просто переходим на чистый каталог
+      if (onFormSubmit) {
+        onFormSubmit();
+      }
+    });
+  };
+
+  // Проверяем есть ли активные фильтры
+  const hasActiveFilters = () => {
+    const params = [
+      'priceMin', 'priceMax', 'city', 'gender', 'paradigms', 'levels', 
+      'sortBy', 'sortOrder', 'ageMin', 'ageMax'
+    ];
+    return params.some(param => {
+      const value = get(param);
+      return value !== "" && value !== undefined && value !== null;
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
+    
+    // Базовые фильтры
     const priceMin = (formData.get("priceMin") as string)?.trim() ?? "";
     const priceMax = (formData.get("priceMax") as string)?.trim() ?? "";
     const city = (formData.get("city") as string)?.trim() ?? "";
@@ -51,7 +83,13 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     const paradigm = (formData.get("paradigm") as string)?.trim() ?? "";
     const level = (formData.get("level") as string)?.trim() ?? "";
     const sort = (formData.get("sort") as string)?.trim() ?? "createdAt-desc";
+    
+    // Возрастные фильтры
+    const ageMin = (formData.get("ageMin") as string)?.trim() ?? "";
+    const ageMax = (formData.get("ageMax") as string)?.trim() ?? "";
+    
     const [sortBy, sortOrder] = sort.includes("-") ? sort.split("-") : [sort, "desc"];
+    
     apply({
       priceMin,
       priceMax,
@@ -59,6 +97,8 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
       gender,
       paradigms: paradigm ? [paradigm] : [],
       levels: level ? [level] : [],
+      ageMin,
+      ageMax,
       sortBy: sortBy || "createdAt",
       sortOrder: sortOrder || "desc",
       cursor: "",
@@ -71,102 +111,211 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
   const sortOrder = get("sortOrder") || "desc";
   const sortValue = `${sortBy}-${sortOrder}`;
 
+  // Получаем значения для возраста
+  const ageMinValue = getAgeValue('ageMin');
+  const ageMaxValue = getAgeValue('ageMax');
+
   return (
-    <aside className="w-full shrink-0 lg:w-52">
-      {/* Удаляем details/summary для десктопа, оставляем как есть */}
+    <aside className="w-full  shrink-0 lg:w-72">
       <div className="rounded-xl border border-neutral-200 bg-white">
         <div className="p-4">
-          <h3 className="mb-4 text-lg font-bold text-foreground">Фильтры</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Заголовок с кнопкой сброса */}
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-bold text-foreground">Фильтры</h3>
+            {hasActiveFilters() && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                disabled={isPending}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+              >
+                <RefreshCw className="h-3 w-3" />
+                Сбросить
+              </button>
+            )}
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Цена */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-dark">Цена (₽)</label>
+              <label className="mb-2 block text-sm font-medium text-neutral-dark">Цена (₽)</label>
               <div className="flex gap-2">
-                <input
-                  type="number"
-                  name="priceMin"
-                  min={0}
-                  defaultValue={get("priceMin")}
-                  placeholder="от"
-                  className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
-                />
-                <input
-                  type="number"
-                  name="priceMax"
-                  min={0}
-                  defaultValue={get("priceMax")}
-                  placeholder="до"
-                  className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
-                />
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    name="priceMin"
+                    min={0}
+                    defaultValue={get("priceMin")}
+                    placeholder="от"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    name="priceMax"
+                    min={0}
+                    defaultValue={get("priceMax")}
+                    placeholder="до"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Возраст */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-dark">Город</label>
+              <label className="mb-2 block text-sm font-medium text-neutral-dark">Возраст психолога</label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    name="ageMin"
+                    min={0}
+                    max={100}
+                    defaultValue={ageMinValue}
+                    placeholder="от"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    name="ageMax"
+                    min={0}
+                    max={100}
+                    defaultValue={ageMaxValue}
+                    placeholder="до"
+                    className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            
+            </div>
+
+            {/* Город */}
+            <div>
+              <label className="mb-2 block text-sm font-medium text-neutral-dark">Город</label>
               <input
                 type="text"
                 name="city"
                 defaultValue={get("city")}
-                placeholder="Москва"
-                className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+                placeholder="Москва, Санкт-Петербург..."
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               />
             </div>
+
+            {/* Пол */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-dark">Пол</label>
+              <label className="mb-2 block text-sm font-medium text-neutral-dark">Пол</label>
               <select
                 name="gender"
                 defaultValue={get("gender") || ""}
-                className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               >
                 <option value="">Не важно</option>
-                <option value="М">М</option>
-                <option value="Ж">Ж</option>
+                <option value="М">Мужской</option>
+                <option value="Ж">Женский</option>
               </select>
             </div>
+
+            {/* Метод */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-dark">Метод</label>
+              <label className="mb-2 block text-sm font-medium text-neutral-dark">Метод / Подход</label>
               <select
                 name="paradigm"
                 defaultValue={selectedParadigm || ""}
-                className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               >
                 <option value="">Не важно</option>
                 {PARADIGM_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
                 ))}
               </select>
             </div>
+
+            {/* Уровень сертификации */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-dark">Уровень</label>
+              <label className="mb-2 block text-sm font-medium text-neutral-dark">Уровень сертификации</label>
               <select
                 name="level"
                 defaultValue={selectedLevel || ""}
-                className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               >
-                <option value="">Любой</option>
+                <option value="">Любой уровень</option>
                 {LEVELS.map((l) => (
-                  <option key={l} value={String(l)}>{l} уровень</option>
+                  <option key={l} value={String(l)}>
+                    {l} уровень
+                  </option>
                 ))}
               </select>
             </div>
+
+            {/* Сортировка */}
             <div>
-              <label className="mb-1 block text-xs font-medium text-neutral-dark">Сортировка</label>
+              <label className="mb-2 block text-sm font-medium text-neutral-dark">Сортировка</label>
               <select
                 name="sort"
                 defaultValue={sortValue}
-                className="w-full rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
               >
                 <option value="createdAt-desc">Сначала новые</option>
                 <option value="price-asc">Дешевле</option>
                 <option value="price-desc">Дороже</option>
-                <option value="certificationLevel-desc">По уровню</option>
+                <option value="certificationLevel-desc">По уровню (высший)</option>
+                <option value="age-asc">Моложе</option>
+                <option value="age-desc">Старше</option>
               </select>
             </div>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="w-full rounded-xl bg-[#5858E2] py-2.5 text-sm font-semibold text-white hover:bg-[#4848d0] disabled:opacity-60"
-            >
-              {isPending ? "Загрузка…" : "Найти"}
-            </button>
+
+            {/* Кнопки действий */}
+            <div className="space-y-3">
+              <button
+                type="submit"
+                disabled={isPending}
+                className="w-full rounded-xl bg-[#5858E2] py-3 text-sm font-semibold text-white hover:bg-[#4848d0] disabled:opacity-60"
+              >
+                {isPending ? "Применяем фильтры..." : "Применить фильтры"}
+              </button>
+              
+              {hasActiveFilters() && (
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  disabled={isPending}
+                  className="w-full rounded-xl border border-neutral-300 bg-white py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-60"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <X className="h-4 w-4" />
+                    Сбросить все фильтры
+                  </span>
+                </button>
+              )}
+            </div>
+
+            {/* Индикация активных фильтров */}
+            {hasActiveFilters() && (
+              <div className="rounded-lg bg-blue-50 p-3">
+                <p className="text-xs font-medium text-blue-800">
+                  Активные фильтры: {
+                    [
+                      get("priceMin") && `Цена от ${get("priceMin")}`,
+                      get("priceMax") && `Цена до ${get("priceMax")}`,
+                      get("city") && `Город: ${get("city")}`,
+                      get("gender") && `Пол: ${get("gender") === "М" ? "Мужской" : "Женский"}`,
+                      selectedParadigm && `Метод: ${PARADIGM_OPTIONS.find(o => o.value === selectedParadigm)?.label || selectedParadigm}`,
+                      selectedLevel && `Уровень: ${selectedLevel}`,
+                      ageMinValue && `Возраст от ${ageMinValue}`,
+                      ageMaxValue && `Возраст до ${ageMaxValue}`,
+                    ]
+                      .filter(Boolean)
+                      .join(", ")
+                  }
+                </p>
+              </div>
+            )}
           </form>
         </div>
       </div>
