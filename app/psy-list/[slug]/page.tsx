@@ -62,6 +62,8 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
   }
   if (!psychologist) notFound();
 
+  console.log(psychologist)
+
   const pageUrl = canonicalUrl(`/psy-list/${slug}`);
   const firstImage = psychologist.images[0];
   const imageUrl =
@@ -80,9 +82,9 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
   const education = (psychologist.education as EducationItem[] | null) ?? [];
   const mainParadigm = (psychologist.mainParadigm ?? []) as string[];
 
-  console.log(psychologist)
 
-  console.log(education)
+
+
 
   return (
    <>

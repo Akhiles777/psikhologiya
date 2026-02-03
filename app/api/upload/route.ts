@@ -6,8 +6,8 @@ import path from "path";
 import { randomBytes } from "crypto";
 
 // Для Docker: используем переменную окружения или путь по умолчанию
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
-const PUBLIC_URL_PREFIX = process.env.PUBLIC_URL_PREFIX || "/api/uploads";
+const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads"); // ← ИЗМЕНИТЕ
+const PUBLIC_URL_PREFIX = "/uploads"; // ← ИЗМЕНИТЕ
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB (увеличил для гибкости)
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
