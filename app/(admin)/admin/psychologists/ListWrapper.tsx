@@ -11,9 +11,12 @@ export default async function PsychologistsListWrapper({
   const list = await getPsychologistsList();
 
   return (
-    <PsychologistsListPage
+   <div>
+     <PsychologistsListPage
       initialList={list}
       searchParams={params}
     />
+   </div>
+   
   );
 }
