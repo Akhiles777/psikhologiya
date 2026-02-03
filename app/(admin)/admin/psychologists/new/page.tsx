@@ -1,3 +1,4 @@
+
 import { EducationForm } from "@/components/admin/EducationForm";
 import Link from "next/link";
 import { createPsychologist } from "@/lib/actions/admin-psychologists";

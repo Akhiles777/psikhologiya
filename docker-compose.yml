@@ -1,24 +1,34 @@
-# PostgreSQL для разработки и продакшена «Давай вместе»
-# Запуск: docker compose up -d
-# Остановка: docker compose down
+version: '3.8'
 
 services:
-  db:
-    image: postgres:16-alpine
-    restart: unless-stopped
+  postgres:
+    image: postgres:15-alpine
+    container_name: psychologist-db
     environment:
-      POSTGRES_USER: davay
-      POSTGRES_PASSWORD: davay_secret
-      POSTGRES_DB: davay_vmeste
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${DB_USER:-psychologist}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-psychologist_password}
+      POSTGRES_DB: ${DB_NAME:-psychologist_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U davay -d davay_vmeste"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: psychologist-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://psychologist:psychologist_password@postgres:5432/psychologist_db}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_volume:/app/uploads
+    depends_on:
+      - postgres
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  uploads_volume:
