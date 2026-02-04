@@ -6,19 +6,18 @@
 export function normalizeImageSrc(src: string): string {
   if (!src || !src.trim()) return "";
   const s = src.trim();
+  
+  // Для внешних URL - возвращаем как есть
   if (s.startsWith("http://") || s.startsWith("https://")) {
-    try {
-      const u = new URL(s);
-      return u.pathname;
-    } catch {
-      return s;
-    }
+    return s;
   }
+  
+  // Для локальных путей
   return s.startsWith("/") ? s : "/" + s;
 }
 
-/** true, если src — внешний URL (другой домен), для unoptimized. */
 export function isExternalImageSrc(src: string): boolean {
   if (!src || !src.trim()) return false;
-  return src.trim().startsWith("http");
+  const s = src.trim();
+  return s.startsWith("http://") || s.startsWith("https://");
 }

@@ -431,7 +431,11 @@ export async function createPsychologist(formData: FormData) {
     }
 
     // Также обрабатываем текстовое поле с URL изображений
-    const imagesUrlsStr = (formData.get("imageUrls") as string)?.trim();
+   const imagesUrlsStr = (formData.get("imageUrls") as string)?.trim();
+const imageUrls2 = (formData.get("imageUrls") as string)?.trim(); // Для отладки
+console.log('📸 imageUrls:', imagesUrlsStr);
+console.log('📸 imageUrls2:', imageUrls2);
+
     const imageUrls = imagesUrlsStr 
       ? imagesUrlsStr.split("\n").map((s) => s.trim()).filter(Boolean) 
       : [];
@@ -573,15 +577,25 @@ export async function updatePsychologist(id: string, formData: FormData) {
     }
 
     // Обработка текстового поля с URL изображений
-    const imagesUrlsStr = (formData.get("imageUrls") as string)?.trim();
-    const imageUrls = imagesUrlsStr 
-      ? imagesUrlsStr.split("\n").map((s) => s.trim()).filter(Boolean) 
-      : [];
+// Только URL из текстового поля (не скачиваем!)
+const imagesUrlsStr = (formData.get("imageUrls") as string)?.trim();
+const imageUrls2 = (formData.get("imageUrls") as string)?.trim(); // Для отладки
+console.log('📸 imageUrls:', imagesUrlsStr);
+console.log('📸 imageUrls2:', imageUrls2);
 
-    console.log(`🖼️ Файлов: ${uploadedImagePaths.length}, URL: ${imageUrls.length}`);
+const imageUrls = imagesUrlsStr 
+  ? imagesUrlsStr.split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      // Фильтруем только валидные URL (не локальные пути)
+      .filter(url => url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/'))
+  : [];
 
-    // Объединяем загруженные файлы и URL
-    const allImages = [...uploadedImagePaths, ...imageUrls];
+console.log(`🖼️ Загруженных файлов: ${uploadedImagePaths.length}, Внешних URL: ${imageUrls.length}`);
+
+// Объединяем: локальные файлы + внешние ссылки
+const allImages = [...uploadedImagePaths, ...imageUrls];
+
     console.log(`🎯 Всего изображений: ${allImages.length}`);
     
     // ОБРАБОТКА ОБРАЗОВАНИЯ - КОРРЕКТНАЯ ВЕРСИЯ
