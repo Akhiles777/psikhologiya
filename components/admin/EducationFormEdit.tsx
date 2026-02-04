@@ -12,21 +12,27 @@ export interface EducationItem {
 
 interface Props {
   initialData?: EducationItem[];
+  onEducationUpdate?: (education: EducationItem[]) => void;
 }
 
-export function EducationFormEdit({ initialData = [] }: Props) {
+export function EducationFormEdit({ initialData = [], onEducationUpdate }: Props) {
   // Используем initialData как начальное состояние
   const [education, setEducation] = useState<EducationItem[]>(
     initialData.length > 0 ? initialData : [{ year: '', type: '', organization: '', title: '', isDiploma: false }]
   );
 
-  // Добавляем скрытое поле для количества элементов
-  const [educationCount, setEducationCount] = useState(education.length);
-
   // Синхронизируем счетчик при изменении массива
   useEffect(() => {
-    setEducationCount(education.length);
-  }, [education]);
+    if (onEducationUpdate) {
+      onEducationUpdate(education);
+    }
+    
+    // Обновляем скрытое поле с JSON-данными
+    const hiddenInput = document.querySelector('input[name="education"]');
+    if (hiddenInput) {
+      (hiddenInput as HTMLInputElement).value = JSON.stringify(education);
+    }
+  }, [education, onEducationUpdate]);
 
   const addEducation = () => {
     setEducation([...education, { year: '', type: '', organization: '', title: '', isDiploma: false }]);
@@ -57,12 +63,7 @@ export function EducationFormEdit({ initialData = [] }: Props) {
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-800">Образование и квалификация</h2>
       
-      {/* Скрытое поле для количества элементов - ОЧЕНЬ ВАЖНО! */}
-      <input 
-        type="hidden" 
-        name="education_count" 
-        value={educationCount} 
-      />
+      {/* УДАЛИЛИ СКРЫТОЕ ПОЛЕ JSON ЗДЕСЬ - оно будет в родительском компоненте */}
       
       {education.map((item, index) => (
         <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
@@ -86,7 +87,7 @@ export function EducationFormEdit({ initialData = [] }: Props) {
               </label>
               <input
                 type="text"
-                name={`education[${index}][year]`}
+                name={`education_year_${index}`}
                 value={item.year || ''}
                 onChange={(e) => updateEducation(index, 'year', e.target.value)}
                 placeholder="2023"
@@ -99,7 +100,7 @@ export function EducationFormEdit({ initialData = [] }: Props) {
                 Тип
               </label>
               <select
-                name={`education[${index}][type]`}
+                name={`education_type_${index}`}
                 value={item.type || ''}
                 onChange={(e) => updateEducation(index, 'type', e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
@@ -119,7 +120,7 @@ export function EducationFormEdit({ initialData = [] }: Props) {
             </label>
             <input
               type="text"
-              name={`education[${index}][organization]`}
+              name={`education_organization_${index}`}
               value={item.organization || ''}
               onChange={(e) => updateEducation(index, 'organization', e.target.value)}
               placeholder="Название университета, института, организации..."
@@ -133,7 +134,7 @@ export function EducationFormEdit({ initialData = [] }: Props) {
             </label>
             <input
               type="text"
-              name={`education[${index}][title]`}
+              name={`education_title_${index}`}
               value={item.title || ''}
               onChange={(e) => updateEducation(index, 'title', e.target.value)}
               placeholder="Психология, Клиническая психология..."
@@ -144,7 +145,7 @@ export function EducationFormEdit({ initialData = [] }: Props) {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              name={`education[${index}][isDiploma]`}
+              name={`education_isDiploma_${index}`}
               id={`isDiploma-${index}`}
               checked={item.isDiploma || false}
               onChange={(e) => updateEducation(index, 'isDiploma', e.target.checked)}

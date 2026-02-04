@@ -516,6 +516,12 @@ export async function updatePsychologist(id: string, formData: FormData) {
     const formKeys = Array.from(formData.keys());
     console.log('🔍 Ключи формы:', formKeys);
     
+    // Выводим все значения для отладки
+    formKeys.forEach(key => {
+      const value = formData.get(key);
+      console.log(`🔍 ${key}:`, value);
+    });
+    
     const fullName = (formData.get("fullName") as string)?.trim();
     const slug = (formData.get("slug") as string)?.trim().toLowerCase().replace(/\s+/g, "-");
     if (!fullName || !slug) throw new Error("Укажите ФИО и slug");
@@ -547,7 +553,7 @@ export async function updatePsychologist(id: string, formData: FormData) {
     const publishedVal = formData.getAll("isPublished");
     const isPublished = publishedVal[publishedVal.length - 1] === "on";
     
-    // ТАК ЖЕ КАК В createPsychologist!
+    // Обработка изображений
     const imageFiles = formData.getAll("images") as File[];
     const uploadedImagePaths: string[] = [];
 
@@ -566,7 +572,7 @@ export async function updatePsychologist(id: string, formData: FormData) {
       }
     }
 
-    // Также обрабатываем текстовое поле с URL изображений
+    // Обработка текстового поля с URL изображений
     const imagesUrlsStr = (formData.get("imageUrls") as string)?.trim();
     const imageUrls = imagesUrlsStr 
       ? imagesUrlsStr.split("\n").map((s) => s.trim()).filter(Boolean) 
@@ -574,25 +580,76 @@ export async function updatePsychologist(id: string, formData: FormData) {
 
     console.log(`🖼️ Файлов: ${uploadedImagePaths.length}, URL: ${imageUrls.length}`);
 
-    // Объединяем загруженные файлы и URL - ТОЧНО КАК В createPsychologist!
+    // Объединяем загруженные файлы и URL
     const allImages = [...uploadedImagePaths, ...imageUrls];
     console.log(`🎯 Всего изображений: ${allImages.length}`);
     
-    // Обработка образования
+    // ОБРАБОТКА ОБРАЗОВАНИЯ - КОРРЕКТНАЯ ВЕРСИЯ
     const educationStr = (formData.get("education") as string)?.trim();
     let education: any[] = [];
-    if (educationStr) {
+
+    console.log('📚 Raw education string from form:', educationStr ? 'present' : 'empty', educationStr);
+
+    if (educationStr && educationStr !== 'undefined' && educationStr !== 'null' && educationStr !== '[]') {
       try {
-        education = JSON.parse(educationStr);
-        if (!Array.isArray(education)) education = [];
-      } catch {
+        // Пробуем парсить как JSON
+        const parsed = JSON.parse(educationStr);
+        console.log('📚 Parsed education (raw):', parsed);
+        console.log('📚 Is array?', Array.isArray(parsed));
+        
+        if (Array.isArray(parsed)) {
+          // Фильтруем валидные записи об образовании
+          education = parsed.filter(item => {
+            if (!item || typeof item !== 'object') return false;
+            
+            // Проверяем оба формата структур
+            const hasNewFormat = item.year || item.type || item.organization || item.title;
+            const hasOldFormat = item.institution || item.specialty || item.year || item.degree;
+            
+            const hasData = hasNewFormat || hasOldFormat;
+            console.log('📚 Education item:', item, 'hasData:', hasData);
+            return hasData;
+          });
+          
+          // Нормализуем данные - СОХРАНЯЕМ В ТОМ ЖЕ ФОРМАТЕ, ЧТО И ПРИХОДИТ
+          // Не преобразуем в другую структуру!
+          education = education.map(item => {
+            // Если приходит новая структура (year, type, organization, title, isDiploma)
+            if (item.year || item.type || item.organization || item.title) {
+              return {
+                year: (item.year || '').toString().trim(),
+                type: (item.type || '').toString().trim(),
+                organization: (item.organization || '').toString().trim(),
+                title: (item.title || '').toString().trim(),
+                isDiploma: Boolean(item.isDiploma)
+              };
+            } 
+            // Если приходит старая структура (institution, specialty, year, degree)
+            else if (item.institution || item.specialty || item.year || item.degree) {
+              return {
+                institution: (item.institution || '').toString().trim(),
+                specialty: (item.specialty || '').toString().trim(),
+                year: (item.year || '').toString().trim(),
+                degree: (item.degree || '').toString().trim()
+              };
+            }
+            // Если непонятная структура, возвращаем как есть
+            return item;
+          });
+        }
+      } catch (error) {
+        console.error('❌ Ошибка парсинга education JSON:', error);
+        console.error('❌ Problematic string:', educationStr);
         education = [];
       }
     }
 
+    console.log(`📚 Final education array: ${JSON.stringify(education)}`);
+    console.log(`📚 Number of education records: ${education.length}`);
+
     console.log("💾 Обновление в БД...");
     
-    // Подготовка данных для обновления - УБИРАЕМ existingImages!
+    // Подготовка данных для обновления
     const updateData: any = {
       fullName,
       slug,
@@ -609,15 +666,13 @@ export async function updatePsychologist(id: string, formData: FormData) {
       price,
       contactInfo,
       isPublished,
-      education: education.length > 0 ? education : [],
+      images: allImages, // Всегда обновляем изображения
+      education: education, // Обновляем образование
     };
-    
-    // Всегда обновляем images, даже если пусто
-    updateData.images = allImages;
-    console.log(`✅ Изображения будут сохранены в БД: ${allImages.length} шт.`);
     
     console.log('📦 Данные для обновления:', {
       ...updateData,
+      education: education, // Явно показываем образование в логах
       images: allImages,
     });
 
@@ -629,6 +684,7 @@ export async function updatePsychologist(id: string, formData: FormData) {
     console.log("✅ Психолог успешно обновлен");
     console.log(`✅ ID обновленной записи: ${result.id}`);
     console.log(`✅ Количество изображений в БД: ${result.images?.length || 0}`);
+    console.log(`✅ Образование в БД: ${JSON.stringify(result.education) || 'empty'}`);
 
   } catch (err) {
     console.error("💥 Ошибка обновления психолога:", err);

@@ -4,13 +4,10 @@ import { EducationForm } from "@/components/admin/EducationForm";
 import Link from "next/link";
 import { createPsychologist } from "@/lib/actions/admin-psychologists";
 import { PARADIGM_OPTIONS } from "@/lib/paradigm-options";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-/**
- * Форма добавления психолога
- */
-export default function NewPsychologistPage() {
+function NewPsychologistFormContent() {
   const searchParams = useSearchParams();
   const errorCode = searchParams.get("error") || "";
   
@@ -101,10 +98,11 @@ export default function NewPsychologistPage() {
     try {
       await createPsychologist(formData);
     } 
-     catch{
-      console.log('Успешно')
-     }
+    catch {
+      console.log('Успешно');
     }
+  };
+
   // Очистка временных URL при размонтировании
   useEffect(() => {
     return () => {
@@ -114,7 +112,7 @@ export default function NewPsychologistPage() {
         }
       });
     };
-  }, []);
+  }, [urls]);
 
   return (
     <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
@@ -417,5 +415,25 @@ export default function NewPsychologistPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function NewPsychologistPage() {
+  return (
+    <Suspense fallback={
+      <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+          <div className="space-y-6">
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="h-10 bg-gray-100 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    }>
+      <NewPsychologistFormContent />
+    </Suspense>
   );
 }

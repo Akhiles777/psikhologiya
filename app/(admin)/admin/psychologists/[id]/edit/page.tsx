@@ -2,16 +2,14 @@
 
 import Link from "next/link";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { EducationFormEdit } from '@/components/admin/EducationFormEdit';
-import { parseEducationFromDB } from "@/lib/education-helpers";
+import { parseEducationFromDB, normalizeEducationForServer } from "@/lib/education-helpers";
 import { updatePsychologist, getPsychologistById } from "@/lib/actions/admin-psychologists";
 import { DeletePsychologistButton } from "@/components/admin/DeletePsychologistButton";
 
-/**
- * Форма редактирования психолога
- */
-export default function EditPsychologistPage() {
+// Внутренний компонент
+function EditPsychologistForm() {
   const searchParams = useSearchParams();
   const params = useParams();
   const router = useRouter();
@@ -34,6 +32,7 @@ export default function EditPsychologistPage() {
   const [urls, setUrls] = useState<string[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
+  const [educationData, setEducationData] = useState<any[]>([]);
 
   // Загружаем данные психолога
   useEffect(() => {
@@ -55,6 +54,7 @@ export default function EditPsychologistPage() {
         
         setPsychologist(data);
         setUrls(data.images || []);
+        setEducationData(parseEducationFromDB(data.education ?? []));
       } catch (error) {
         console.error("Ошибка загрузки психолога:", error);
         router.push("/admin/psychologists?error=load_failed");
@@ -135,17 +135,25 @@ export default function EditPsychologistPage() {
       formData.append("imageUrls", externalUrls.join("\n"));
     }
     
+    // Добавляем данные об образовании как JSON
+    formData.append("education", JSON.stringify(educationData));
+    
     console.log("📤 Отправка формы редактирования...");
     console.log("📎 Файлов:", files.length);
     console.log("🔗 URL:", externalUrls.length);
+    console.log("📚 Образование:", educationData);
     console.log("ID психолога:", id);
     
     try {
       await updatePsychologist(id, formData);
     } catch (error) {
       console.error("Ошибка при обновлении:", error);
-      
     }
+  };
+
+  // Обработчик обновления данных об образовании
+  const handleEducationUpdate = (updatedEducation: any[]) => {
+    setEducationData(updatedEducation);
   };
 
   // Очистка временных URL при размонтировании
@@ -200,7 +208,6 @@ export default function EditPsychologistPage() {
     );
   }
 
-  const educationData = parseEducationFromDB(psychologist.education ?? []);
   const mainParadigmStr = (psychologist.mainParadigm ?? []).join("\n");
 
   return (
@@ -534,8 +541,12 @@ export default function EditPsychologistPage() {
               </div>
             </div>
 
+            {/* Образование */}
             <div>
-              <EducationFormEdit initialData={educationData} />
+              <EducationFormEdit 
+                initialData={educationData}
+                onEducationUpdate={handleEducationUpdate}
+              />
             </div>
 
             {/* Публикация */}
@@ -584,5 +595,30 @@ export default function EditPsychologistPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Главный компонент с Suspense
+export default function EditPsychologistPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+              <div className="space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-100 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <EditPsychologistForm />
+    </Suspense>
   );
 }

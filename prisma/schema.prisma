@@ -11,7 +11,7 @@ model DataList {
   id        String   @id @default(cuid())
   slug      String   @unique
   name      String
-  items     Json
+  items     Json     // Храним просто массив строк или объектов
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
