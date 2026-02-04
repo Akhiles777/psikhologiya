@@ -1,9 +1,10 @@
 "use client";
 
 import { EducationForm } from "@/components/admin/EducationForm";
+import { ParadigmSelector } from "@/components/admin/ParadigmSelector";
 import Link from "next/link";
 import { createPsychologist } from "@/lib/actions/admin-psychologists";
-import { PARADIGM_OPTIONS } from "@/lib/paradigm-options";
+import { getDataListItems } from "@/lib/actions/admin-references";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -22,7 +23,35 @@ function NewPsychologistFormContent() {
   const [files, setFiles] = useState<File[]>([]);
   const [urls, setUrls] = useState<string[]>([]);
   const [newUrl, setNewUrl] = useState("");
+  const [workFormats, setWorkFormats] = useState<string[]>([]);
+  const [certificationLevels, setCertificationLevels] = useState<string[]>([]);
+  const [referencesLoading, setReferencesLoading] = useState(true);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Загружаем справочники
+  useEffect(() => {
+    const loadReferences = async () => {
+      try {
+        setReferencesLoading(true);
+        const [formats, levels] = await Promise.all([
+          getDataListItems('work-formats'),
+          getDataListItems('certification-levels'),
+        ]);
+        
+        setWorkFormats(formats);
+        setCertificationLevels(levels);
+      } catch (error) {
+        console.error('Error loading references:', error);
+        // Запасные варианты
+        setWorkFormats(['Онлайн и оффлайн', 'Только онлайн', 'Только оффлайн', 'Переписка']);
+        setCertificationLevels(['1', '2', '3']);
+      } finally {
+        setReferencesLoading(false);
+      }
+    };
+    
+    loadReferences();
+  }, []);
 
   // Обработка выбора файлов
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,8 +126,7 @@ function NewPsychologistFormContent() {
     
     try {
       await createPsychologist(formData);
-    } 
-    catch {
+    } catch {
       console.log('Успешно');
     }
   };
@@ -115,305 +143,393 @@ function NewPsychologistFormContent() {
   }, [urls]);
 
   return (
-    <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
-      <h1 className="font-display text-2xl font-bold text-foreground">
-        Добавить психолога
-      </h1>
-      <p className="mt-2 text-sm text-neutral-dark">
-        Заполните поля. Slug можно оставить пустым — подставится из ФИО.
-      </p>
-
-      {errorMessage && (
-        <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-800">
-          <p className="font-medium">{errorMessage}</p>
-        </div>
-      )}
-
-      <form ref={formRef} onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-foreground">ФИО *</label>
-          <input
-            type="text"
-            name="fullName"
-            required
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">URL адрес страницы</label>
-          <input
-            type="text"
-            name="slug"
-            placeholder="Оставьте пустым — подставится из ФИО (ivanov-ivan)"
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-          <p className="mt-1 text-xs text-neutral-dark">Страница будет: /psy-list/[slug]</p>
-        </div>
-        
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-foreground">Пол</label>
-            <select
-              name="gender"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-            >
-              <option value="М">М</option>
-              <option value="Ж">Ж</option>
-              <option value="Не указан">Не указан</option>
-            </select>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-foreground">Дата рождения</label>
-            <input
-              type="date"
-              name="birthDate"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-            />
-          </div>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">Город</label>
-          <input
-            type="text"
-            name="city"
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">Формат работы</label>
-          <select
-            name="workFormat"
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          >
-            <option value="Онлайн и оффлайн">Онлайн и оффлайн</option>
-            <option value="Только онлайн">Только онлайн</option>
-            <option value="Только оффлайн">Только оффлайн</option>
-            <option value="Переписка">Переписка</option>
-          </select>
-        </div>
-        
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-foreground">Дата первого диплома</label>
-            <input
-              type="date"
-              name="firstDiplomaDate"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-foreground">Дата последней сертификации</label>
-            <input
-              type="date"
-              name="lastCertificationDate"
-              className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-            />
-          </div>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">Парадигмы (по одной на строку)</label>
-          <textarea
-            name="mainParadigm"
-            rows={3}
-            placeholder="КПТ&#10;Гештальт-терапия"
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-          <p className="mt-1 text-xs text-neutral-dark">
-            Варианты: {PARADIGM_OPTIONS.slice(0, 5).map((o) => o.label).join(", ")}
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="mx-auto max-w-4xl">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:p-8">
+          <h1 className="font-display text-2xl font-bold text-gray-900 md:text-3xl">
+            Добавить психолога
+          </h1>
+          <p className="mt-2 text-sm text-gray-600">
+            Заполните поля. Slug можно оставить пустым — подставится из ФИО.
           </p>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">Уровень сертификации (1–3)</label>
-          <select
-            name="certificationLevel"
-            className="mt-1 w-full max-w-xs rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          >
-            <option value={1}>1</option>
-            <option value={2}>2</option>
-            <option value={3}>3</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">О себе кратко (до 400 символов)</label>
-          <textarea
-            name="shortBio"
-            maxLength={400}
-            rows={3}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">О себе подробно (HTML можно)</label>
-          <textarea
-            name="longBio"
-            rows={6}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">Стоимость консультации (₽)</label>
-          <input
-            type="number"
-            name="price"
-            min={0}
-            defaultValue={0}
-            className="mt-1 w-full max-w-xs rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-foreground">Контакты (HTML можно)</label>
-          <textarea
-            name="contactInfo"
-            rows={3}
-            placeholder="Телеграм: @nick"
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
 
-        {/* СЕКЦИЯ ИЗОБРАЖЕНИЙ */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Фотографии (основное + до 4 дополнительных)
-          </label>
-          
-          {/* Загрузка файлов */}
-          <div className="mb-4">
-            <input
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              onChange={handleFileChange}
-              className="w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground file:mr-4 file:rounded-lg file:border-0 file:bg-[#5858E2] file:px-4 file:py-2 file:text-white hover:file:bg-[#4848d0]"
-            />
-            <p className="mt-1 text-xs text-neutral-dark">
-              Можно выбрать несколько файлов. Максимум 5 файлов.
-            </p>
-          </div>
-          
-          {/* Добавление по URL */}
-          <div className="mb-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newUrl}
-                onChange={(e) => setNewUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addUrl())}
-                placeholder="https://example.com/photo.jpg или /uploads/filename.jpg"
-                className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-              />
-              <button
-                type="button"
-                onClick={addUrl}
-                disabled={!newUrl.trim() || urls.length >= 5}
-                className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium disabled:opacity-50"
-              >
-                Добавить URL
-              </button>
-            </div>
-          </div>
-          
-          {/* Список выбранных изображений */}
-          {urls.length > 0 && (
-            <div className="mb-4">
-              <p className="text-sm font-medium text-foreground mb-2">
-                Выбранные изображения ({urls.length}/5):
-              </p>
-              <div className="space-y-2">
-                {urls.map((url, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded border border-neutral-300 overflow-hidden bg-white">
-                        <img 
-                          src={url} 
-                          alt={`Изображение ${index + 1}`}
-                          className="h-full w-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" font-family="Arial" font-size="8" fill="%239ca3af" text-anchor="middle" dy=".3em">IMG</text></svg>';
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {files[index]?.name || url.split('/').pop() || `Изображение ${index + 1}`}
-                        </p>
-                        <p className="text-xs text-neutral-500">
-                          {url.startsWith('blob:') ? 'Локальный файл' : 'Внешняя ссылка'}
-                          {index === 0 && ' • Основное'}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(index)}
-                      className="text-red-600 hover:text-red-800"
-                      title="Удалить"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
+          {errorMessage && (
+            <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-800">
+              <p className="font-medium">{errorMessage}</p>
             </div>
           )}
-          
-          {/* Информация */}
-          <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-            <p className="text-sm text-blue-800">
-              <span className="font-medium">Важно:</span> Файлы будут загружены на сервер. 
-              Первое изображение в списке будет основным.
-            </p>
-          </div>
-        </div>
 
-        <div>
-          <EducationForm />
-        </div>
+          <form ref={formRef} onSubmit={handleSubmit} className="mt-8 space-y-8">
+            {/* Основная информация */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">Основная информация</h2>
+              
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ФИО *
+                  </label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    required
+                    placeholder="Иванов Иван Иванович"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    URL адрес страницы
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500">/psy-list/</span>
+                    <input
+                      type="text"
+                      name="slug"
+                      placeholder="ivanov-ivan (оставьте пустым для автогенерации)"
+                      className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Оставьте пустым — подставится из ФИО
+                  </p>
+                </div>
+              </div>
 
-        {/* Поле публикации */}
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="isPublished"
-            name="isPublished"
-            defaultChecked
-            className="h-4 w-4 rounded border-neutral-300 text-[#5858E2] focus:ring-[#5858E2]"
-          />
-          <label htmlFor="isPublished" className="ml-2 text-sm font-medium text-foreground">
-            Опубликовать сразу
-          </label>
-        </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Пол</label>
+                  <select
+                    name="gender"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  >
+                    <option value="М">Мужской</option>
+                    <option value="Ж">Женский</option>
+                    <option value="Не указан">Не указан</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Дата рождения
+                  </label>
+                  <input
+                    type="date"
+                    name="birthDate"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  />
+                </div>
+              </div>
 
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            className="rounded-xl bg-[#5858E2] px-6 py-2 font-medium text-white hover:bg-[#4848d0]"
-          >
-            Сохранить
-          </button>
-          <Link
-            href="/admin/psychologists"
-            className="rounded-xl border border-neutral-300 px-6 py-2 font-medium text-foreground hover:bg-[#F5F5F7]"
-          >
-            Отмена
-          </Link>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Город</label>
+                <input
+                  type="text"
+                  name="city"
+                  placeholder="Москва, Санкт-Петербург..."
+                  className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                />
+              </div>
+            </div>
+
+            {/* Профессиональная информация */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">Профессиональная информация</h2>
+              
+              {/* Формат работы */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Формат работы</label>
+                {referencesLoading ? (
+                  <div className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 bg-gray-100 animate-pulse">
+                    Загрузка форматов работы...
+                  </div>
+                ) : (
+                  <select
+                    name="workFormat"
+                    className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  >
+                    <option value="">Выберите формат работы</option>
+                    {workFormats.map((format, index) => (
+                      <option key={index} value={format}>
+                        {format}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Дата первого диплома
+                  </label>
+                  <input
+                    type="date"
+                    name="firstDiplomaDate"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Дата последней сертификации
+                  </label>
+                  <input
+                    type="date"
+                    name="lastCertificationDate"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  />
+                </div>
+              </div>
+
+              {/* Парадигмы с умным поиском */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Парадигмы
+                </label>
+                <ParadigmSelector 
+                  defaultValue={[]}
+                />
+              </div>
+
+              {/* Уровень сертификации */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Уровень сертификации
+                </label>
+                {referencesLoading ? (
+                  <div className="w-full max-w-xs rounded-lg border border-gray-300 px-4 py-3 bg-gray-100 animate-pulse">
+                    Загрузка уровней...
+                  </div>
+                ) : (
+                  <select
+                    name="certificationLevel"
+                    className="w-full max-w-xs rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  >
+                    {certificationLevels.map((level, index) => (
+                      <option key={index} value={parseInt(level)}>
+                        Уровень {level}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            {/* О себе */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">О психологе</h2>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  О себе кратко (до 400 символов)
+                </label>
+                <textarea
+                  name="shortBio"
+                  maxLength={400}
+                  rows={3}
+                  placeholder="Краткое описание специализации и опыта работы"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Будет отображаться в карточке в списке психологов
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  О себе подробно
+                </label>
+                <textarea
+                  name="longBio"
+                  rows={6}
+                  placeholder="Подробное описание образования, опыта работы, специализации, подходов к терапии..."
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Можно использовать HTML разметку
+                </p>
+              </div>
+            </div>
+
+            {/* Контакты и цена */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">Контакты и стоимость</h2>
+              
+              <div className="grid gap-6 md:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Стоимость сеанса (₽)
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    min={0}
+                    defaultValue={0}
+                    placeholder="3000"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Контакты
+                  </label>
+                  <textarea
+                    name="contactInfo"
+                    rows={3}
+                    placeholder="Телефон, Email, Telegram, WhatsApp..."
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Можно использовать HTML разметку
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Фотографии */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-800">Фотографии</h2>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Фото психолога (основное + до 4 дополнительных)
+                </label>
+                
+                {/* Загрузка файлов */}
+                <div className="mb-4">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleFileChange}
+                    className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 file:mr-4 file:rounded-lg file:border-0 file:bg-[#5858E2] file:px-4 file:py-2 file:text-white hover:file:bg-[#4848d0]"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Можно выбрать несколько файлов. Максимум 5 файлов.
+                  </p>
+                </div>
+                
+                {/* Добавление по URL */}
+                <div className="mb-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newUrl}
+                      onChange={(e) => setNewUrl(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addUrl())}
+                      placeholder="https://example.com/photo.jpg или /uploads/filename.jpg"
+                      className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={addUrl}
+                      disabled={!newUrl.trim() || urls.length >= 5}
+                      className="rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium disabled:opacity-50 hover:bg-gray-50"
+                    >
+                      Добавить URL
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Список выбранных изображений */}
+                {urls.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 mb-2">
+                      Выбранные изображения ({urls.length}/5):
+                    </p>
+                    <div className="space-y-2">
+                      {urls.map((url, index) => (
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-3"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded border border-gray-300 overflow-hidden bg-white">
+                              <img 
+                                src={url} 
+                                alt={`Изображение ${index + 1}`}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23f3f4f6"/><text x="50" y="50" font-family="Arial" font-size="8" fill="%239ca3af" text-anchor="middle" dy=".3em">IMG</text></svg>';
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {files[index]?.name || url.split('/').pop() || `Изображение ${index + 1}`}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {url.startsWith('blob:') ? 'Локальный файл' : 'Внешняя ссылка'}
+                                {index === 0 && ' • Основное'}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            className="text-red-600 hover:text-red-800"
+                            title="Удалить"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Информация */}
+                <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">Важно:</span> Файлы будут загружены на сервер. 
+                    Первое изображение в списке будет основным.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Образование */}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-6">Образование и квалификация</h2>
+              <EducationForm />
+            </div>
+
+            {/* Публикация */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isPublished"
+                name="isPublished"
+                defaultChecked
+                className="h-4 w-4 rounded border-gray-300 text-[#5858E2] focus:ring-[#5858E2]"
+              />
+              <label htmlFor="isPublished" className="ml-2 text-sm font-medium text-gray-700">
+                Опубликовать сразу
+              </label>
+            </div>
+
+            {/* Кнопки действий */}
+            <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
+              <button
+                type="submit"
+                className="rounded-xl bg-[#5858E2] px-8 py-3 font-medium text-white hover:bg-[#4848d0] shadow-md hover:shadow-lg transition-all"
+              >
+                Создать психолога
+              </button>
+              <Link
+                href="/admin/psychologists"
+                className="rounded-xl border border-gray-300 px-8 py-3 font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Отмена
+              </Link>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
@@ -421,14 +537,18 @@ function NewPsychologistFormContent() {
 export default function NewPsychologistPage() {
   return (
     <Suspense fallback={
-      <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-          <div className="space-y-6">
-            {[...Array(10)].map((_, i) => (
-              <div key={i} className="h-10 bg-gray-100 rounded"></div>
-            ))}
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <div className="mx-auto max-w-4xl">
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+              <div className="space-y-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-100 rounded"></div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>

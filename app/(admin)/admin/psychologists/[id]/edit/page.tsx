@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useSearchParams, useParams, useRouter } from "next/navigation";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { EducationFormEdit } from '@/components/admin/EducationFormEdit';
-import { parseEducationFromDB, normalizeEducationForServer } from "@/lib/education-helpers";
+import { parseEducationFromDB } from "@/lib/education-helpers";
 import { updatePsychologist, getPsychologistById } from "@/lib/actions/admin-psychologists";
 import { DeletePsychologistButton } from "@/components/admin/DeletePsychologistButton";
+import { getDataListItems } from "@/lib/actions/admin-references";
+import { ParadigmSelector } from "@/components/admin/ParadigmSelector";
 
 // Внутренний компонент
 function EditPsychologistForm() {
@@ -33,6 +35,9 @@ function EditPsychologistForm() {
   const [newUrl, setNewUrl] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const [educationData, setEducationData] = useState<any[]>([]);
+  const [workFormats, setWorkFormats] = useState<string[]>([]);
+  const [certificationLevels, setCertificationLevels] = useState<string[]>([]);
+  const [referencesLoading, setReferencesLoading] = useState(true);
 
   // Загружаем данные психолога
   useEffect(() => {
@@ -65,6 +70,31 @@ function EditPsychologistForm() {
 
     loadPsychologist();
   }, [id, router]);
+
+  // Загружаем справочники
+  useEffect(() => {
+    const loadReferences = async () => {
+      try {
+        setReferencesLoading(true);
+        const [formats, levels] = await Promise.all([
+          getDataListItems('work-formats'),
+          getDataListItems('certification-levels'),
+        ]);
+        
+        setWorkFormats(formats);
+        setCertificationLevels(levels);
+      } catch (error) {
+        console.error('Error loading references:', error);
+        // Запасные варианты
+        setWorkFormats(['Онлайн и оффлайн', 'Только онлайн', 'Только оффлайн', 'Переписка']);
+        setCertificationLevels(['1', '2', '3']);
+      } finally {
+        setReferencesLoading(false);
+      }
+    };
+    
+    loadReferences();
+  }, []);
 
   // Обработка выбора файлов
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,8 +238,6 @@ function EditPsychologistForm() {
     );
   }
 
-  const mainParadigmStr = (psychologist.mainParadigm ?? []).join("\n");
-
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="mx-auto max-w-4xl">
@@ -306,18 +334,27 @@ function EditPsychologistForm() {
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-gray-800">Профессиональная информация</h2>
               
+              {/* Формат работы */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Формат работы</label>
-                <select
-                  name="workFormat"
-                  defaultValue={psychologist.workFormat}
-                  className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
-                >
-                  <option value="Онлайн и оффлайн">Онлайн и оффлайн</option>
-                  <option value="Только онлайн">Только онлайн</option>
-                  <option value="Только оффлайн">Только оффлайн</option>
-                  <option value="Переписка">Переписка</option>
-                </select>
+                {referencesLoading ? (
+                  <div className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 bg-gray-100 animate-pulse">
+                    Загрузка форматов работы...
+                  </div>
+                ) : (
+                  <select
+                    name="workFormat"
+                    defaultValue={psychologist.workFormat}
+                    className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  >
+                    <option value="">Выберите формат работы</option>
+                    {workFormats.map((format, index) => (
+                      <option key={index} value={format}>
+                        {format}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
@@ -346,32 +383,38 @@ function EditPsychologistForm() {
                 </div>
               </div>
 
+              {/* Парадигмы с умным поиском */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Парадигмы (по одной на строку)
+                  Парадигмы
                 </label>
-                <textarea
-                  name="mainParadigm"
-                  rows={3}
-                  defaultValue={mainParadigmStr}
-                  placeholder="КПТ&#10;Гештальт&#10;Психоанализ"
-                  className="w-full max-w-md rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                <ParadigmSelector 
+                  defaultValue={psychologist.mainParadigm || []}
                 />
               </div>
 
+              {/* Уровень сертификации */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Уровень сертификации
                 </label>
-                <select
-                  name="certificationLevel"
-                  defaultValue={psychologist.certificationLevel}
-                  className="w-full max-w-xs rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
-                >
-                  <option value={1}>1 уровень (базовый)</option>
-                  <option value={2}>2 уровень (продвинутый)</option>
-                  <option value={3}>3 уровень (эксперт)</option>
-                </select>
+                {referencesLoading ? (
+                  <div className="w-full max-w-xs rounded-lg border border-gray-300 px-4 py-3 bg-gray-100 animate-pulse">
+                    Загрузка уровней...
+                  </div>
+                ) : (
+                  <select
+                    name="certificationLevel"
+                    defaultValue={psychologist.certificationLevel}
+                    className="w-full max-w-xs rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                  >
+                    {certificationLevels.map((level, index) => (
+                      <option key={index} value={parseInt(level)}>
+                        Уровень {level}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
