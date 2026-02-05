@@ -92,7 +92,7 @@ export default function ReferencesPage() {
       <div className="mx-auto max-w-4xl">
         <div className="mb-8">
           <h1 className="font-display text-3xl font-bold text-gray-900">
-            Управление справочниками
+            Управление списками данных
           </h1>
           <p className="mt-2 text-gray-600">
             Редактирование допустимых значений для форм
