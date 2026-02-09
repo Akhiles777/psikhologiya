@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useMemo } from "react";
 import { DB_SYNC_MESSAGE } from "@/lib/db-error";
+import AuthGuard from "@/components/AuthGuard";
 
 interface PsychologistItem {
   id: string;
@@ -92,6 +93,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
   const unpublishedCount = initialList.filter(p => !p.isPublished).length;
 
   return (
+    <AuthGuard requiredPermission="psychologists.view">
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="mx-auto max-w-7xl">
         {showDbSyncBanner && (
@@ -262,5 +264,6 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

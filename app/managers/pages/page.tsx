@@ -3,6 +3,7 @@ import { getPagesList } from "@/lib/actions/manager-pages";
 import { DB_SYNC_MESSAGE } from "@/lib/db-error";
 import { Plus, Edit, ExternalLink, FileText, Globe } from "lucide-react";
 import DeleteButton from "@/components/pages/DeleteButton";
+import AuthGuard from "@/components/AuthGuard";
 
 /**
  * Список страниц сайта в менеджерской панели.
@@ -25,6 +26,7 @@ export default async function PagesListPage({
   const list = await getPagesList();
 
   return (
+    <AuthGuard requiredPermission="pages.view">
     <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
       <div className="mx-auto max-w-7xl">
         {errorBanner && (
@@ -214,5 +216,6 @@ export default async function PagesListPage({
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { getDataListItems, updateDataList } from '@/lib/actions/manager-references'; // Импорт из manager-references!
 import { Plus, Trash2, Save } from 'lucide-react';
 
+import AuthGuard from '@/components/AuthGuard'
+
 export default function ReferencesPage() {
   const [activeTab, setActiveTab] = useState<'work-formats' | 'paradigms' | 'certification-levels'>('work-formats');
   const [items, setItems] = useState<string[]>([]);
@@ -88,6 +90,7 @@ export default function ReferencesPage() {
   };
 
   return (
+    <AuthGuard requiredPermission='listdate.view'>
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8">
@@ -240,5 +243,6 @@ export default function ReferencesPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }

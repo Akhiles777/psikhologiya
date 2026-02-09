@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import AuthGuard from '@/components/AuthGuard'
+
 interface Manager {
   id: string;
   name: string;
@@ -101,6 +103,7 @@ export default function ManagersPage() {
   }
 
   return (
+    <AuthGuard requiredPermission='managers.view'>
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
@@ -313,5 +316,6 @@ export default function ManagersPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }
