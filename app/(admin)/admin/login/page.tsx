@@ -41,7 +41,7 @@ export default async function AdminLoginPage({
               type="text"
               name="login"
               required
-              defaultValue={DEFAULT_ADMIN_LOGIN}
+             
               className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
               autoComplete="username"
             />

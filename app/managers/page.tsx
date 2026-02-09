@@ -113,7 +113,7 @@ export default function ManagersPage() {
             {/* Админ может управлять менеджерами */}
             {user?.role === 'ADMIN' && (
               <Link
-                href="/admin/managers"
+                href="/managers/managers"
                 className="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
               >
                 Управление менеджерами

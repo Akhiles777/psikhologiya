@@ -28,7 +28,7 @@ export default function LoginChoicePage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Администратор</h3>
+                <h3 className="text-lg font-medium text-gray-900">Главный администратор</h3>
                 <p className="mt-1 text-sm text-gray-600">
                   Полный доступ ко всем разделам системы
                 </p>
@@ -41,7 +41,7 @@ export default function LoginChoicePage() {
                   </Link>
                 </div>
                 <div className="mt-2 text-xs text-gray-500">
-                  <p>Данные по умолчанию: <span className="font-mono">Gasan123 / 1111</span></p>
+                 
                 </div>
               </div>
             </div>
@@ -56,7 +56,7 @@ export default function LoginChoicePage() {
                 </svg>
               </div>
               <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">Менеджер</h3>
+                <h3 className="text-lg font-medium text-gray-900">Админы и менеджеры</h3>
                 <p className="mt-1 text-sm text-gray-600">
                   Доступ к назначенным разделам системы
                 </p>
