@@ -7,5 +7,5 @@ export async function POST(request: NextRequest) {
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
   const url = new URL(request.url);
-  return NextResponse.redirect(new URL("/admin/login", url.origin));
+  return NextResponse.redirect(new URL("/auth/login", url.origin));
 }
