@@ -1,16 +1,18 @@
 import Link from "next/link";
-import { getPagesList } from "@/lib/actions/admin-pages";
+import { getPagesList } from "@/lib/actions/manager-pages";
 import { DB_SYNC_MESSAGE } from "@/lib/db-error";
 import { Plus, Edit, ExternalLink, FileText, Globe } from "lucide-react";
+import DeleteButton from "@/components/pages/DeleteButton";
 
 /**
- * Список страниц сайта в админке.
+ * Список страниц сайта в менеджерской панели.
  */
 export default async function PagesListPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  // Ждем searchParams
   const params = await searchParams;
   const errorCode = typeof params.error === "string" ? params.error : "";
   const errorMessages: Record<string, string> = {
@@ -31,7 +33,7 @@ export default async function PagesListPage({
           </div>
         )}
 
-        <div className="rounded-xl border-2 border-[#5858E2]/20 bg-white p-4 shadow-sm sm:rounded-2xl sm:p-6 lg:p-8">
+        <div className="rounded-xl border-2 border-[#4CAF50]/20 bg-white p-4 shadow-sm sm:rounded-2xl sm:p-6 lg:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">
               <h1 className="font-display text-xl font-bold text-gray-900 sm:text-2xl">
@@ -43,8 +45,8 @@ export default async function PagesListPage({
             </div>
             
             <Link
-              href="/admin/pages/new"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#5858E2] px-4 py-3 text-sm font-medium text-white hover:bg-[#4848d0] active:bg-[#3838c0] transition-colors w-full sm:w-auto"
+              href="/managers/pages/new"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4CAF50] px-4 py-3 text-sm font-medium text-white hover:bg-[#43A047] active:bg-[#388E3C] transition-colors w-full sm:w-auto"
             >
               <Plus className="h-4 w-4" />
               <span>Добавить страницу</span>
@@ -64,8 +66,8 @@ export default async function PagesListPage({
                   Создайте первую страницу для вашего сайта.
                 </p>
                 <Link
-                  href="/admin/pages/new"
-                  className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-[#5858E2] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4848d0]"
+                  href="/managers/pages/new"
+                  className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-[#4CAF50] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#43A047]"
                 >
                   <Plus className="h-4 w-4" />
                   Создать страницу
@@ -159,8 +161,8 @@ export default async function PagesListPage({
                             <td className="px-3 py-4 sm:px-4">
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
                                 <Link
-                                  href={`/admin/pages/${page.id}/edit`}
-                                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#5858E2] px-3 py-2 text-xs font-medium text-white hover:bg-[#4848d0] active:bg-[#3838c0] transition-colors w-full sm:w-auto"
+                                  href={`/managers/pages/${page.id}/edit`}
+                                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#4CAF50] px-3 py-2 text-xs font-medium text-white hover:bg-[#43A047] active:bg-[#388E3C] transition-colors w-full sm:w-auto"
                                 >
                                   <Edit className="h-3.5 w-3.5" />
                                   <span className="sm:hidden">Ред.</span>
@@ -177,6 +179,8 @@ export default async function PagesListPage({
                                   <span className="sm:hidden">Открыть</span>
                                   <span className="hidden sm:inline">На сайте</span>
                                 </Link>
+                                
+                                <DeleteButton pageId={page.id} />
                               </div>
                             </td>
                           </tr>
@@ -187,7 +191,6 @@ export default async function PagesListPage({
                 </div>
               </div>
 
-              {/* ИНФОРМАЦИЯ О СТРАНИЦАХ - УБРАН onClick */}
               <div className="mt-4 flex flex-col gap-3 rounded-lg bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                 <div className="text-xs text-gray-600 sm:text-sm">
                   <span className="font-medium">{list.length}</span> страниц
@@ -201,8 +204,7 @@ export default async function PagesListPage({
                     <div className="flex h-2 w-2 rounded-full bg-amber-500"></div>
                     <span className="text-xs text-gray-600">Черновик</span>
                   </div>
-                  {/* Простая ссылка вместо кнопки с onClick */}
-                  <a href="#" className="text-xs font-medium text-[#5858E2] hover:text-[#4848d0]">
+                  <a href="#" className="text-xs font-medium text-[#4CAF50] hover:text-[#43A047]">
                     Наверх ↑
                   </a>
                 </div>

@@ -1,4 +1,3 @@
-// app/(admin)/admin/psychologists/page.tsx
 import PsychologistsListWrapper from "./ListWrapper";
 
 export default async function Page({

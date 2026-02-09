@@ -12,7 +12,7 @@ export default function LogoutPage() {
     
     // Редирект на страницу входа
     setTimeout(() => {
-      router.push("/admin/login");
+      router.push("/auth/login");
     }, 100);
   }, [router]);
 

@@ -1,119 +1,59 @@
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getPageById, updatePage } from "@/lib/actions/admin-pages";
-import { DeletePageButton } from "@/components/admin/DeletePageButton";
+import { getPageById, updatePage } from "@/lib/actions/manager-pages";
+import EditPageClient from "@/components/pages/EditPageClient";
 
-const EDIT_ERRORS: Record<string, string> = {
-  fill_title_slug: "Укажите название и slug (латиница, цифры, дефис).",
-  duplicate_slug: "Страница с таким slug уже есть.",
-  update_failed: "Не удалось сохранить. Проверьте данные.",
-  db_sync: "Ошибка базы данных. Выполните: npx prisma db push",
-};
-
-type PageProps = {
+export default async function EditPagePage({
+  params,
+  searchParams,
+}: {
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
-};
-
-/**
- * Форма редактирования страницы.
- */
-export default async function EditPageForm({ params, searchParams }: PageProps) {
+}) {
+  // Ждем params и searchParams
   const { id } = await params;
+  const searchParamsObj = await searchParams;
+  
+  // Получаем данные страницы
   const page = await getPageById(id);
-  if (!page) notFound();
+  
+  if (!page) {
+    notFound();
+  }
 
-  const sp = await searchParams;
-  const errorCode = typeof sp.error === "string" ? sp.error : "";
-  const errorMessage = errorCode ? EDIT_ERRORS[errorCode] ?? "Ошибка сохранения." : null;
+  const errorMessages: Record<string, string> = {
+    fill_title_slug: "Заполните заголовок и URL.",
+    duplicate_slug: "Страница с таким URL уже существует.",
+    update_failed: "Не удалось обновить страницу.",
+  };
+
+  const errorCode = typeof searchParamsObj.error === "string" ? searchParamsObj.error : "";
+  const errorBanner = errorCode ? errorMessages[errorCode] ?? "Произошла ошибка." : null;
 
   return (
-    <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
-      <h1 className="font-display text-2xl font-bold text-foreground">
-        Редактировать: {page.title}
-      </h1>
-      <p className="mt-2 text-sm text-neutral-dark">
-        Адрес: {["courses", "lib", "connect", "contacts"].includes(page.slug) ? `/${page.slug}` : `/s/${page.slug}`}
-      </p>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-bold text-gray-900">
+            Редактирование: {page.title}
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Измените данные страницы.
+          </p>
+        </div>
 
-      {errorMessage && (
-        <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-800">
-          <p className="font-medium">{errorMessage}</p>
-        </div>
-      )}
+        {errorBanner && (
+          <div className="mb-4 rounded-lg border-2 border-red-300 bg-red-50 p-3 text-red-800 sm:rounded-xl sm:p-4">
+            <p className="font-medium text-sm sm:text-base">{errorBanner}</p>
+          </div>
+        )}
 
-      <form action={updatePage.bind(null, id)}  className="mt-8 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-foreground">Название *</label>
-          <input
-            type="text"
-            name="title"
-            required
-            defaultValue={page.title}
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground">Slug *</label>
-          <input
-            type="text"
-            name="slug"
-            required
-            defaultValue={page.slug}
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground">Шаблон</label>
-          <select
-            name="template"
-            defaultValue={page.template}
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          >
-            <option value="text">Текст</option>
-            <option value="empty">Пустой (HTML)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground">Контент</label>
-          <textarea
-            name="content"
-            rows={12}
-            defaultValue={page.content}
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-sm text-foreground"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="hidden" name="isPublished" value="off" />
-          <input
-            type="checkbox"
-            name="isPublished"
-            id="isPublished"
-            value="on"
-            defaultChecked={page.isPublished}
-          />
-          <label htmlFor="isPublished" className="text-sm font-medium text-foreground">
-            Опубликовать (показывать на сайте)
-          </label>
-        </div>
-        <div className="flex flex-wrap gap-4">
-          <button
-            type="submit"
-            className="rounded-xl bg-[#5858E2] px-6 py-2 font-medium text-white hover:bg-[#4848d0]"
-          >
-            Сохранить
-          </button>
-          <Link
-            href="/admin/pages"
-            className="rounded-xl border border-neutral-300 px-6 py-2 font-medium text-foreground hover:bg-[#F5F5F7]"
-          >
-            Отмена
-          </Link>
-        </div>
-      </form>
-      <div className="mt-6 border-t border-neutral-200 pt-6">
-        <p className="mb-2 text-sm text-neutral-dark">Удаление страницы необратимо.</p>
-        <DeletePageButton id={id} />
+        {/* Передаем данные в Client Component */}
+        <EditPageClient 
+          page={page}
+          pageId={id}
+          errorBanner={errorBanner}
+        />
       </div>
     </div>
   );

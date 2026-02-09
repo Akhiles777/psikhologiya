@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getDataListItems, updateDataList } from '@/lib/actions/admin-references';
+import { getDataListItems, updateDataList } from '@/lib/actions/manager-references'; // Импорт из manager-references!
 import { Plus, Trash2, Save } from 'lucide-react';
 
 export default function ReferencesPage() {
@@ -108,7 +108,7 @@ export default function ReferencesPage() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === tab
-                    ? 'border-[#5858E2] text-[#5858E2]'
+                    ? 'border-[#4CAF50] text-[#4CAF50]' // Зеленый вместо фиолетового
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -137,7 +137,7 @@ export default function ReferencesPage() {
 
           {loading ? (
             <div className="flex items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5858E2]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4CAF50]"></div> {/* Зеленый */}
             </div>
           ) : (
             <>
@@ -157,12 +157,12 @@ export default function ReferencesPage() {
                         ? 'Например: 4 (мастер-класс)' 
                         : 'Введите новый элемент'
                     }
-                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-[#4CAF50] focus:ring-2 focus:ring-[#4CAF50]/20" // Зеленый
                   />
                   <button
                     onClick={handleAdd}
                     disabled={!newItem.trim()}
-                    className="rounded-lg bg-[#5858E2] px-4 py-2 text-white font-medium hover:bg-[#4848d0] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg bg-[#4CAF50] px-4 py-2 text-white font-medium hover:bg-[#43A047] disabled:opacity-50 disabled:cursor-not-allowed" // Зеленый
                   >
                     <Plus className="w-5 h-5" />
                   </button>
@@ -209,7 +209,7 @@ export default function ReferencesPage() {
                 <button
                   onClick={handleSave}
                   disabled={saving || items.length === 0}
-                  className="rounded-xl bg-[#5858E2] px-6 py-3 font-medium text-white hover:bg-[#4848d0] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="rounded-xl bg-[#4CAF50] px-6 py-3 font-medium text-white hover:bg-[#43A047] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2" // Зеленый
                 >
                   {saving ? (
                     <>
@@ -236,6 +236,7 @@ export default function ReferencesPage() {
           <p className="mt-1">
             Текущий справочник: <strong>{tabNames[activeTab]}</strong>
           </p>
+          <p className="mt-1 text-[#4CAF50] font-medium">✓ Менеджерский доступ</p> {/* Зеленый */}
         </div>
       </div>
     </div>

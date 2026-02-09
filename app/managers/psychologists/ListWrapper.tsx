@@ -1,5 +1,4 @@
-// app/(admin)/admin/psychologists/ListWrapper.tsx
-import { getPsychologistsList } from "@/lib/actions/admin-psychologists";
+import { getPsychologistsList } from "@/lib/actions/manager-psychologist";
 import PsychologistsListPage from "./PsychologistsListPage";
 
 export default async function PsychologistsListWrapper({
@@ -11,12 +10,9 @@ export default async function PsychologistsListWrapper({
   const list = await getPsychologistsList();
 
   return (
-   <div>
-     <PsychologistsListPage
+    <PsychologistsListPage
       initialList={list}
       searchParams={params}
     />
-   </div>
-   
   );
 }

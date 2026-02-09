@@ -1,107 +1,182 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { createPage } from "@/lib/actions/admin-pages";
-import { DB_SYNC_MESSAGE } from "@/lib/db-error";
+import { createPage } from "@/lib/actions/manager-pages";
 
-const ERROR_MESSAGES: Record<string, string> = {
-  db_unavailable: "База данных недоступна.",
-  fill_title_slug: "Укажите название и slug (латиница, цифры, дефис).",
-  duplicate_slug: "Страница с таким slug уже есть. Выберите другой адрес.",
-  create_failed: "Не удалось создать страницу. Проверьте данные и попробуйте снова.",
-  db_sync: DB_SYNC_MESSAGE,
-};
+interface NewPagePageProps {
+  searchParams: Promise<{ error?: string; slug?: string }>;
+}
 
-/**
- * Форма создания страницы. Ошибки показываются из ?error=...
- */
-export default async function NewPageForm({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const params = await searchParams;
-  const errorCode = typeof params.error === "string" ? params.error : "";
-  const errorMessage = errorCode ? ERROR_MESSAGES[errorCode] ?? "Произошла ошибка." : null;
+export default function NewPagePage({ searchParams }: NewPagePageProps) {
+  const [template, setTemplate] = useState<"text" | "empty">("text");
+  const [isPublished, setIsPublished] = useState(false);
+  const [searchParamsState, setSearchParamsState] = useState<{ error?: string; slug?: string }>({});
+
+  // Используем useEffect для обработки Promise
+  useState(() => {
+    searchParams.then(params => {
+      setSearchParamsState(params);
+    });
+  });
+
+  const errorMessages: Record<string, string> = {
+    db_unavailable: "База данных недоступна.",
+    fill_title_slug: "Заполните заголовок и URL.",
+    duplicate_slug: `Страница с URL «${searchParamsState.slug}» уже существует.`,
+    create_failed: "Не удалось создать страницу.",
+  };
+
+  const errorBanner = searchParamsState.error ? errorMessages[searchParamsState.error] ?? "Произошла ошибка." : null;
 
   return (
-    <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
-      <h1 className="font-display text-2xl font-bold text-foreground">
-        Добавить страницу
-      </h1>
-      <p className="mt-2 text-sm text-neutral-dark">
-        Slug — адрес страницы (только латиница, цифры, дефис). Например: about → /s/about. Для разделов «Курсы», «Библиотека» используйте slug: courses, lib, connect, contacts — тогда контент откроется по /courses, /lib и т.д.
-      </p>
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-bold text-gray-900">
+            Создание страницы
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Заполните форму для создания новой страницы.
+          </p>
+        </div>
 
-      {errorMessage && (
-        <div className="mt-4 rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-800">
-          <p className="font-medium">{errorMessage}</p>
-        </div>
-      )}
+        {errorBanner && (
+          <div className="mb-4 rounded-lg border-2 border-red-300 bg-red-50 p-3 text-red-800 sm:rounded-xl sm:p-4">
+            <p className="font-medium text-sm sm:text-base">{errorBanner}</p>
+          </div>
+        )}
 
-      <form action={createPage} className="mt-8 space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-foreground">Название страницы *</label>
-          <input
-            type="text"
-            name="title"
-            required
-            placeholder="О проекте"
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
+        <div className="rounded-xl border-2 border-[#4CAF50]/20 bg-white p-4 shadow-sm sm:rounded-2xl sm:p-6">
+          <form action={createPage}>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                  Заголовок страницы *
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  required
+                  placeholder="Например: О нашей компании"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4CAF50] focus:outline-none focus:ring-1 focus:ring-[#4CAF50]"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
+                  URL (англ., через дефис) *
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">/s/</span>
+                  <input
+                    type="text"
+                    id="slug"
+                    name="slug"
+                    required
+                    placeholder="about-us"
+                    className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#4CAF50] focus:outline-none focus:ring-1 focus:ring-[#4CAF50]"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Будет автоматически преобразован в нижний регистр и очищен от спецсимволов.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Шаблон страницы
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTemplate("text")}
+                    className={`rounded-xl border-2 p-4 text-left transition-colors ${template === "text" ? "border-[#4CAF50] bg-[#4CAF50]/5" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`h-4 w-4 rounded-full border ${template === "text" ? "border-[#4CAF50] bg-[#4CAF50]" : "border-gray-300"}`}></div>
+                      <span className="font-medium text-gray-900">Текст</span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-600">
+                      Обычная страница с заголовком и текстовым содержимым.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTemplate("empty")}
+                    className={`rounded-xl border-2 p-4 text-left transition-colors ${template === "empty" ? "border-[#4CAF50] bg-[#4CAF50]/5" : "border-gray-200 hover:border-gray-300"}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`h-4 w-4 rounded-full border ${template === "empty" ? "border-[#4CAF50] bg-[#4CAF50]" : "border-gray-300"}`}></div>
+                      <span className="font-medium text-gray-900">Пустой</span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-600">
+                      Произвольный HTML-код. Для опытных пользователей.
+                    </p>
+                  </button>
+                </div>
+                <input type="hidden" name="template" value={template} />
+              </div>
+
+              <div>
+                <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
+                  Содержимое {template === "empty" ? "(HTML)" : "(текст)"} *
+                </label>
+                <textarea
+                  id="content"
+                  name="content"
+                  required
+                  placeholder={template === "empty" ? "<div>Ваш HTML-код здесь</div>" : "Текст вашей страницы..."}
+                  rows={10}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono focus:border-[#4CAF50] focus:outline-none focus:ring-1 focus:ring-[#4CAF50]"
+                />
+                {template === "empty" && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Можно использовать HTML, CSS, JavaScript. Будьте осторожны с кодом.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsPublished(!isPublished)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full ${isPublished ? "bg-[#4CAF50]" : "bg-gray-300"}`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${isPublished ? "translate-x-6" : "translate-x-1"}`}
+                  />
+                </button>
+                <input type="hidden" name="isPublished" value={isPublished ? "on" : "off"} />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Опубликовать сразу</p>
+                  <p className="text-xs text-gray-500">
+                    {isPublished ? "Страница будет доступна сразу после создания" : "Страница будет создана как черновик"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#4CAF50] px-4 py-3 text-sm font-medium text-white hover:bg-[#43A047] active:bg-[#388E3C] transition-colors flex-1"
+                >
+                  Создать страницу
+                </button>
+                
+                <Link
+                  href="/managers/pages"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex-1 text-center"
+                >
+                  Отмена
+                </Link>
+              </div>
+            </div>
+          </form>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground">Slug * (адрес)</label>
-          <input
-            type="text"
-            name="slug"
-            required
-            placeholder="about"
-            pattern="[a-z0-9-_]+"
-            title="Только латиница, цифры, дефис"
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          />
-          <p className="mt-1 text-xs text-neutral-dark">courses, lib, connect, contacts — откроются по /courses, /lib, /connect, /contacts</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground">Шаблон</label>
-          <select
-            name="template"
-            className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground"
-          >
-            <option value="text">Текст (заголовок + контент)</option>
-            <option value="empty">Пустой (свой HTML)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-foreground">Контент</label>
-          <textarea
-            name="content"
-            rows={12}
-            placeholder="Для «текст» — HTML абзацев. Для «пустой» — полная HTML-страница."
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-sm text-foreground"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="hidden" name="isPublished" value="off" />
-          <input type="checkbox" name="isPublished" id="isPublished" value="on" />
-          <label htmlFor="isPublished" className="text-sm font-medium text-foreground">
-            Опубликовать (показывать на сайте)
-          </label>
-        </div>
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            className="rounded-xl bg-[#5858E2] px-6 py-2 font-medium text-white hover:bg-[#4848d0]"
-          >
-            Создать страницу
-          </button>
-          <Link
-            href="/admin/pages"
-            className="rounded-xl border border-neutral-300 px-6 py-2 font-medium text-foreground hover:bg-[#F5F5F7]"
-          >
-            Отмена
-          </Link>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }

@@ -57,7 +57,7 @@ export default function ManagersPage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-gray-900">
-                Панель менеджера
+                <a href='/managers'>Панель менеджера</a>
               </h1>
               <span className="ml-4 px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
                 {user?.role === 'ADMIN' ? 'Администратор' : 'Менеджер'}
@@ -103,10 +103,10 @@ export default function ManagersPage() {
             
             {user?.permissions?.listdate?.view && (
               <Link
-                href="/managers/listdate"
+                href="/managers/ListDate"
                 className="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
               >
-                Листдаты
+               Список Данных
               </Link>
             )}
             
