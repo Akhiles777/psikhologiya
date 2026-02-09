@@ -1,289 +1,165 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-interface Manager {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  permissions: {
-    psychologists: { view: boolean; edit: boolean; delete: boolean };
-    pages: { view: boolean; edit: boolean; delete: boolean };
-    listdate: { view: boolean; edit: boolean; delete: boolean };
-    managers: { view: boolean; edit: boolean; delete: boolean };
-  };
-}
-
-export default function ManagersDashboardPage() {
-  const [currentManager, setCurrentManager] = useState<Manager | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function ManagersPage() {
   const router = useRouter();
-
-
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Проверяем, что пользователь - менеджер
-    const checkManagerAuth = async () => {
+    async function checkAuth() {
       try {
-        const res = await fetch('/api/admin/managers/me');
-      
-      } catch (err) {
-        console.error('Ошибка проверки авторизации:', err);
-    
-      }
-    };
+        const response = await fetch('/api/auth/check');
+        const data = await response.json();
 
-    checkManagerAuth();
+        if (!response.ok || !data.user) {
+          router.push('/auth/login');
+          return;
+        }
+
+        if (!['ADMIN', 'MANAGER'].includes(data.user.role)) {
+          router.push('/auth/login?error=Доступ+только+для+менеджеров');
+          return;
+        }
+
+        setUser(data.user);
+        setIsLoading(false);
+      } catch (error) {
+        router.push('/auth/login');
+      }
+    }
+
+    checkAuth();
   }, [router]);
 
-
-  useEffect(() => {
-    fetchCurrentManager();
-  }, []);
-
-  const fetchCurrentManager = async () => {
-    try {
-      const res = await fetch('/api/admin/managers/me');
-      
-      if (res.status === 401) {
-        router.push('/managers');
-        return;
-      }
-      
-      if (!res.ok) {
-        throw new Error('Ошибка загрузки данных');
-      }
-      
-      const data = await res.json();
-      
-      if (data.success && data.data) {
-        setCurrentManager(data.data);
-      }
-    } catch (err) {
-      console.error('Ошибка:', err);
-      router.push('/managers');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/managers/logout', { method: 'POST' });
-      router.push('/managers/login');
-    } catch (err) {
-      console.error('Ошибка выхода:', err);
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Загрузка...</p>
         </div>
       </div>
     );
   }
 
-  if (!currentManager) {
-    return null;
-  }
-
-  const hasAccessTo = (section: keyof Manager['permissions'], action: string) => {
-    return currentManager.permissions[section]?.[action as keyof Manager['permissions'][keyof Manager['permissions']]] || false;
-  };
+  const availableModules = Object.entries(user?.permissions || {})
+    .filter(([_, perm]: [string, any]) => perm?.view)
+    .map(([module]) => module);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Шапка */}
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Панель управления</h1>
-              <p className="text-gray-600 text-sm mt-1">
-                Добро пожаловать, {currentManager.name} ({currentManager.role})
-              </p>
+            <div className="flex items-center">
+              <h1 className="text-xl font-bold text-gray-900">
+                Панель менеджера
+              </h1>
+              <span className="ml-4 px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                {user?.role === 'ADMIN' ? 'Администратор' : 'Менеджер'}
+              </span>
             </div>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
-            >
-              Выйти
-            </button>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-700">{user?.name}</span>
+              <button
+                onClick={async () => {
+                  await fetch('/api/auth/logout', { method: 'POST' });
+                  router.push('/auth/login');
+                }}
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
+              >
+                Выйти
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto py-8 px-4">
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Доступные разделы</h2>
-          <p className="text-gray-600">Выберите раздел для работы:</p>
-        </div>
-
-        {/* Карточки разделов */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Психологи */}
-          {hasAccessTo('psychologists', 'view') && (
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start mb-4">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Психологи</h3>
-              <p className="text-gray-600 text-sm mb-4">Управление списком психологов</p>
-              <div className="flex gap-2 mb-4">
-                {hasAccessTo('psychologists', 'view') && (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Просмотр</span>
-                )}
-                {hasAccessTo('psychologists', 'edit') && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Редактирование</span>
-                )}
-                {hasAccessTo('psychologists', 'delete') && (
-                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Удаление</span>
-                )}
-              </div>
+      <nav className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 py-2 sm:px-6 lg:px-8">
+          <div className="flex gap-4">
+            {/* Динамически генерируем ссылки на основе прав */}
+            {user?.permissions?.psychologists?.view && (
               <Link
                 href="/managers/psychologists"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                className="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
               >
-                Перейти →
+                Психологи
               </Link>
-            </div>
-          )}
-
-          {/* Страницы */}
-          {hasAccessTo('pages', 'view') && (
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start mb-4">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Страницы</h3>
-              <p className="text-gray-600 text-sm mb-4">Управление страницами сайта</p>
-              <div className="flex gap-2 mb-4">
-                {hasAccessTo('pages', 'view') && (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Просмотр</span>
-                )}
-                {hasAccessTo('pages', 'edit') && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Редактирование</span>
-                )}
-                {hasAccessTo('pages', 'delete') && (
-                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Удаление</span>
-                )}
-              </div>
+            )}
+            
+            {user?.permissions?.pages?.view && (
               <Link
                 href="/managers/pages"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                className="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
               >
-                Перейти →
+                Страницы
               </Link>
-            </div>
-          )}
-
-          {/* Расписание */}
-          {hasAccessTo('listdate', 'view') && (
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start mb-4">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Списки данных</h3>
-              <p className="text-gray-600 text-sm mb-4">Управление списками данных</p>
-              <div className="flex gap-2 mb-4">
-                {hasAccessTo('listdate', 'view') && (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">Просмотр</span>
-                )}
-                {hasAccessTo('listdate', 'edit') && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Редактирование</span>
-                )}
-                {hasAccessTo('listdate', 'delete') && (
-                  <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded">Удаление</span>
-                )}
-              </div>
+            )}
+            
+            {user?.permissions?.listdate?.view && (
               <Link
-                href="/managers/ListDate"
-                className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                href="/managers/listdate"
+                className="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
               >
-                Перейти →
+                Листдаты
               </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Управление менеджерами - ТОЛЬКО для админа! */}
-        {currentManager.role === 'admin' && hasAccessTo('managers', 'view') && (
-          <div className="mt-8">
-            <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-              <div className="flex items-start mb-4">
-                <div className="p-3 bg-yellow-100 rounded-lg">
-                  <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Управление менеджерами</h3>
-              <p className="text-gray-600 text-sm mb-4">Только для администраторов системы</p>
+            )}
+            
+            {/* Админ может управлять менеджерами */}
+            {user?.role === 'ADMIN' && (
               <Link
                 href="/admin/managers"
-                className="inline-block px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm"
+                className="px-3 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100"
               >
-                Управление доступом →
+                Управление менеджерами
               </Link>
-            </div>
+            )}
           </div>
-        )}
+        </div>
+      </nav>
 
-        {/* Статистика */}
-        <div className="mt-12">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Ваши права доступа</h3>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">
-                  {['psychologists', 'pages', 'listdate'].filter(section => 
-                    hasAccessTo(section as keyof Manager['permissions'], 'view')
-                  ).length}/3
-                </div>
-                <p className="text-gray-600 text-sm mt-1">Разделов доступно</p>
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Добро пожаловать, {user?.name}!
+          </h2>
+          <p className="mt-2 text-gray-600">
+            Вы вошли как {user?.role === 'ADMIN' ? 'администратор' : 'менеджер'} системы
+          </p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Ваши доступные разделы:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {availableModules.map((module) => (
+              <div key={module} className="border border-gray-200 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 capitalize">
+                  {module === 'psychologists' && 'Психологи'}
+                  {module === 'pages' && 'Страницы'}
+                  {module === 'listdate' && 'Листдаты'}
+                </h4>
+                <p className="mt-1 text-sm text-gray-600">
+                  {user.permissions[module]?.edit ? 'Просмотр и редактирование' : 'Только просмотр'}
+                </p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {['psychologists', 'pages', 'listdate'].reduce((count, section) => 
-                    count + (hasAccessTo(section as keyof Manager['permissions'], 'edit') ? 1 : 0), 0
-                  )}
-                </div>
-                <p className="text-gray-600 text-sm mt-1">Можно редактировать</p>
+            ))}
+            
+            {availableModules.length === 0 && (
+              <div className="col-span-full text-center py-8">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">Нет доступных разделов</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Обратитесь к администратору для настройки прав доступа.
+                </p>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">
-                  {['psychologists', 'pages', 'listdate'].reduce((count, section) => 
-                    count + (hasAccessTo(section as keyof Manager['permissions'], 'delete') ? 1 : 0), 0
-                  )}
-                </div>
-                <p className="text-gray-600 text-sm mt-1">Можно удалять</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">
-                  {currentManager.role === 'admin' ? 'Администратор' : 'Менеджер'}
-                </div>
-                <p className="text-gray-600 text-sm mt-1">Ваша роль</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
