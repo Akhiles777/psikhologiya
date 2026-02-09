@@ -36,7 +36,7 @@ export function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </li>
 
          <li>
-          <Link href="/admin/manager" onClick={() => setSidebarOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-[#5858E2]/10 hover:text-[#5858E2]">
+          <Link href="/admin/managers" onClick={() => setSidebarOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-[#5858E2]/10 hover:text-[#5858E2]">
             Менеджеры
           </Link>
         </li>
