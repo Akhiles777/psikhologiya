@@ -221,7 +221,7 @@ export default function ManagersPage() {
                               onClick={() => handleToggleStatus(manager.id, manager.isActive, manager.name)}
                               className="text-red-600 hover:text-red-900 text-sm font-medium text-left sm:text-left"
                             >
-                              {manager.isActive ? 'Деактивировать' : 'Активировать'}
+                          
                             </button>
                           </div>
                         </td>

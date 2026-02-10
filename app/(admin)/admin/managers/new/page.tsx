@@ -16,9 +16,10 @@ export default function NewManagerPage() {
     role: 'MANAGER',
     isActive: true,
     permissions: {
-      psychologists: { view: true, edit: true },
-      pages: { view: true, edit: true },
-      listdate: { view: true, edit: true },
+      psychologists: { view: true },
+      pages: { view: true },
+      listdate: { view: true },
+      managers: { view: false }, // Добавляем раздел менеджеров
     }
   });
 
@@ -41,10 +42,30 @@ export default function NewManagerPage() {
     }
 
     try {
+      // Преобразуем права доступа в формат с view=true, edit=true если выбрано
+      const formattedPermissions: Record<string, { view: boolean; edit: boolean }> = {};
+      Object.keys(formData.permissions).forEach(module => {
+        // Для администратора раздел "Менеджеры" всегда включен
+        if (formData.role === 'ADMIN' && module === 'managers') {
+          formattedPermissions[module] = {
+            view: true,
+            edit: true
+          };
+        } else {
+          formattedPermissions[module] = {
+            view: (formData.permissions as any)[module].view,
+            edit: (formData.permissions as any)[module].view // edit такой же как view
+          };
+        }
+      });
+
       const response = await fetch('/api/admin/managers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          permissions: formattedPermissions
+        }),
       });
 
       const data = await response.json();
@@ -69,21 +90,44 @@ export default function NewManagerPage() {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value,
+        // Если выбрана роль Администратор, автоматически включаем доступ к менеджерам
+        ...(name === 'role' && value === 'ADMIN' ? {
+          permissions: {
+            ...prev.permissions,
+            managers: { view: true }
+          }
+        } : {})
+      }));
     }
   };
 
-  const handlePermissionChange = (module: string, permission: string, value: boolean) => {
+  const handlePermissionChange = (module: string, value: boolean) => {
     setFormData(prev => ({
       ...prev,
       permissions: {
         ...prev.permissions,
         [module]: {
-          ...(prev.permissions as any)[module],
-          [permission]: value
+          view: value
         }
       }
     }));
+  };
+
+  const moduleNames = {
+    psychologists: 'Психологи',
+    pages: 'Страницы',
+    listdate: 'Листдаты',
+    managers: 'Управление менеджерами',
+  };
+
+  const moduleDescriptions = {
+    psychologists: 'Доступ к управлению психологами',
+    pages: 'Доступ к редактированию страниц сайта',
+    listdate: 'Доступ к управлению справочниками',
+    managers: 'Доступ к управлению пользователями системы (только для администраторов)',
   };
 
   return (
@@ -205,6 +249,11 @@ export default function NewManagerPage() {
                   <option value="MANAGER">Менеджер</option>
                   <option value="ADMIN">Администратор</option>
                 </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  {formData.role === 'ADMIN' 
+                    ? 'Администратор имеет полный доступ ко всем разделам' 
+                    : 'Менеджер имеет ограниченный доступ'}
+                </p>
               </div>
 
               <div className="flex items-center pt-6">
@@ -223,47 +272,124 @@ export default function NewManagerPage() {
             </div>
           </div>
 
-          {/* Права доступа */}
+          {/* Права доступа - упрощенная версия */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Права доступа</h2>
-            <p className="text-sm text-gray-600 mb-4">Укажите, какие разделы будет видеть менеджер</p>
+            <p className="text-sm text-gray-600 mb-4">
+              {formData.role === 'ADMIN' 
+                ? 'Администратор имеет полный доступ ко всем разделам системы, включая управление менеджерами.'
+                : 'Менеджеру доступны только отмеченные разделы. Доступ к управлению менеджерами есть только у администраторов.'}
+            </p>
             
-            <div className="space-y-4">
-              {['psychologists', 'pages', 'listdate'].map((module) => (
-                <div key={module} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-gray-900">
-                      {module === 'psychologists' && 'Психологи'}
-                      {module === 'pages' && 'Страницы'}
-                      {module === 'listdate' && 'Листдаты'}
-                    </h3>
+            <div className="space-y-3">
+              {Object.entries(moduleNames).map(([module, name]) => (
+                <div 
+                  key={module} 
+                  className={`flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 ${
+                    module === 'managers' && formData.role === 'MANAGER' 
+                      ? 'border-gray-200 bg-gray-50 opacity-75' 
+                      : 'border-gray-200'
+                  }`}
+                >
+                  <div className="flex-1">
                     <div className="flex items-center">
+                      <h3 className="font-medium text-gray-900">{name}</h3>
+                      {module === 'managers' && formData.role === 'MANAGER' && (
+                        <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full">
+                          Только администратор
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-0.5">
+                      {moduleDescriptions[module as keyof typeof moduleDescriptions]}
+                    </p>
+                  </div>
+                  <label className="flex items-center cursor-pointer ml-4">
+                    <div className="relative">
                       <input
                         type="checkbox"
-                        id={`${module}-view`}
-                        checked={(formData.permissions as any)[module]?.view || false}
-                        onChange={(e) => handlePermissionChange(module, 'view', e.target.checked)}
-                        className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        checked={
+                          // Для администратора все разделы всегда включены
+                          formData.role === 'ADMIN' 
+                            ? true 
+                            : // Для менеджера раздел "Менеджеры" всегда выключен
+                              module === 'managers' 
+                                ? false 
+                                : (formData.permissions as any)[module]?.view || false
+                        }
+                        onChange={(e) => {
+                          // Для менеджера нельзя включать раздел "Менеджеры"
+                          if (module === 'managers' && formData.role === 'MANAGER') {
+                            return;
+                          }
+                          handlePermissionChange(module, e.target.checked);
+                        }}
+                        disabled={
+                          // Администратор - все включены
+                          formData.role === 'ADMIN' ||
+                          // Менеджер - нельзя управлять разделом "Менеджеры"
+                          (module === 'managers' && formData.role === 'MANAGER')
+                        }
+                        className="sr-only"
                       />
-                      <label htmlFor={`${module}-view`} className="ml-2 text-sm text-gray-700">
-                        Просмотр
-                      </label>
+                      <div className={`block w-10 h-6 rounded-full ${
+                        formData.role === 'ADMIN' 
+                          ? 'bg-blue-300' 
+                          : module === 'managers' && formData.role === 'MANAGER'
+                            ? 'bg-gray-200'
+                            : (formData.permissions as any)[module]?.view 
+                              ? 'bg-blue-600' 
+                              : 'bg-gray-300'
+                      }`}></div>
+                      <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${
+                        formData.role === 'ADMIN' 
+                          ? 'transform translate-x-4' 
+                          : module === 'managers' && formData.role === 'MANAGER'
+                            ? ''
+                            : (formData.permissions as any)[module]?.view 
+                              ? 'transform translate-x-4' 
+                              : ''
+                      }`}></div>
                     </div>
-                  </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`${module}-edit`}
-                      checked={(formData.permissions as any)[module]?.edit || false}
-                      onChange={(e) => handlePermissionChange(module, 'edit', e.target.checked)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor={`${module}-edit`} className="ml-2 text-sm text-gray-700">
-                      Редактирование
-                    </label>
-                  </div>
+                    <span className="ml-3 text-sm font-medium text-gray-700">
+                      {formData.role === 'ADMIN' 
+                        ? 'Всегда' 
+                        : module === 'managers' && formData.role === 'MANAGER'
+                          ? 'Нет доступа'
+                          : (formData.permissions as any)[module]?.view 
+                            ? 'Вкл' 
+                            : 'Выкл'}
+                    </span>
+                  </label>
                 </div>
               ))}
+            </div>
+
+            {/* Примечания */}
+            <div className="mt-4 space-y-2">
+              {formData.role === 'ADMIN' ? (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-start">
+                    <svg className="h-5 w-5 text-blue-400 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-blue-700">
+                      Администратор автоматически получает полный доступ ко всем разделам системы, включая управление менеджерами.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <div className="flex items-start">
+                    <svg className="h-5 w-5 text-yellow-400 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-sm text-yellow-700">
+                      Менеджер не может иметь доступ к разделу "Управление менеджерами". Эта возможность доступна только администраторам.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

@@ -39,12 +39,7 @@ export default function ManagersLayout({
                   >
                     Страницы
                   </Link>
-                  <Link
-                    href="/managers/references"
-                    className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  >
-                    Справочники
-                  </Link>
+          
                 </div>
               </div>
             </div>

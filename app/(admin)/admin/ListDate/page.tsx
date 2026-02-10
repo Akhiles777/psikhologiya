@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getDataListItems, updateDataList } from '@/lib/actions/admin-references';
-import { Plus, Trash2, Save } from 'lucide-react';
+import { Plus, Trash2, Save, Edit, GripVertical, X, Check } from 'lucide-react';
 
 export default function ReferencesPage() {
   const [activeTab, setActiveTab] = useState<'work-formats' | 'paradigms' | 'certification-levels'>('work-formats');
@@ -11,6 +11,9 @@ export default function ReferencesPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
 
   const tabNames = {
     'work-formats': 'Форматы работы',
@@ -26,6 +29,7 @@ export default function ReferencesPage() {
   const loadData = async () => {
     setLoading(true);
     setError(null);
+    setEditingIndex(null);
     try {
       const data = await getDataListItems(activeTab);
       console.log(`📊 Загружены данные для ${activeTab}:`, data);
@@ -57,9 +61,90 @@ export default function ReferencesPage() {
   };
 
   const handleRemove = (index: number) => {
+    if (confirm('Удалить этот элемент?')) {
+      const newItems = [...items];
+      newItems.splice(index, 1);
+      setItems(newItems);
+      if (editingIndex === index) {
+        setEditingIndex(null);
+      }
+    }
+  };
+
+  const startEdit = (index: number) => {
+    setEditingIndex(index);
+    setEditValue(items[index]);
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditValue('');
+  };
+
+  const saveEdit = () => {
+    if (!editValue.trim()) {
+      setError('Введите значение');
+      return;
+    }
+
+    // Проверяем дубликаты (кроме текущего редактируемого)
+    const duplicateIndex = items.findIndex((item, idx) => 
+      item === editValue.trim() && idx !== editingIndex
+    );
+    
+    if (duplicateIndex !== -1) {
+      setError('Это значение уже существует');
+      return;
+    }
+
     const newItems = [...items];
-    newItems.splice(index, 1);
+    if (editingIndex !== null) {
+      newItems[editingIndex] = editValue.trim();
+      setItems(newItems);
+      setEditingIndex(null);
+      setEditValue('');
+      setError(null);
+    }
+  };
+
+  // Drag and Drop функции
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Добавляем визуальную обратную связь
+    e.currentTarget.classList.add('opacity-50');
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove('opacity-50');
+    setDraggedItem(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
+    
+    if (draggedItem === null) return;
+    
+    const newItems = [...items];
+    const [draggedElement] = newItems.splice(draggedItem, 1);
+    newItems.splice(targetIndex, 0, draggedElement);
+    
     setItems(newItems);
+    setDraggedItem(null);
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.currentTarget.classList.add('border-blue-400', 'bg-blue-50');
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50');
   };
 
   const handleSave = async () => {
@@ -75,7 +160,7 @@ export default function ReferencesPage() {
       const result = await updateDataList(activeTab, items);
       if (result.success) {
         alert('✅ Сохранено успешно!');
-        await loadData(); // Перезагружаем для проверки
+        await loadData();
       } else {
         setError(result.error || 'Ошибка сохранения');
       }
@@ -95,7 +180,7 @@ export default function ReferencesPage() {
             Управление списками данных
           </h1>
           <p className="mt-2 text-gray-600">
-            Редактирование допустимых значений для форм
+            Редактирование допустимых значений для форм. Перетаскивайте элементы для изменения порядка.
           </p>
         </div>
 
@@ -125,7 +210,7 @@ export default function ReferencesPage() {
               {tabNames[activeTab]}
             </h2>
             <p className="text-gray-600 text-sm">
-              Добавляйте, удаляйте и редактируйте элементы. Изменения применяются сразу.
+              Добавляйте, редактируйте, удаляйте и перетаскивайте элементы.
             </p>
           </div>
 
@@ -180,16 +265,83 @@ export default function ReferencesPage() {
                     {items.map((item, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragEnd={handleDragEnd}
+                        onDrop={(e) => handleDrop(e, index)}
+                        onDragEnter={handleDragEnter}
+                        onDragLeave={handleDragLeave}
+                        className={`flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all cursor-move ${
+                          draggedItem === index ? 'opacity-50' : ''
+                        }`}
                       >
-                        <span className="font-medium">{item}</span>
-                        <button
-                          onClick={() => handleRemove(index)}
-                          className="text-red-600 hover:text-red-800 p-1"
-                          title="Удалить"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center gap-3 flex-1">
+                          {/* Иконка для перетаскивания */}
+                          <div className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
+                            <GripVertical className="w-5 h-5" />
+                          </div>
+                          
+                          {/* Редактируемое поле или текст */}
+                          {editingIndex === index ? (
+                            <div className="flex-1 flex gap-2">
+                              <input
+                                type="text"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') saveEdit();
+                                  if (e.key === 'Escape') cancelEdit();
+                                }}
+                                className="flex-1 border-b border-gray-300 px-1 focus:border-[#5858E2] focus:outline-none"
+                                autoFocus
+                              />
+                              <div className="flex gap-1">
+                                <button
+                                  onClick={saveEdit}
+                                  className="p-1 text-green-600 hover:text-green-800"
+                                  title="Сохранить"
+                                >
+                                  <Check className="w-5 h-5" />
+                                </button>
+                                <button
+                                  onClick={cancelEdit}
+                                  className="p-1 text-red-600 hover:text-red-800"
+                                  title="Отмена"
+                                >
+                                  <X className="w-5 h-5" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="font-medium">{item}</span>
+                              <span className="text-xs text-gray-400 ml-2">
+                                #{index + 1}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        
+                        {/* Кнопки действий (если не в режиме редактирования) */}
+                        {editingIndex !== index && (
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => startEdit(index)}
+                              className="p-1 text-blue-600 hover:text-blue-800"
+                              title="Редактировать"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleRemove(index)}
+                              className="p-1 text-red-600 hover:text-red-800"
+                              title="Удалить"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -199,6 +351,12 @@ export default function ReferencesPage() {
               {/* Информация о количестве */}
               <div className="mb-4 text-sm text-gray-500">
                 Всего элементов: {items.length}
+              </div>
+
+              {/* Инструкция по перетаскиванию */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                💡 <strong>Совет:</strong> Перетаскивайте элементы за значок <GripVertical className="w-3 h-3 inline mx-1" /> 
+                чтобы изменить их порядок в списке
               </div>
 
               {/* Кнопка сохранения */}

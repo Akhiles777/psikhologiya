@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CatalogModal } from "./CatalogModal";
 import { Badge } from "@/components/ui";
 import { buildCatalogUrl } from "@/lib/url";
 import { normalizeImageSrc, isExternalImageSrc } from "@/lib/image-src";
@@ -19,29 +18,17 @@ type Props = {
 
 /**
  * Каталог: карточки психологов.
- * Клик по карточке открывает модальное окно; из модалки можно перейти на полную страницу.
+ * Клик по карточке сразу ведет на страницу психолога.
  */
 export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: Props) {
-  
-  
-  const router = useRouter()
+  const router = useRouter();
 
-  const [selected, setSelected] = useState<PsychologistCatalogItem | null>(null);
-
-  const openModal = useCallback((p: PsychologistCatalogItem) => {
-    setSelected(p);
-  }, []);
-
-  const closeModal = useCallback(() => {
-    setSelected(null);
-  }, []);
+  // Функция для перехода на страницу психолога
+  const goToPsychologist = useCallback((psychologist: PsychologistCatalogItem) => {
+    router.push(`/psy-list/${psychologist.slug}`);
+  }, [router]);
 
   const nextUrl = nextCursor != null ? buildCatalogUrl(searchParams, { cursor: nextCursor }) : null;
-
-  function routerClick()  {
-
-    router.push('/')
-  }
 
   return (
     <div className="flex min-h-[60vh] ml-0 md:ml-15 flex-col gap-4 lg:flex-row lg:gap-8">
@@ -61,7 +48,7 @@ export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: P
                 <CardBlock
                   key={p.id}
                   psychologist={p}
-                  onClick={() => openModal(p)}
+                  onClick={() => goToPsychologist(p)}
                 />
               ))}
             </div>
@@ -78,12 +65,11 @@ export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: P
           </>
         )}
       </div>
-      <CatalogModal psychologist={selected} onClose={closeModal} />
     </div>
   );
 }
 
-/** Карточка психолога в каталоге: клик открывает модалку */
+/** Карточка психолога в каталоге: клик ведет на страницу психолога */
 function CardBlock({
   psychologist,
   onClick,

@@ -27,7 +27,7 @@ export default async function AdminLoginPage({
           Вход в админ-панель
         </h1>
         <p className="mt-2 text-sm text-neutral-dark">
-          Логин и пароль задаются в .env (ADMIN_LOGIN, ADMIN_PASSWORD). По умолчанию: Gasan123 / 1111
+          Логин и пароль задаются в .env (ADMIN_LOGIN, ADMIN_PASSWORD).
         </p>
         <form action={loginAction} className="mt-8 space-y-6">
           {error && (

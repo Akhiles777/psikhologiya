@@ -434,14 +434,7 @@ export default function ManagersPage() {
                               : 'text-green-600 hover:text-green-900'
                           } ${isProcessing === manager.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          {isProcessing === manager.id ? (
-                            <span className="flex items-center">
-                              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></span>
-                              Обработка...
-                            </span>
-                          ) : (
-                            manager.isActive ? 'Деактивировать' : 'Активировать'
-                          )}
+                      
                         </button>
                       </div>
                     </td>
