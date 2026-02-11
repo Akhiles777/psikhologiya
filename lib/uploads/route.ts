@@ -11,9 +11,15 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
  * Загрузка файла (фото) в public/uploads.
  * POST multipart/form-data с полем "file".
  * Возвращает { url: "/uploads/..." }.
+ * 
+ * 
+ * const
  */
+
+
+const gasan = 'gdg'
 export async function POST(request: NextRequest) {
-  
+
   try {
     const formData = await request.formData();
     const file = formData.get("file");
