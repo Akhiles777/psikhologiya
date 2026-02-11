@@ -10,14 +10,10 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
   title: "Давай вместе — Находим своего психолога вместе",
-  description:
-    "Реестр психологов с прозрачной сертификацией. Подбор по подходу, цене, городу. Каталог, фильтры, уровни 1–3.",
+  description: "Реестр психологов с прозрачной сертификацией. Подбор по подходу, цене, городу. Каталог, фильтры, уровни 1–3.",
   path: "/",
 });
 
-/**
- * Главная страница: 8 больших блоков с полным контентом.
- */
 export default function HomePage() {
   return (
     <>
@@ -29,7 +25,6 @@ export default function HomePage() {
       <ForPsychologistsBlock />
       <LibraryBlock />
       <CtaBlock />
-      
     </>
   );
 }

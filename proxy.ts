@@ -19,7 +19,7 @@ export default function proxy(request: NextRequest) {
 
   const token = request.cookies.get(COOKIE_NAME)?.value;
   if (token !== ADMIN_SESSION_SECRET) {
-    const loginUrl = new URL("/admin/login", request.url);
+    const loginUrl = new URL("/auth/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 

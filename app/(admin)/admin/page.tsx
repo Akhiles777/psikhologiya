@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
 
+import { client } from "@/.tina/__generated__/client";
+import { TinaMarkdown } from "tinacms/dist/rich-text";
+
 export const metadata = buildMetadata({
   title: "Админ-панель",
   path: "/admin",
