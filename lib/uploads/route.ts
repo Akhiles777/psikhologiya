@@ -13,6 +13,7 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
  * Возвращает { url: "/uploads/..." }.
  */
 export async function POST(request: NextRequest) {
+  
   try {
     const formData = await request.formData();
     const file = formData.get("file");
