@@ -315,7 +315,44 @@ export async function updatePsychologist(id: string, formData: FormData) {
       }
     }
 
-    // ...existing code...
+    // Обработка образования
+    const educationStr = (formData.get("education") as string)?.trim();
+    let education: any[] = [];
+    if (educationStr) {
+      try {
+        education = JSON.parse(educationStr);
+        if (!Array.isArray(education)) education = [];
+      } catch {
+        education = [];
+      }
+    }
+
+    const updateData: any = {
+      fullName,
+      slug,
+      gender,
+      birthDate,
+      city,
+      workFormat,
+      firstDiplomaDate,
+      lastCertificationDate,
+      mainParadigm,
+      certificationLevel,
+      shortBio,
+      longBio,
+      price,
+      contactInfo,
+      isPublished,
+      images: allImages,
+      education: education,
+    };
+
+    const result = await prisma.psychologist.update({
+      where: { id },
+      data: updateData,
+    });
+
+    console.log("✅ Психолог успешно обновлен");
 
   } catch (err) {
     console.error("💥 Ошибка обновления психолога:", err);
