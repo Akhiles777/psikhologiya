@@ -159,22 +159,47 @@ export default function EditManagerPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ 
-        ...prev, 
-        [name]: value,
-        // Если выбрана роль Администратор, автоматически включаем доступ к менеджерам
-        ...(name === 'role' && value === 'ADMIN' ? {
-          permissions: {
-            ...prev.permissions,
-            managers: { view: true }
-          }
-        } : {})
-      }));
+      setFormData(prev => {
+        // Если выбрана роль Администратор, выставляем все права
+        if (name === 'role' && value === 'ADMIN') {
+          return {
+            ...prev,
+            [name]: value,
+            permissions: {
+              psychologists: { view: true },
+              pages: { view: true },
+              listdate: { view: true },
+              managers: { view: true },
+            }
+          };
+        }
+        return { ...prev, [name]: value };
+      });
+    }
+  };
+  // Удаление менеджера
+  const handleDelete = async () => {
+    if (!manager) return;
+    if (!confirm(`Удалить менеджера ${manager.name}? Это действие необратимо.`)) return;
+    setIsSaving(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/admin/managers/${manager.id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Ошибка при удалении менеджера');
+      }
+      router.push('/admin/managers');
+      router.refresh();
+    } catch (error: any) {
+      setError(error.message || 'Ошибка удаления');
+      setIsSaving(false);
     }
   };
 
@@ -274,6 +299,17 @@ export default function EditManagerPage() {
 
       <div className="max-w-3xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Кнопка полного удаления менеджера */}
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              disabled={isSaving}
+            >
+              Удалить менеджера
+            </button>
+          </div>
           {/* Основная информация */}
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Основная информация</h2>

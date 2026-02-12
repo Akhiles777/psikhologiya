@@ -137,7 +137,7 @@ export async function PUT(
   }
 }
 
-// DELETE: Удалить/деактивировать менеджера
+// DELETE: Полное удаление менеджера
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -145,34 +145,19 @@ export async function DELETE(
   try {
     const params = await context.params;
     const id = params.id;
-    
     if (!id) {
       return NextResponse.json(
         { error: 'ID менеджера не указан' },
         { status: 400 }
       );
     }
-
-    // Вместо удаления деактивируем менеджера
-    const updatedManager = await prisma.manager.update({
-      where: { id },
-      data: { isActive: false },
-      select: {
-        id: true,
-        name: true,
-        isActive: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Менеджер деактивирован',
-      manager: updatedManager
-    });
+    // Полное удаление менеджера
+    await prisma.manager.delete({ where: { id } });
+    return NextResponse.json({ success: true, message: 'Менеджер удалён' });
   } catch (error: any) {
     console.error('Error deleting manager:', error);
     return NextResponse.json(
-      { error: 'Ошибка при деактивации менеджера' },
+      { error: 'Ошибка при удалении менеджера' },
       { status: 500 }
     );
   }

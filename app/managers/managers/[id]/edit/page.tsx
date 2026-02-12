@@ -165,10 +165,8 @@ export default function EditManagerPage({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
-      
       if (name === 'isActive') {
         setFormData(prev => ({ ...prev, isActive: checked }));
       } else {
@@ -176,29 +174,27 @@ export default function EditManagerPage({
       }
     } else {
       if (name === 'role') {
-        // Если выбрана роль Администратор, автоматически включаем все права
         if (value === 'ADMIN') {
-          const allPermissions: Permissions = {
-            psychologists: { view: true, edit: true },
-            pages: { view: true, edit: true },
-            listdate: { view: true, edit: true },
-            managers: { view: true, edit: true }
-          };
-          
-          setFormData(prev => ({ 
-            ...prev, 
+          // Для ADMIN выставляем все права true и запрещаем их менять вручную
+          setFormData(prev => ({
+            ...prev,
             role: value,
-            permissions: allPermissions
+            permissions: {
+              psychologists: { view: true, edit: true },
+              pages: { view: true, edit: true },
+              listdate: { view: true, edit: true },
+              managers: { view: true, edit: true },
+            },
           }));
         } else {
-          // Для менеджера отключаем доступ к управлению менеджерами
-          setFormData(prev => ({ 
-            ...prev, 
+          // Для MANAGER сбрасываем права на менеджеров
+          setFormData(prev => ({
+            ...prev,
             role: value,
             permissions: {
               ...prev.permissions,
-              managers: { view: false, edit: false }
-            }
+              managers: { view: false, edit: false },
+            },
           }));
         }
       } else {
@@ -208,23 +204,19 @@ export default function EditManagerPage({
   };
 
   const handlePermissionChange = (module: keyof Permissions, value: boolean) => {
-    // Для администратора права нельзя менять вручную
+    // Для ADMIN права нельзя менять вручную
     if (formData.role === 'ADMIN') return;
-    
-    // Для менеджера нельзя включать раздел "Менеджеры"
-    if (module === 'managers' && formData.role === 'MANAGER') {
-      return;
-    }
-
+    // Для MANAGER нельзя включать раздел "Менеджеры"
+    if (module === 'managers' && formData.role === 'MANAGER') return;
     setFormData(prev => ({
       ...prev,
       permissions: {
         ...prev.permissions,
         [module]: {
           view: value,
-          edit: value // edit такой же как view (как в примере создания)
-        }
-      }
+          edit: value,
+        },
+      },
     }));
   };
 
@@ -262,7 +254,7 @@ export default function EditManagerPage({
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-        <div className="flex justify-center items-center min-h-[400px]">
+  <div className="flex justify-center items-center min-h-100">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#4CAF50] mx-auto"></div>
             <p className="mt-4 text-gray-600">Загрузка данных менеджера...</p>
@@ -278,7 +270,7 @@ export default function EditManagerPage({
         <div className="mx-auto max-w-3xl py-12">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="flex">
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
@@ -331,7 +323,7 @@ export default function EditManagerPage({
               {error && (
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
                   <div className="flex">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                       </svg>
@@ -470,22 +462,22 @@ export default function EditManagerPage({
                 {Object.entries(moduleConfigs).map(([moduleKey, config]) => {
                   const module = moduleKey as keyof Permissions;
                   const modulePermissions = formData.permissions[module];
-                  const isChecked = isAdmin ? true : modulePermissions.view;
-                  const isDisabled = isAdmin || (module === 'managers' && !isAdmin);
+                  const isChecked = formData.role === 'ADMIN' ? true : modulePermissions.view;
+                  const isDisabled = formData.role === 'ADMIN' || (module === 'managers' && formData.role !== 'ADMIN');
 
                   return (
-                    <div 
-                      key={module} 
+                    <div
+                      key={module}
                       className={`flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 ${
-                        module === 'managers' && !isAdmin 
-                          ? 'border-gray-200 bg-gray-50 opacity-75' 
+                        module === 'managers' && formData.role !== 'ADMIN'
+                          ? 'border-gray-200 bg-gray-50 opacity-75'
                           : 'border-gray-200'
                       }`}
                     >
                       <div className="flex-1">
                         <div className="flex items-center">
                           <h3 className="font-medium text-gray-900">{config.name}</h3>
-                          {module === 'managers' && !isAdmin && (
+                          {module === 'managers' && formData.role !== 'ADMIN' && (
                             <span className="ml-2 px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full">
                               Только администратор
                             </span>
@@ -501,41 +493,39 @@ export default function EditManagerPage({
                             type="checkbox"
                             checked={isChecked}
                             onChange={(e) => {
-                              // Для менеджера нельзя включать раздел "Менеджеры"
-                              if (module === 'managers' && !isAdmin) {
-                                return;
-                              }
+                              if (formData.role === 'ADMIN') return;
+                              if (module === 'managers' && formData.role !== 'ADMIN') return;
                               handlePermissionChange(module, e.target.checked);
                             }}
                             disabled={isDisabled}
                             className="sr-only"
                           />
                           <div className={`block w-10 h-6 rounded-full ${
-                            isAdmin 
-                              ? 'bg-blue-300' 
-                              : module === 'managers' && !isAdmin
+                            formData.role === 'ADMIN'
+                              ? 'bg-blue-300'
+                              : module === 'managers' && formData.role !== 'ADMIN'
                                 ? 'bg-gray-200'
-                                : isChecked 
-                                  ? 'bg-blue-600' 
+                                : isChecked
+                                  ? 'bg-blue-600'
                                   : 'bg-gray-300'
                           }`}></div>
                           <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${
-                            isAdmin 
-                              ? 'transform translate-x-4' 
-                              : module === 'managers' && !isAdmin
+                            formData.role === 'ADMIN'
+                              ? 'transform translate-x-4'
+                              : module === 'managers' && formData.role !== 'ADMIN'
                                 ? ''
-                                : isChecked 
-                                  ? 'transform translate-x-4' 
+                                : isChecked
+                                  ? 'transform translate-x-4'
                                   : ''
                           }`}></div>
                         </div>
                         <span className="ml-3 text-sm font-medium text-gray-700">
-                          {isAdmin 
-                            ? 'Всегда' 
-                            : module === 'managers' && !isAdmin
+                          {formData.role === 'ADMIN'
+                            ? 'Всегда'
+                            : module === 'managers' && formData.role !== 'ADMIN'
                               ? 'Нет доступа'
-                              : isChecked 
-                                ? 'Вкл' 
+                              : isChecked
+                                ? 'Вкл'
                                 : 'Выкл'}
                         </span>
                       </label>
@@ -573,39 +563,63 @@ export default function EditManagerPage({
             </div>
 
             {/* Кнопки действий */}
-            <div className="flex justify-between pt-6">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (confirm('Вы уверены, что хотите деактивировать этого менеджера? Он не сможет войти в систему.')) {
-                    try {
-                      const response = await fetch(`/api/managers/managers/${id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ isActive: false }),
-                      });
-
-                      if (response.ok) {
-                        router.push('/managers/managers');
-                        router.refresh();
-                      } else {
-                        const data = await response.json();
-                        alert(data.error || 'Ошибка деактивации');
+            <div className="flex flex-col sm:flex-row justify-between pt-6 gap-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (confirm('Вы уверены, что хотите деактивировать этого менеджера? Он не сможет войти в систему.')) {
+                      try {
+                        const response = await fetch(`/api/managers/managers/${id}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ isActive: false }),
+                        });
+                        if (response.ok) {
+                          router.push('/managers/managers');
+                          router.refresh();
+                        } else {
+                          const data = await response.json();
+                          alert(data.error || 'Ошибка деактивации');
+                        }
+                      } catch (error) {
+                        alert('Ошибка при деактивации менеджера');
                       }
-                    } catch (error) {
-                      alert('Ошибка при деактивации менеджера');
                     }
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Деактивировать
-              </button>
-              
-              <div className="flex space-x-4">
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Деактивировать
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (confirm('Вы уверены, что хотите полностью удалить этого менеджера? Это действие необратимо!')) {
+                      try {
+                        const response = await fetch(`/api/managers/managers/${id}`, {
+                          method: 'DELETE',
+                        });
+                        if (response.ok) {
+                          router.push('/managers/managers');
+                          router.refresh();
+                        } else {
+                          const data = await response.json();
+                          alert(data.error || 'Ошибка удаления');
+                        }
+                      } catch (error) {
+                        alert('Ошибка при удалении менеджера');
+                      }
+                    }
+                  }}
+                  className="px-4 py-2 bg-red-800 text-white text-sm font-medium rounded-md hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-800"
+                >
+                  Удалить менеджера полностью
+                </button>
+              </div>
+              <div className="flex space-x-4 mt-4 sm:mt-0">
                 <Link
                   href="/managers/managers"
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4CAF50]"
+                  className="px-4 py-2 border border-[#4CAF50] rounded-md text-sm font-medium text-[#4CAF50] hover:bg-[#E8F5E9] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4CAF50]"
                 >
                   Отмена
                 </Link>
