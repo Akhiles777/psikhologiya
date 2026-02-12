@@ -293,93 +293,29 @@ export async function updatePsychologist(id: string, formData: FormData) {
 
     const allImages = [...uploadedImagePaths, ...imageUrls];
     console.log(`🎯 Всего изображений: ${allImages.length}`);
-    
-    // Обработка образования
-    const educationStr = (formData.get("education") as string)?.trim();
-    let education: any[] = [];
 
-    console.log('📚 Raw education string from form:', educationStr ? 'present' : 'empty', educationStr);
-
-    if (educationStr && educationStr !== 'undefined' && educationStr !== 'null' && educationStr !== '[]') {
-      try {
-        const parsed = JSON.parse(educationStr);
-        console.log('📚 Parsed education (raw):', parsed);
-        console.log('📚 Is array?', Array.isArray(parsed));
-        
-        if (Array.isArray(parsed)) {
-          education = parsed.filter(item => {
-            if (!item || typeof item !== 'object') return false;
-            const hasNewFormat = item.year || item.type || item.organization || item.title;
-            const hasOldFormat = item.institution || item.specialty || item.year || item.degree;
-            const hasData = hasNewFormat || hasOldFormat;
-            console.log('📚 Education item:', item, 'hasData:', hasData);
-            return hasData;
-          });
-          
-          education = education.map(item => {
-            if (item.year || item.type || item.organization || item.title) {
-              return {
-                year: (item.year || '').toString().trim(),
-                type: (item.type || '').toString().trim(),
-                organization: (item.organization || '').toString().trim(),
-                title: (item.title || '').toString().trim(),
-                isDiploma: Boolean(item.isDiploma)
-              };
-            } else if (item.institution || item.specialty || item.year || item.degree) {
-              return {
-                institution: (item.institution || '').toString().trim(),
-                specialty: (item.specialty || '').toString().trim(),
-                year: (item.year || '').toString().trim(),
-                degree: (item.degree || '').toString().trim()
-              };
+    // Удаление файлов, которые были удалены из images
+    const oldPsychologist = await prisma.psychologist.findUnique({ where: { id } });
+    if (oldPsychologist && Array.isArray(oldPsychologist.images)) {
+      for (const oldImg of oldPsychologist.images) {
+        if (
+          typeof oldImg === 'string' &&
+          oldImg.startsWith('/uploads/') &&
+          !allImages.includes(oldImg)
+        ) {
+          const absPath = path.join(process.cwd(), 'public', oldImg.replace(/^\/uploads\//, 'uploads/'));
+          try {
+            if (fs.existsSync(absPath)) {
+              fs.unlinkSync(absPath);
             }
-            return item;
-          });
+          } catch (e) {
+            console.error('Ошибка удаления файла:', absPath, e);
+          }
         }
-      } catch (error) {
-        console.error('❌ Ошибка парсинга education JSON:', error);
-        console.error('❌ Problematic string:', educationStr);
-        education = [];
       }
     }
 
-    console.log(`📚 Final education array: ${JSON.stringify(education)}`);
-    console.log(`📚 Number of education records: ${education.length}`);
-
-    console.log("💾 Обновление в БД...");
-    
-    const updateData: any = {
-      fullName,
-      slug,
-      gender,
-      birthDate,
-      city,
-      workFormat,
-      firstDiplomaDate,
-      lastCertificationDate,
-      mainParadigm,
-      certificationLevel,
-      shortBio,
-      longBio,
-      price,
-      contactInfo,
-      isPublished,
-      images: allImages,
-      education: education,
-    };
-    
-    console.log('📦 Данные для обновления:', {
-      ...updateData,
-      education: education,
-      images: allImages,
-    });
-
-    const result = await prisma.psychologist.update({
-      where: { id },
-      data: updateData,
-    });
-
-    console.log("✅ Психолог успешно обновлен");
+    // ...existing code...
 
   } catch (err) {
     console.error("💥 Ошибка обновления психолога:", err);
@@ -406,7 +342,29 @@ export async function updatePsychologist(id: string, formData: FormData) {
 export async function deletePsychologist(id: string, _formData?: FormData) {
   if (!prisma) redirect("/managers/psychologists?error=db_unavailable"); // Менеджерский путь
   try {
+    // Получаем данные психолога, чтобы узнать его изображения
+    const psychologist = await prisma.psychologist.findUnique({ where: { id } });
+    if (!psychologist) {
+      redirect("/managers/psychologists?error=not_found");
+    }
+    // Удаляем психолога из базы
     await prisma.psychologist.delete({ where: { id } });
+    // Удаляем изображения из папки uploads
+    if (psychologist.images && Array.isArray(psychologist.images)) {
+      for (const imgPath of psychologist.images) {
+        // Удаляем только локальные файлы (начинаются с /uploads/)
+        if (typeof imgPath === 'string' && imgPath.startsWith('/uploads/')) {
+          const absPath = path.join(process.cwd(), 'public', imgPath.replace(/^\/uploads\//, 'uploads/'));
+          try {
+            if (fs.existsSync(absPath)) {
+              fs.unlinkSync(absPath);
+            }
+          } catch (e) {
+            console.error('Ошибка удаления файла:', absPath, e);
+          }
+        }
+      }
+    }
   } catch (err: unknown) {
     if (isDbSyncError(err)) redirect("/managers/psychologists?error=db_sync"); // Менеджерский путь
     redirect("/managers/psychologists?error=delete_failed"); // Менеджерский путь
