@@ -23,7 +23,10 @@ export default function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+
+  return NextResponse.next(); 
+
+  
 }
 
 export const config = {

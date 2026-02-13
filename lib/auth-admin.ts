@@ -30,4 +30,5 @@ export function isSessionValid(cookieValue: string | undefined): boolean {
   return cookieValue === getValidSessionToken();
 }
 
+
 export { COOKIE_NAME };
