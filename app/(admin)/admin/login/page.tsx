@@ -20,7 +20,8 @@ export default async function AdminLoginPage({
   const params = await searchParams;
   const error = params.error === "1";
 
-  const test = 'test'
+  const test = 'test21321'
+  const text = test
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F5F5F7] px-4">
