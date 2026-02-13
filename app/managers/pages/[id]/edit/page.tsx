@@ -53,6 +53,7 @@ export default async function EditPagePage({
           page={page}
           pageId={id}
           errorBanner={errorBanner}
+          updatePage={updatePage}
         />
       </div>
     </div>

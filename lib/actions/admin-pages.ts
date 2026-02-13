@@ -47,10 +47,12 @@ export async function createPage(formData: FormData) {
   const content = (formData.get("content") as string)?.trim() || "";
   const publishedVal = formData.getAll("isPublished");
   const isPublished = publishedVal[publishedVal.length - 1] === "on";
+  // Получаем изображения из формы
+  const images = formData.getAll("images").filter(v => typeof v === "string" && v.startsWith("/pages/")) as string[];
 
   try {
     await prisma.page.create({
-      data: { title, slug, template, content, isPublished },
+      data: { title, slug, template, content, isPublished, images },
     });
   } catch (err: unknown) {
     if (isDbSyncError(err)) redirect("/admin/pages?error=db_sync");
@@ -78,11 +80,14 @@ export async function updatePage(id: string, formData: FormData) {
   const publishedVal = formData.getAll("isPublished");
   const isPublished = publishedVal[publishedVal.length - 1] === "on";
 
+  // Получаем изображения из формы
+  const images = formData.getAll("images").filter(v => typeof v === "string" && v.startsWith("/pages/")) as string[];
+
   try {
     const old = await prisma.page.findUnique({ where: { id }, select: { slug: true } });
     await prisma.page.update({
       where: { id },
-      data: { title, slug, template, content, isPublished },
+      data: { title, slug, template, content, isPublished, images },
     });
     revalidatePath("/admin/pages");
     revalidatePath(`/s/${slug}`);
@@ -96,10 +101,25 @@ export async function updatePage(id: string, formData: FormData) {
   redirect("/admin/pages");
 }
 
-/** Удалить страницу. Вызывается из формы: deletePage(id) или deletePage(id, formData). */
+/** Удалить страницу и связанные изображения. */
+import { promises as fs } from "fs";
+import path from "path";
 export async function deletePage(id: string, _formData?: FormData) {
   if (!prisma) redirect("/admin/pages?error=db_unavailable");
   try {
+    // Получаем список изображений
+    const page = await prisma.page.findUnique({ where: { id }, select: { images: true } });
+    if (page?.images && Array.isArray(page.images)) {
+      for (const imgPath of page.images) {
+        // Удаляем только файлы из public/pages
+        if (typeof imgPath === "string" && imgPath.startsWith("/pages/")) {
+          const absPath = path.join(process.cwd(), "public", imgPath.replace("/pages/", "pages/"));
+          try {
+            await fs.unlink(absPath);
+          } catch {}
+        }
+      }
+    }
     await prisma.page.delete({ where: { id } });
   } catch (err: unknown) {
     if (isDbSyncError(err)) redirect("/admin/pages?error=db_sync");

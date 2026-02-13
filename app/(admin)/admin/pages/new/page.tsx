@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AddImageToPage from "@/components/pages/AddImageToPage";
 import { createPage } from "@/lib/actions/admin-pages";
 import { DB_SYNC_MESSAGE } from "@/lib/db-error";
 
@@ -23,7 +24,7 @@ export default async function NewPageForm({
   const errorMessage = errorCode ? ERROR_MESSAGES[errorCode] ?? "Произошла ошибка." : null;
 
   return (
-    <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
+  <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
       <h1 className="font-display text-2xl font-bold text-foreground">
         Добавить страницу
       </h1>
@@ -70,6 +71,16 @@ export default async function NewPageForm({
             <option value="text">Текст (заголовок + контент)</option>
             <option value="empty">Пустой (свой HTML)</option>
           </select>
+        </div>
+        <div>
+          {/* Кнопка добавления изображения для страницы */}
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-foreground mb-2">Добавить изображение для страницы</h3>
+            <div className="max-w-md">
+              <AddImageToPage />
+            </div>
+            <p className="mt-1 text-xs text-neutral-dark">Загрузите изображения — они сохранятся автоматически и будут доступны для вставки в HTML контент страницы.</p>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground">Контент</label>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AddImageToPage from "@/components/pages/AddImageToPage";
 import { notFound } from "next/navigation";
 import { getPageById, updatePage } from "@/lib/actions/admin-pages";
 import { DeletePageButton } from "@/components/admin/DeletePageButton";
@@ -73,6 +74,16 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
             <option value="text">Текст</option>
             <option value="empty">Пустой (HTML)</option>
           </select>
+        </div>
+        <div>
+          {/* Кнопка добавления изображения для страницы */}
+          <div className="mt-4">
+            <h3 className="text-sm font-medium text-foreground mb-2">Добавить изображение для страницы</h3>
+            <div className="max-w-md">
+              <AddImageToPage initialImages={page.images ?? []} />
+            </div>
+            <p className="mt-1 text-xs text-neutral-dark">Загрузите изображения — они сохранятся автоматически и будут доступны для вставки в HTML контент страницы.</p>
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-foreground">Контент</label>

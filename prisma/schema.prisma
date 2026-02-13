@@ -18,6 +18,8 @@ model DataList {
   @@map("data_lists")
 }
 
+
+
 model Psychologist {
   id                    String    @id @default(cuid())
   slug                  String    @unique
@@ -75,6 +77,7 @@ model Page {
   title       String
   template    String
   content     String
+  images      String[] // Пути к изображениям
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

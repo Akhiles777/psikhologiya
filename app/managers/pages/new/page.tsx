@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import AddImageToPage from "@/components/pages/AddImageToPage";
 import { createPage } from "@/lib/actions/manager-pages";
 
 interface NewPagePageProps {
@@ -14,11 +15,14 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
   const [searchParamsState, setSearchParamsState] = useState<{ error?: string; slug?: string }>({});
 
   // Используем useEffect для обработки Promise
-  useState(() => {
+  // Исправлено: перенос асинхронного обновления состояния в useEffect
+  useEffect(() => {
+    let mounted = true;
     searchParams.then(params => {
-      setSearchParamsState(params);
+      if (mounted) setSearchParamsState(params);
     });
-  });
+    return () => { mounted = false; };
+  }, [searchParams]);
 
   const errorMessages: Record<string, string> = {
     db_unavailable: "База данных недоступна.",
@@ -158,6 +162,13 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
                 </div>
               </div>
 
+              <div className="mt-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">Добавить изображение для страницы</h3>
+                <div className="max-w-md">
+                  <AddImageToPage />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Загрузите изображение и скопируйте путь для вставки в HTML контент страницы.</p>
+              </div>
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
                   type="submit"

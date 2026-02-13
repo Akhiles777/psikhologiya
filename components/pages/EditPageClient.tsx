@@ -4,27 +4,39 @@ import { useState } from "react";
 import Link from "next/link";
 import { updatePage } from "@/lib/actions/manager-pages";
 import DeleteButton from "@/components/pages/DeleteButton";
+import AddImageToPage from "@/components/pages/AddImageToPage";
 
 interface EditPageClientProps {
   page: {
     id: string;
     title: string;
     slug: string;
-    template: "text" | "empty";
+    template: "text" | "empty" | string;
     content: string;
+    images?: string[];
     isPublished: boolean;
   };
   pageId: string;
   errorBanner: string | null;
+  updatePage: (id: string, formData: FormData) => void;
 }
 
-export default function EditPageClient({ page, pageId, errorBanner }: EditPageClientProps) {
-  const [template, setTemplate] = useState<"text" | "empty">(page.template);
+export default function EditPageClient({ page, pageId, errorBanner, updatePage }: EditPageClientProps) {
+  const [template, setTemplate] = useState<"text" | "empty">(
+    page.template === "empty" ? "empty" : "text"
+  );
   const [isPublished, setIsPublished] = useState(page.isPublished);
+  const [images, setImages] = useState<string[]>(page.images ?? []);
 
   return (
     <div className="rounded-xl border-2 border-[#4CAF50]/20 bg-white p-4 shadow-sm sm:rounded-2xl sm:p-6">
-      <form action={(formData) => updatePage(pageId, formData)}>
+  <form action={(formData) => updatePage(pageId, formData)}>
+        <div className="mt-4">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">Изображения страницы</h3>
+          <div className="max-w-md">
+            <AddImageToPage initialImages={images} />
+          </div>
+        </div>
         <div className="space-y-6">
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
