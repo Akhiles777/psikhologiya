@@ -112,10 +112,16 @@ export async function deletePage(id: string, _formData?: FormData) {
       for (const imgPath of page.images) {
         // Удаляем только файлы из public/pages
         if (typeof imgPath === "string" && imgPath.startsWith("/pages/")) {
-          const absPath = path.join(process.cwd(), "public", imgPath.replace("/pages/", "pages/"));
+          // Корректно формируем абсолютный путь
+          const absPath = path.join(process.cwd(), "public", imgPath);
           try {
             await fs.unlink(absPath);
-          } catch {}
+          } catch (e: any) {
+            if (e && e.code !== "ENOENT") {
+              // eslint-disable-next-line no-console
+              console.error("Ошибка удаления файла:", absPath, e);
+            }
+          }
         }
       }
     }
