@@ -59,6 +59,7 @@ model Article {
   content     String
   tags        String[]
   authorId    String?
+  shortText   String?   
   catalogSlug String?
   publishedAt DateTime?
   createdAt   DateTime      @default(now())

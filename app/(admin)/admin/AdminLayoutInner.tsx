@@ -48,6 +48,12 @@ export function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           </Link>
         </li>
 
+        <li>
+          <Link href="/admin/articles" onClick={() => setSidebarOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-[#5858E2]/10 hover:text-[#5858E2]">
+            Статьи (библиотека)
+          </Link>
+        </li>
+
       </ul>
       <p className="mt-4 border-t border-neutral-200 pt-3 text-xs text-neutral-dark">
         Курсы, Библиотека, Для психологов, Контакты — создайте страницу со slug: courses, lib, connect, contacts и включите «Опубликовать».
