@@ -50,6 +50,7 @@ export default function ArticleForm({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [slugWarning, setSlugWarning] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -108,9 +109,38 @@ export default function ArticleForm({
     setShowDropdown(false);
   };
 
+  // Проверка slug на допустимые символы
+  const validateSlug = (value: string): string | null => {
+    if (!value) return null;
+
+    // Разрешаем только латиницу, цифры, дефисы и нижние подчеркивания
+    const allowedPattern = /^[a-z0-9\-_]+$/;
+
+    if (!allowedPattern.test(value)) {
+      return "Slug может содержать только латинские буквы, цифры, дефисы (-) и нижние подчеркивания (_)";
+    }
+
+    return null;
+  };
+
+  // Обработчик изменения slug
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSlug = e.target.value.replace(/\s/g, "").toLowerCase();
+    setSlug(newSlug);
+
+    // Проверяем на допустимые символы
+    const warning = validateSlug(newSlug);
+    setSlugWarning(warning);
+  };
+
   function validate() {
     if (!title.trim()) return "Заполните заголовок";
-    if (!slug.trim() || /\s/.test(slug)) return "Slug обязателен и не должен содержать пробелов";
+    if (!slug.trim()) return "Заполните slug";
+
+    // Проверяем slug перед отправкой
+    const slugWarning = validateSlug(slug);
+    if (slugWarning) return slugWarning;
+
     if (!shortText.trim()) return "Заполните короткий текст";
     if (!content.trim()) return "Заполните длинный текст";
     return null;
@@ -129,7 +159,7 @@ export default function ArticleForm({
     try {
       const formData = {
         title: title.trim(),
-        slug: slug.trim().toLowerCase(),
+        slug: slug.trim(), // Убираем toLowerCase() так как уже делаем в handleSlugChange
         shortText: shortText.trim(),
         content: content.trim(),
         tags: tags.filter(t => t.trim() !== ""),
@@ -223,14 +253,32 @@ export default function ArticleForm({
                 required
                 disabled={isSubmitting}
             />
-            <FormInput
-                label="URL (slug) *"
-                value={slug}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSlug(e.target.value.replace(/\s/g, "").toLowerCase())}
-                required
-                placeholder="my-article"
-                disabled={isSubmitting}
-            />
+            <div>
+              <FormInput
+                  label="URL (slug) *"
+                  value={slug}
+                  onChange={handleSlugChange}
+                  required
+                  placeholder="my-article"
+                  disabled={isSubmitting}
+              />
+              {/* Предупреждение о недопустимых символах */}
+              {slugWarning && (
+                  <p className="text-sm text-amber-600 mt-1 flex items-center gap-1">
+                    <span>⚠️</span> {slugWarning}
+                  </p>
+              )}
+              {/* Подсказка по формату */}
+              <p className="text-xs text-gray-500 mt-1">
+                Только латинские буквы, цифры, дефисы (-) и нижние подчеркивания (_)
+              </p>
+              {/* Предпросмотр URL */}
+              {slug && !slugWarning && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ URL: /lib/articles/{slug}
+                  </p>
+              )}
+            </div>
           </div>
 
           <FormTextarea

@@ -151,7 +151,7 @@ export default function ManagersPage() {
                       <h4 className="font-semibold text-gray-900 text-lg">
                         {module === 'psychologists' && 'Психологи'}
                         {module === 'pages' && 'Страницы'}
-                        {module === 'listdate' && 'Листдаты'}
+                        {module === 'listdate' && 'Список данных'}
                       </h4>
                       <p className="mt-1.5 text-sm text-gray-600">
                         {user.permissions[module]?.edit ? 'Просмотр и редактирование' : 'Только просмотр'}
