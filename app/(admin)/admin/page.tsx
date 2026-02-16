@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
 
-import { client } from "@/.tina/__generated__/client";
-import { TinaMarkdown } from "tinacms/dist/rich-text";
+
 
 export const metadata = buildMetadata({
   title: "Админ-панель",
@@ -25,16 +24,16 @@ export default function AdminPage() {
       <ul className="mt-8 space-y-4">
         <li>
           <Link
-            href="/admin/psychologists"
-            className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
+              href="/admin/psychologists"
+              className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
           >
             Психологи — добавить, редактировать, удалить анкеты
           </Link>
         </li>
         <li>
           <Link
-            href="/admin/pages"
-            className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
+              href="/admin/pages"
+              className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
           >
             Страницы сайта — создать или изменить страницы (текст или свой HTML)
           </Link>
@@ -42,19 +41,28 @@ export default function AdminPage() {
 
         <li>
           <Link
-            href="/admin/managers"
-            className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
+              href="/admin/managers"
+              className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
           >
             Менеджеры - менеджеры, добавление, удаление, управление
           </Link>
         </li>
 
-          <li>
+        <li>
           <Link
-            href="/admin/ListDate"
-            className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
+              href="/admin/ListDate"
+              className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
           >
             Список данных
+          </Link>
+        </li>
+
+        <li>
+          <Link
+              href="/admin/articles"
+              className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
+          >
+            Статьи(блог)
           </Link>
         </li>
       </ul>
