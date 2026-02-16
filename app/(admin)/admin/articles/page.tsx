@@ -33,64 +33,72 @@ export default function AdminArticlesPage() {
   const [authorFilter, setAuthorFilter] = useState("");
   const [catalogFilter, setCatalogFilter] = useState("");
 
-  // Загружаем все данные
+  // Загружаем все данные через один API
   useEffect(() => {
     Promise.all([
-      fetch("/api/articles/tags").then(res => res.json()),
-      fetch("/api/psychologists").then(res => res.json()),
-      fetch("/api/articles").then(res => res.json())
+      fetch("/api/articles").then(res => res.json()),  // Получаем статьи
     ])
-        .then(([tagsData, authorsData, articlesData]) => {
-          if (tagsData.success) setAllTags(tagsData.tags || []);
-          if (authorsData.success) setAllAuthors(authorsData.psychologists || []);
-
-          // Собираем уникальные каталоги из статей
+        .then(([articlesData]) => {
           if (articlesData.success && articlesData.articles) {
-            const catalogs = articlesData.articles
-                .map((a: Article) => a.catalogSlug)
-                .filter((c: string | null): c is string => c !== null && c !== "");
-            const uniqueCatalogs = [...new Set(catalogs)];
-            setAllCatalogs(uniqueCatalogs);
-          }
-        })
-        .catch(console.error);
-  }, []);
+            // Устанавливаем статьи
+            setArticles(articlesData.articles);
 
-  // Загружаем статьи
-  useEffect(() => {
-    setLoading(true);
-    fetch("/api/articles")
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            let filtered = data.articles || [];
+            // Собираем уникальные тэги из всех статей
+            const tagsSet = new Set<string>();
+            const authorsSet = new Set<any>();
+            const catalogsSet = new Set<string>();
 
-            if (search.trim()) {
-              const q = search.trim().toLowerCase();
-              filtered = filtered.filter((a: Article) =>
-                  a.title.toLowerCase().includes(q) ||
-                  (a.tags && a.tags.some((t: string) => t.toLowerCase().includes(q))) ||
-                  (a.author?.fullName && a.author.fullName.toLowerCase().includes(q))
-              );
-            }
+            articlesData.articles.forEach((article: Article) => {
+              // Собираем тэги
+              article.tags?.forEach(tag => tagsSet.add(tag));
 
-            if (tagFilter) {
-              filtered = filtered.filter((a: Article) => a.tags && a.tags.includes(tagFilter));
-            }
+              // Собираем авторов
+              if (article.author) {
+                authorsSet.add(article.author);
+              }
 
-            if (authorFilter) {
-              filtered = filtered.filter((a: Article) => a.author?.id === authorFilter);
-            }
+              // Собираем каталоги
+              if (article.catalogSlug) {
+                catalogsSet.add(article.catalogSlug);
+              }
+            });
 
-            if (catalogFilter) {
-              filtered = filtered.filter((a: Article) => a.catalogSlug === catalogFilter);
-            }
-
-            setArticles(filtered);
+            setAllTags(Array.from(tagsSet));
+            setAllAuthors(Array.from(authorsSet));
+            setAllCatalogs(Array.from(catalogsSet));
           }
         })
         .catch(console.error)
         .finally(() => setLoading(false));
+  }, []);
+
+  // Фильтрация статей
+  useEffect(() => {
+    // Фильтруем уже загруженные статьи
+    let filtered = articles;
+
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      filtered = filtered.filter((a: Article) =>
+          a.title.toLowerCase().includes(q) ||
+          (a.tags && a.tags.some((t: string) => t.toLowerCase().includes(q))) ||
+          (a.author?.fullName && a.author.fullName.toLowerCase().includes(q))
+      );
+    }
+
+    if (tagFilter) {
+      filtered = filtered.filter((a: Article) => a.tags && a.tags.includes(tagFilter));
+    }
+
+    if (authorFilter) {
+      filtered = filtered.filter((a: Article) => a.author?.id === authorFilter);
+    }
+
+    if (catalogFilter) {
+      filtered = filtered.filter((a: Article) => a.catalogSlug === catalogFilter);
+    }
+
+    setArticles(filtered);
   }, [search, tagFilter, authorFilter, catalogFilter]);
 
   const isPublished = (article: Article) => {
