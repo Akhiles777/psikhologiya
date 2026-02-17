@@ -1,9 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/db";
 
 // Импортируем статические парадигмы (этот файл нужно создать)
 import { PARADIGM_OPTIONS } from '@/lib/paradigm-options';
@@ -11,6 +9,7 @@ import { PARADIGM_OPTIONS } from '@/lib/paradigm-options';
 // Получить все справочники (для менеджеров)
 export async function getAllDataLists() {
   try {
+    if (!prisma) return [];
     return await prisma.dataList.findMany({
       orderBy: { name: 'asc' },
     });
@@ -23,6 +22,7 @@ export async function getAllDataLists() {
 // Получить конкретный справочник (для менеджеров)
 export async function getDataList(slug: string) {
   try {
+    if (!prisma) return null;
     const dataList = await prisma.dataList.findUnique({
       where: { slug },
     });
@@ -63,6 +63,7 @@ function convertJsonToStringArray(items: any): string[] {
 // Получить элементы справочника в правильном формате (для менеджеров)
 export async function getDataListItems(slug: string): Promise<string[]> {
   try {
+    if (!prisma) return getDefaultItemsBySlug(slug);
     // Сначала получаем дефолтные значения
     const defaultItems = getDefaultItemsBySlug(slug);
     
@@ -106,6 +107,7 @@ export async function getDataListItems(slug: string): Promise<string[]> {
 // Обновить справочник (для менеджеров)
 export async function updateDataList(slug: string, items: string[]) {
   try {
+    if (!prisma) return { success: false, error: 'База данных недоступна' };
     await prisma.dataList.upsert({
       where: { slug },
       update: { items },

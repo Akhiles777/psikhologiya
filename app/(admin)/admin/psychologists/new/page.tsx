@@ -20,7 +20,7 @@ function NewPsychologistFormContent() {
               ? "Файл слишком большой. Максимальный размер: 5MB"
               : null;
 
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<(File | null)[]>([]);
   const [urls, setUrls] = useState<string[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const [workFormats, setWorkFormats] = useState<string[]>([]);
@@ -28,10 +28,15 @@ function NewPsychologistFormContent() {
   const [referencesLoading, setReferencesLoading] = useState(true);
   const [slugError, setSlugError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const submittingRef = useRef(false);
+  const loadedReferencesRef = useRef(false);
 
   // Загружаем справочники
   useEffect(() => {
     const loadReferences = async () => {
+      if (loadedReferencesRef.current) return;
+      loadedReferencesRef.current = true;
+
       try {
         setReferencesLoading(true);
         const [formats, levels] = await Promise.all([
@@ -101,6 +106,7 @@ function NewPsychologistFormContent() {
     }
 
     setUrls(prev => [...prev, trimmed]);
+    setFiles(prev => [...prev, null]);
     setNewUrl("");
   };
 
@@ -139,6 +145,7 @@ function NewPsychologistFormContent() {
   // Отправка формы
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current) return;
 
     // Проверяем slug перед отправкой
     const slugInput = formRef.current?.querySelector('[name="slug"]') as HTMLInputElement;
@@ -154,7 +161,7 @@ function NewPsychologistFormContent() {
 
     // Добавляем файлы в FormData
     files.forEach(file => {
-      formData.append("images", file);
+      if (file) formData.append("images", file);
     });
 
     // Добавляем URL (те, которые не из файлов)
@@ -168,8 +175,10 @@ function NewPsychologistFormContent() {
     console.log("🔗 URL:", externalUrls.length);
 
     try {
+      submittingRef.current = true;
       await createPsychologist(formData);
     } catch {
+      submittingRef.current = false;
       console.log('Успешно');
     }
   };

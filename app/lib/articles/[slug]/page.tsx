@@ -6,6 +6,8 @@ import { buildMetadata } from "@/lib/seo";
 import { ArticleAuthorBadge } from "@/components/articles/ArticleAuthorBadge";
 import type { Metadata } from "next";
 
+export const revalidate = 60;
+
 type PageProps = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

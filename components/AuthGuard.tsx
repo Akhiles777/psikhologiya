@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface AuthGuardProps {
@@ -17,8 +17,12 @@ export default function AuthGuard({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const didCheckRef = useRef(false);
 
   useEffect(() => {
+    if (didCheckRef.current) return;
+    didCheckRef.current = true;
+
     async function checkPermission() {
       try {
         // 1. Проверяем авторизацию

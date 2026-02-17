@@ -6,6 +6,8 @@ import { Calendar, Tag, ArrowLeft, ArrowRight, User } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 
+export const revalidate = 60;
+
 type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };

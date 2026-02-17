@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui";
 import { prisma } from "@/lib/db";
 import { buildMetadata, canonicalUrl, personJsonLd } from "@/lib/seo";
 
+export const revalidate = 60;
+
 type PageProps = { params: Promise<{ slug: string }> };
 
 function isDbError(err: unknown): boolean {

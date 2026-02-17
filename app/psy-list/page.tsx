@@ -7,6 +7,8 @@ import { MobileFilters } from "@/components/catalog/MobileFilters";
 import { CatalogSidebar } from "@/components/catalog/CatalogSidebar";
 import { Filter } from "lucide-react";
 
+export const revalidate = 60;
+
 export const metadata = buildMetadata({
   title: "Каталог психологов — Давай вместе",
   description: "Найдите проверенного психолога по специализации, цене и опыту.",

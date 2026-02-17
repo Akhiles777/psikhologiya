@@ -30,15 +30,18 @@ function EditPsychologistForm() {
   // Состояния
   const [psychologist, setPsychologist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<(File | null)[]>([]);
   const [urls, setUrls] = useState<string[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const [slugError, setSlugError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const submittingRef = useRef(false);
   const [educationData, setEducationData] = useState<any[]>([]);
   const [workFormats, setWorkFormats] = useState<string[]>([]);
   const [certificationLevels, setCertificationLevels] = useState<string[]>([]);
   const [referencesLoading, setReferencesLoading] = useState(true);
+  const loadedPsychologistIdRef = useRef<string | null>(null);
+  const loadedReferencesRef = useRef(false);
 
   // Загружаем данные психолога
   useEffect(() => {
@@ -48,6 +51,9 @@ function EditPsychologistForm() {
         router.push("/admin/psychologists");
         return;
       }
+
+      if (loadedPsychologistIdRef.current === id) return;
+      loadedPsychologistIdRef.current = id;
 
       try {
         setLoading(true);
@@ -59,7 +65,9 @@ function EditPsychologistForm() {
         }
 
         setPsychologist(data);
-        setUrls(data.images || []);
+        const loadedUrls = data.images || [];
+        setUrls(loadedUrls);
+        setFiles(loadedUrls.map(() => null));
         setEducationData(parseEducationFromDB(data.education ?? []));
       } catch (error) {
         console.error("Ошибка загрузки психолога:", error);
@@ -75,6 +83,9 @@ function EditPsychologistForm() {
   // Загружаем справочники
   useEffect(() => {
     const loadReferences = async () => {
+      if (loadedReferencesRef.current) return;
+      loadedReferencesRef.current = true;
+
       try {
         setReferencesLoading(true);
         const [formats, levels] = await Promise.all([
@@ -144,6 +155,7 @@ function EditPsychologistForm() {
     }
 
     setUrls(prev => [...prev, trimmed]);
+    setFiles(prev => [...prev, null]);
     setNewUrl("");
   };
 
@@ -184,6 +196,7 @@ function EditPsychologistForm() {
     e.preventDefault();
 
     if (!psychologist || !id) return;
+    if (submittingRef.current) return;
 
     // Проверяем slug перед отправкой
     const slugInput = formRef.current?.querySelector('[name="slug"]') as HTMLInputElement;
@@ -199,7 +212,7 @@ function EditPsychologistForm() {
 
     // Добавляем файлы в FormData
     files.forEach(file => {
-      formData.append("images", file);
+      if (file) formData.append("images", file);
     });
 
     // Добавляем URL (те, которые не из файлов)
@@ -218,8 +231,10 @@ function EditPsychologistForm() {
     console.log("ID психолога:", id);
 
     try {
+      submittingRef.current = true;
       await updatePsychologist(id, formData);
     } catch (error) {
+      submittingRef.current = false;
       console.error("Ошибка при обновлении:", error);
     }
   };

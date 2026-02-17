@@ -25,8 +25,10 @@ export default function EditPsychologistForm({
                                              }: EditPsychologistFormProps) {
   const router = useRouter();
 
-  const [files, setFiles] = useState<File[]>([]);
   const [urls, setUrls] = useState<string[]>(psychologist.images || []);
+  const [files, setFiles] = useState<(File | null)[]>(() =>
+    (psychologist.images || []).map(() => null)
+  );
   const [newUrl, setNewUrl] = useState("");
   const [slug, setSlug] = useState(psychologist.slug || "");
   const [slugError, setSlugError] = useState<string | null>(null);
@@ -113,6 +115,7 @@ export default function EditPsychologistForm({
     }
 
     setUrls(prev => [...prev, trimmed]);
+    setFiles(prev => [...prev, null]);
     setNewUrl("");
   };
 
@@ -136,7 +139,7 @@ export default function EditPsychologistForm({
 
     // Добавляем файлы в FormData
     files.forEach(file => {
-      formData.append("images", file);
+      if (file) formData.append("images", file);
     });
 
     // Добавляем URL (те, которые не из файлов)

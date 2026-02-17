@@ -23,7 +23,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
               ? "Файл слишком большой. Максимальный размер: 5MB"
               : null;
 
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<(File | null)[]>([]);
   const [urls, setUrls] = useState<string[]>([]);
   const [newUrl, setNewUrl] = useState("");
   const [workFormats, setWorkFormats] = useState<string[]>([]);
@@ -124,6 +124,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     }
 
     setUrls(prev => [...prev, trimmed]);
+    setFiles(prev => [...prev, null]);
     setNewUrl("");
   };
 
@@ -145,7 +146,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
 
     // Добавляем файлы
     files.forEach(file => {
-      formData.append("images", file);
+      if (file) formData.append("images", file);
     });
 
     // Добавляем URL изображений
