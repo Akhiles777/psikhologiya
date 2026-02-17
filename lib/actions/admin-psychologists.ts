@@ -401,8 +401,7 @@ export async function createPsychologist(formData: FormData) {
     const workFormat = (formData.get("workFormat") as string)?.trim() || "Онлайн и оффлайн";
     const firstDiplomaStr = (formData.get("firstDiplomaDate") as string)?.trim();
     const lastCertStr = (formData.get("lastCertificationDate") as string)?.trim();
-    const paradigmStr = (formData.get("mainParadigm") as string)?.trim();
-    const mainParadigm = paradigmStr ? paradigmStr.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+  const mainParadigm = formData.getAll("mainParadigm").map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
     const certificationLevel = Math.min(3, Math.max(1, parseInt((formData.get("certificationLevel") as string) || "1", 10)));
     const shortBio = (formData.get("shortBio") as string)?.trim().slice(0, 400) || "";
     const longBio = (formData.get("longBio") as string)?.trim() || "";
@@ -554,10 +553,7 @@ export async function updatePsychologist(id: string, formData: FormData) {
     const firstDiplomaDate = firstDiplomaStr ? new Date(firstDiplomaStr) : null;
     const lastCertificationDate = lastCertStr ? new Date(lastCertStr) : null;
     
-    const paradigmStr = (formData.get("mainParadigm") as string)?.trim();
-    const mainParadigm = paradigmStr 
-      ? paradigmStr.split("\n").map((s) => s.trim()).filter(Boolean) 
-      : [];
+    const mainParadigm = formData.getAll("mainParadigm").map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
     
     const certificationLevelRaw = (formData.get("certificationLevel") as string) || "1";
     const certificationLevel = Math.min(3, Math.max(1, parseInt(certificationLevelRaw, 10)));
