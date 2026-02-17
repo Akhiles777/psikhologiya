@@ -41,6 +41,7 @@ export default function ArticleForm({
   const [content, setContent] = useState(initialData.content || "");
   const [tags, setTags] = useState<string[]>(initialData.tags || []);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const [allCatalogs, setAllCatalogs] = useState<string[]>([]);
   const [authorId, setAuthorId] = useState(initialData.authorId || "");
   const [authorName, setAuthorName] = useState(initialData.author?.fullName || "");
   const [catalogSlug, setCatalogSlug] = useState(initialData.catalogSlug || "");
@@ -55,16 +56,29 @@ export default function ArticleForm({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Загружаем тэги через API
+  // Загружаем тэги и каталоги через общий API /api/articles
   useEffect(() => {
-    fetch("/api/articles/tags")
+    fetch("/api/articles")
         .then(res => res.json())
         .then(data => {
-          if (data.success) {
-            setAllTags(data.tags || []);
+          if (data.success && data.articles) {
+            // Собираем уникальные тэги из всех статей
+            const tagsSet = new Set<string>();
+            // Собираем уникальные каталоги из всех статей
+            const catalogsSet = new Set<string>();
+
+            data.articles.forEach((article: any) => {
+              article.tags?.forEach((tag: string) => tagsSet.add(tag));
+              if (article.catalogSlug) {
+                catalogsSet.add(article.catalogSlug);
+              }
+            });
+
+            setAllTags(Array.from(tagsSet));
+            setAllCatalogs(Array.from(catalogsSet));
           }
         })
-        .catch(err => console.error("Error loading tags:", err));
+        .catch(err => console.error("Error loading data:", err));
   }, []);
 
   // Закрываем дропдаун при клике вне
@@ -159,7 +173,7 @@ export default function ArticleForm({
     try {
       const formData = {
         title: title.trim(),
-        slug: slug.trim(), // Убираем toLowerCase() так как уже делаем в handleSlugChange
+        slug: slug.trim(),
         shortText: shortText.trim(),
         content: content.trim(),
         tags: tags.filter(t => t.trim() !== ""),
@@ -321,13 +335,24 @@ export default function ArticleForm({
             </div>
           </div>
 
-          <FormInput
-              label="Каталог"
-              value={catalogSlug}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCatalogSlug(e.target.value)}
-              placeholder="например, 26/сен"
-              disabled={isSubmitting}
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Каталог</label>
+            <input
+                type="text"
+                value={catalogSlug}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCatalogSlug(e.target.value)}
+                list="all-catalogs"
+                placeholder="например, 26/сен"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
+                disabled={isSubmitting}
+            />
+            <datalist id="all-catalogs">
+              {allCatalogs.map(catalog => <option key={catalog} value={catalog} />)}
+            </datalist>
+            <div className="text-xs text-gray-500 mt-1">
+              Существующие каталоги: {allCatalogs.length > 0 ? allCatalogs.join(", ") : "нет"}
+            </div>
+          </div>
 
           <div className="relative" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
