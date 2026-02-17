@@ -3,7 +3,7 @@
 import { EducationForm } from "@/components/admin/EducationForm";
 import { ParadigmSelector } from "@/components/admin/ParadigmSelector";
 import Link from "next/link";
-import { createPsychologist } from "@/lib/actions/manager-psychologist"; // Менеджерский action
+import { createPsychologist } from "@/lib/actions/manager-psychologist";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -31,13 +31,13 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
   const [referencesLoading, setReferencesLoading] = useState(true);
   const [slug, setSlug] = useState("");
   const [slugError, setSlugError] = useState<string | null>(null);
+  const [selectedParadigms, setSelectedParadigms] = useState<string[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
 
   // Валидация slug
   const validateSlug = (value: string): string | null => {
-    if (!value) return null; // Пустой slug разрешен (автогенерация)
+    if (!value) return null;
 
-    // Разрешаем только латиницу, цифры, дефисы
     const allowedPattern = /^[a-z0-9\-]+$/;
 
     if (!allowedPattern.test(value)) {
@@ -50,14 +50,9 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
   // Обработчик изменения slug
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
-
-    // Заменяем недопустимые символы
     value = value.replace(/[^a-zA-Z0-9\-]/g, '');
     value = value.toLowerCase();
-
     setSlug(value);
-
-    // Проверяем на допустимые символы
     const error = validateSlug(value);
     setSlugError(error);
   };
@@ -98,7 +93,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
       }
 
       setFiles(prev => [...prev, ...selectedFiles]);
-
       const tempUrls = selectedFiles.map(file => URL.createObjectURL(file));
       setUrls(prev => [...prev, ...tempUrls]);
     }
@@ -133,11 +127,15 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     setNewUrl("");
   };
 
+  // Обработчик изменения парадигм
+  const handleParadigmsChange = (paradigms: string[]) => {
+    setSelectedParadigms(paradigms);
+  };
+
   // Отправка формы
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Проверяем slug перед отправкой
     if (slug && validateSlug(slug)) {
       setSlugError(validateSlug(slug));
       return;
@@ -145,21 +143,31 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
 
     const formData = new FormData(formRef.current!);
 
+    // Добавляем файлы
     files.forEach(file => {
       formData.append("images", file);
     });
 
+    // Добавляем URL изображений
     const externalUrls = urls.filter(url => !url.startsWith('blob:'));
     if (externalUrls.length > 0) {
       formData.append("imageUrls", externalUrls.join("\n"));
     }
 
+    // Добавляем выбранные парадигмы в formData
+    if (selectedParadigms.length > 0) {
+      selectedParadigms.forEach(paradigm => {
+        formData.append("mainParadigm", paradigm);
+      });
+    }
+
     console.log("📤 Отправка формы...");
+    console.log("📚 Выбранные парадигмы:", selectedParadigms);
 
     try {
       await createPsychologist(formData);
-    } catch {
-      console.log('Успешно');
+    } catch (error) {
+      console.error('Ошибка при создании:', error);
     }
   };
 
@@ -227,14 +235,12 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                       />
                     </div>
 
-                    {/* Предупреждение о недопустимых символах */}
                     {slugError && (
                         <p className="mt-1 text-sm text-amber-600 flex items-center gap-1">
                           <span>⚠️</span> {slugError}
                         </p>
                     )}
 
-                    {/* Подсказка по формату */}
                     <div className="mt-2 flex flex-wrap gap-2 text-xs">
                       <span className="text-gray-500">✅ пример:</span>
                       <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">ivan-ivanov</span>
@@ -341,6 +347,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                   </label>
                   <ParadigmSelector
                       defaultValue={[]}
+                      onChange={handleParadigmsChange}
                   />
                 </div>
 
@@ -448,7 +455,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                     Фото психолога (основное + до 4 дополнительных)
                   </label>
 
-                  {/* Загрузка файлов */}
                   <div className="mb-4">
                     <input
                         type="file"
@@ -462,7 +468,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                     </p>
                   </div>
 
-                  {/* Добавление по URL */}
                   <div className="mb-4">
                     <div className="flex gap-2">
                       <input
@@ -484,7 +489,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                     </div>
                   </div>
 
-                  {/* Список выбранных изображений */}
                   {urls.length > 0 && (
                       <div className="mb-4">
                         <p className="text-sm font-medium text-gray-700 mb-2">
@@ -533,7 +537,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                       </div>
                   )}
 
-                  {/* Информация */}
                   <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
                     <p className="text-sm text-blue-800">
                       <span className="font-medium">Важно:</span> Файлы будут загружены на сервер.

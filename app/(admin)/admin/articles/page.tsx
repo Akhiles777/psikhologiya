@@ -45,16 +45,20 @@ export default function AdminArticlesPage() {
 
             // Собираем уникальные тэги из всех статей
             const tagsSet = new Set<string>();
-            const authorsSet = new Set<any>();
+            
+            // ИСПОЛЬЗУЕМ MAP ДЛЯ УНИКАЛЬНЫХ АВТОРОВ
+            const authorsMap = new Map<string, any>();
+            
+            // Собираем уникальные каталоги
             const catalogsSet = new Set<string>();
 
             articlesData.articles.forEach((article: Article) => {
               // Собираем тэги
               article.tags?.forEach(tag => tagsSet.add(tag));
 
-              // Собираем авторов
+              // СОБИРАЕМ АВТОРОВ - добавляем в Map, где ключ = id
               if (article.author) {
-                authorsSet.add(article.author);
+                authorsMap.set(article.author.id, article.author);
               }
 
               // Собираем каталоги
@@ -64,7 +68,10 @@ export default function AdminArticlesPage() {
             });
 
             setAllTags(Array.from(tagsSet));
-            setAllAuthors(Array.from(authorsSet));
+            
+            // ПРЕОБРАЗУЕМ MAP В МАССИВ
+            setAllAuthors(Array.from(authorsMap.values()));
+            
             setAllCatalogs(Array.from(catalogsSet));
           }
         })
