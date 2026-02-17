@@ -61,7 +61,7 @@ export default async function ArticlePage({ params }: PageProps) {
         </Link>
 
         <article className="mt-6">
-          <h1 className="font-display text-3xl font-bold tracking-tighter text-foreground md:text-4xl">
+          <h1 className="font-display text-3xl  font-bold tracking-normal text-foreground md:text-4xl">
             {article.title}
           </h1>
           {article.tags && article.tags.length > 0 && (

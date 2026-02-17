@@ -19,7 +19,9 @@ export default function NewManagerPage() {
       psychologists: { view: true },
       pages: { view: true },
       listdate: { view: true },
+      articles: { view: true },
       managers: { view: false }, // Добавляем раздел менеджеров
+
     }
   });
 
@@ -119,7 +121,8 @@ export default function NewManagerPage() {
   const moduleNames = {
     psychologists: 'Психологи',
     pages: 'Страницы',
-    listdate: 'Листдаты',
+    listdate: 'Список данных',
+    articles: 'Статьи',
     managers: 'Управление менеджерами',
   };
 
@@ -127,6 +130,7 @@ export default function NewManagerPage() {
     psychologists: 'Доступ к управлению психологами',
     pages: 'Доступ к редактированию страниц сайта',
     listdate: 'Доступ к управлению справочниками',
+    articles: 'Доступ к управлению статьями',
     managers: 'Доступ к управлению пользователями системы (только для администраторов)',
   };
 

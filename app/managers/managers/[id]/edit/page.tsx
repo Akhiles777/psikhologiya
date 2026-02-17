@@ -8,6 +8,7 @@ interface Permissions {
   psychologists: { view: boolean; edit: boolean };
   pages: { view: boolean; edit: boolean };
   listdate: { view: boolean; edit: boolean };
+  articles: { view: boolean; edit: boolean };
   managers: { view: boolean; edit: boolean };
 }
 
@@ -50,6 +51,7 @@ export default function EditManagerPage({
       psychologists: { view: true, edit: true },
       pages: { view: true, edit: true },
       listdate: { view: true, edit: true },
+      articles: { view: true, edit: true },
       managers: { view: false, edit: false },
     }
   });
@@ -81,6 +83,7 @@ export default function EditManagerPage({
           psychologists: data.permissions?.psychologists || { view: true, edit: true },
           pages: data.permissions?.pages || { view: true, edit: true },
           listdate: data.permissions?.listdate || { view: true, edit: true },
+          articles: data.permissions?.articles || { view: true, edit: true },
           managers: data.permissions?.managers || { view: false, edit: false },
         };
 
@@ -183,6 +186,7 @@ export default function EditManagerPage({
               psychologists: { view: true, edit: true },
               pages: { view: true, edit: true },
               listdate: { view: true, edit: true },
+              articles: { view: true, edit: true },
               managers: { view: true, edit: true },
             },
           }));
@@ -240,8 +244,13 @@ export default function EditManagerPage({
       description: 'Доступ к редактированию страниц сайта'
     },
     listdate: {
-      name: 'Листдаты',
+      name: 'Список данных',
       description: 'Доступ к управлению справочниками'
+    },
+
+    articles: {
+      name: 'Статьи',
+      description: 'Доступ к управлению статьями'
     },
     managers: {
       name: 'Управление менеджерами',

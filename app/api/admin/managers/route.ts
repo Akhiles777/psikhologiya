@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
           psychologists: { view: true, edit: true },
           pages: { view: true, edit: true },
           listdate: { view: true, edit: true },
+          articles: {view: true, edit: true}
         },
       },
     });

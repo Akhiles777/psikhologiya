@@ -108,7 +108,16 @@ export default function ManagersPage() {
                 Список Данных
               </Link>
             )}
-            
+            {user?.permissions?.articles?.view && (
+                <Link
+                    href="/managers/articles"
+                    className="px-4 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                 Статьи
+                </Link>
+            )}
+
+
             {user?.role === 'ADMIN' && (
               <Link
                 href="/managers/managers"
@@ -144,6 +153,8 @@ export default function ManagersPage() {
                         {module === 'psychologists' && '👨‍⚕️'}
                         {module === 'pages' && '📄'}
                         {module === 'listdate' && '📋'}
+                        {module === 'articles' && '📋'}
+
                         {module === 'managers' && '👥'}
                       </span>
                     </div>
@@ -152,6 +163,8 @@ export default function ManagersPage() {
                         {module === 'psychologists' && 'Психологи'}
                         {module === 'pages' && 'Страницы'}
                         {module === 'listdate' && 'Список данных'}
+                        {module === 'articles' && 'Доступ к статьям'}
+
                       </h4>
                       <p className="mt-1.5 text-sm text-gray-600">
                         {user.permissions[module]?.edit ? 'Просмотр и редактирование' : 'Только просмотр'}

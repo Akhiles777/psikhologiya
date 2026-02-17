@@ -14,6 +14,7 @@ interface Manager {
     psychologists?: { view: boolean; edit: boolean };
     pages?: { view: boolean; edit: boolean };
     listdate?: { view: boolean; edit: boolean };
+    articles?: { view: boolean; edit: boolean };
     managers?: { view: boolean; edit: boolean };
   };
 }
@@ -28,6 +29,7 @@ interface FormData {
     psychologists: { view: boolean };
     pages: { view: boolean };
     listdate: { view: boolean };
+    articles: { view: boolean };
     managers: { view: boolean };
   };
 }
@@ -51,6 +53,7 @@ export default function EditManagerPage() {
       psychologists: { view: true },
       pages: { view: true },
       listdate: { view: true },
+      articles: { view: true },
       managers: { view: false },
     }
   });
@@ -73,6 +76,7 @@ export default function EditManagerPage() {
           psychologists: { view: true, edit: true },
           pages: { view: true, edit: true },
           listdate: { view: true, edit: true },
+          articles: { view: true, edit: true },
           managers: { view: false, edit: false },
         };
         
@@ -86,6 +90,7 @@ export default function EditManagerPage() {
             psychologists: { view: loadedPermissions.psychologists?.view || false },
             pages: { view: loadedPermissions.pages?.view || false },
             listdate: { view: loadedPermissions.listdate?.view || false },
+            articles: { view: loadedPermissions.articles?.view || false },
             managers: { view: loadedPermissions.managers?.view || false },
           }
         });
@@ -173,6 +178,7 @@ export default function EditManagerPage() {
               psychologists: { view: true },
               pages: { view: true },
               listdate: { view: true },
+              articles: { view: true },
               managers: { view: true },
             }
           };
@@ -228,7 +234,8 @@ export default function EditManagerPage() {
   const moduleNames = {
     psychologists: 'Психологи',
     pages: 'Страницы',
-    listdate: 'Листдаты',
+    listdate: 'Список данных',
+    articles: 'Статьи',
     managers: 'Управление менеджерами',
   };
 
@@ -236,6 +243,7 @@ export default function EditManagerPage() {
     psychologists: 'Доступ к управлению психологами',
     pages: 'Доступ к редактированию страниц сайта',
     listdate: 'Доступ к управлению справочниками',
+    articles: 'Доступ к управлению статьями',
     managers: 'Доступ к управлению пользователями системы (только для администраторов)',
   };
 
