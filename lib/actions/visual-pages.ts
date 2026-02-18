@@ -15,10 +15,14 @@ function parseKey(value: string): VisualPageKey | null {
 
 function parseStyleHrefs(formData: FormData): string[] {
   const raw = (formData.get("styleHrefs") as string | null) ?? "";
-  return raw
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => /^https?:\/\//.test(line) || line.startsWith("/"));
+  return Array.from(
+    new Set(
+      raw
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => /^https?:\/\//.test(line) || line.startsWith("/"))
+    )
+  );
 }
 
 async function saveVisualPage(
@@ -44,10 +48,14 @@ async function saveVisualPage(
 
   const publicPath = key === "home" ? "/" : "/connect";
   revalidatePath(publicPath);
+  revalidatePath("/admin/pages/visual");
+  revalidatePath(`/admin/pages/visual/${key}`);
+  revalidatePath("/managers/pages/visual");
+  revalidatePath(`/managers/pages/visual/${key}`);
   revalidatePath(`/${scope}/pages/visual`);
   revalidatePath(`/${scope}/pages/visual/${key}`);
 
-  redirect(`/${scope}/pages/visual/${key}?saved=1`);
+  redirect(`/${scope}/pages/visual/${key}?saved=1&t=${Date.now()}`);
 }
 
 export async function updateVisualPageAsAdmin(key: string, formData: FormData) {

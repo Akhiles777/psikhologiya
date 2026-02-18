@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { unstable_noStore as noStore } from "next/cache";
 
 export const VISUAL_PAGE_CONFIG = {
   home: {
@@ -24,6 +25,12 @@ export type VisualPageData = {
   isPublished: boolean;
   updatedAt: Date | null;
   hasStoredContent: boolean;
+};
+
+export type PublishedVisualPage = {
+  html: string;
+  css: string;
+  styleHrefs: string[];
 };
 
 const HOME_DEFAULT_HTML = `
@@ -112,7 +119,7 @@ const CONNECT_DEFAULT_HTML = `
 </main>
 `.trim();
 
-const DEFAULT_VISUAL_CSS = `
+const LEGACY_DEFAULT_VISUAL_CSS = `
 .vp-container{max-width:1100px;margin:0 auto;padding:0 16px}
 .vp-section{padding:56px 0}
 .vp-section-muted{background:#f7fafc}
@@ -135,6 +142,58 @@ p{font-size:16px;line-height:1.65;color:#374151}
 @media (max-width:900px){.vp-grid3{grid-template-columns:1fr}h1{font-size:34px}h2{font-size:28px}}
 `.trim();
 
+const DEFAULT_VISUAL_CSS = `
+.vp-home,.vp-connect{width:100%;max-width:100%;overflow-x:hidden}
+.vp-home *,.vp-connect *{min-width:0}
+.vp-home .vp-container,.vp-connect .vp-container{max-width:1100px;margin:0 auto;padding:0 16px}
+.vp-home .vp-section,.vp-connect .vp-section{padding:56px 0}
+.vp-home .vp-section-muted,.vp-connect .vp-section-muted{background:#f7fafc}
+.vp-home .vp-chip,.vp-connect .vp-chip{display:inline-block;background:#a7ff5a;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600}
+.vp-home h1,.vp-connect h1{font-size:44px;line-height:1.1;margin:16px 0 12px;overflow-wrap:anywhere}
+.vp-home h2,.vp-connect h2{font-size:34px;line-height:1.2;margin:0 0 24px;overflow-wrap:anywhere}
+.vp-home h3,.vp-connect h3{font-size:20px;line-height:1.3;margin:0 0 8px;overflow-wrap:anywhere}
+.vp-home p,.vp-connect p,.vp-home li,.vp-connect li{font-size:16px;line-height:1.65;color:#374151;overflow-wrap:anywhere;word-break:break-word}
+.vp-home .vp-hero{padding:64px 0;background:#f5f5f7;border-bottom:4px solid #5858E2}
+.vp-home .vp-hero img{display:block;width:min(100%,760px);height:auto;margin:24px auto 0;border-radius:16px;object-fit:cover}
+.vp-connect .vp-connect-hero{padding:80px 0;background:linear-gradient(135deg,#111827 0%,#1f2937 70%,#374151 100%);color:#fff}
+.vp-connect .vp-connect-hero p{color:#e5e7eb}
+.vp-home .vp-grid3,.vp-connect .vp-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.vp-home .vp-card,.vp-connect .vp-card,.vp-home .vp-step,.vp-connect .vp-step{border:1px solid #e5e7eb;border-radius:14px;background:#fff;padding:18px;height:100%}
+.vp-home .vp-step p,.vp-connect .vp-step p{margin-top:8px}
+.vp-home .vp-actions,.vp-connect .vp-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+.vp-home .vp-btn,.vp-connect .vp-btn{display:inline-block;text-decoration:none;padding:11px 16px;border-radius:10px;font-weight:600}
+.vp-home .vp-btn-primary,.vp-connect .vp-btn-primary{background:#5858E2;color:#fff}
+.vp-home .vp-btn-outline,.vp-connect .vp-btn-outline{border:2px solid #5858E2;color:#5858E2;background:transparent}
+.vp-home .vp-list,.vp-connect .vp-list{display:grid;gap:10px;padding-left:20px}
+.vp-home img,.vp-connect img{display:block;max-width:100%;height:auto}
+.vp-home table,.vp-connect table{display:block;max-width:100%;overflow-x:auto}
+@media (max-width:1024px){
+  .vp-home h1,.vp-connect h1{font-size:38px}
+  .vp-home h2,.vp-connect h2{font-size:30px}
+}
+@media (max-width:900px){
+  .vp-home .vp-grid3,.vp-connect .vp-grid3{grid-template-columns:1fr}
+  .vp-home h1,.vp-connect h1{font-size:34px}
+  .vp-home h2,.vp-connect h2{font-size:28px}
+}
+@media (max-width:640px){
+  .vp-home .vp-section,.vp-connect .vp-section{padding:44px 0}
+  .vp-home .vp-hero{padding:44px 0}
+  .vp-connect .vp-connect-hero{padding:56px 0}
+  .vp-home h1,.vp-connect h1{font-size:30px}
+  .vp-home h2,.vp-connect h2{font-size:24px}
+}
+`.trim();
+
+function normalizeCssSignature(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function isDefaultVisualCss(value: string): boolean {
+  const normalized = normalizeCssSignature(value);
+  return normalized === normalizeCssSignature(DEFAULT_VISUAL_CSS) || normalized === normalizeCssSignature(LEGACY_DEFAULT_VISUAL_CSS);
+}
+
 function getDefaultVisualTemplate(key: VisualPageKey): { html: string; css: string } {
   if (key === "connect") {
     return { html: CONNECT_DEFAULT_HTML, css: DEFAULT_VISUAL_CSS };
@@ -146,21 +205,71 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+function normalizeVisualHtml(value: string): string {
+  let html = value.trim();
+  if (!html) return "";
+
+  html = html.replace(/<!doctype[^>]*>/gi, "").trim();
+
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch) {
+    html = bodyMatch[1].trim();
+  } else if (/^<body[\s>]/i.test(html)) {
+    html = html.replace(/^<body[^>]*>/i, "").replace(/<\/body>\s*$/i, "").trim();
+  }
+
+  html = html.replace(/<\/?(html|head)[^>]*>/gi, "").trim();
+  html = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<noscript[\s\S]*?<\/noscript>/gi, "").trim();
+
+  return html;
+}
+
+function normalizeVisualCss(value: string): string {
+  let css = value.trim();
+  if (!css) return "";
+
+  if (/<style[\s>]/i.test(css)) {
+    const matches = Array.from(css.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi))
+      .map((match) => (match[1] ?? "").trim())
+      .filter(Boolean);
+    if (matches.length) {
+      css = matches.join("\n\n");
+    }
+  }
+
+  return css.trim();
+}
+
+function isAllowedStyleHref(href: string): boolean {
+  return /^https?:\/\//.test(href) || href.startsWith("/");
+}
+
+function normalizeStyleHrefs(hrefs: string[]): string[] {
+  return Array.from(new Set(hrefs.map((href) => href.trim()).filter((href) => isAllowedStyleHref(href)))).sort((a, b) =>
+    a.localeCompare(b)
+  );
+}
+
 function parseStoredVisualData(items: unknown): { html: string; css: string; styleHrefs: string[]; isPublished: boolean } {
   if (!isRecord(items)) {
     return { html: "", css: "", styleHrefs: [], isPublished: false };
   }
 
-  const html = typeof items.html === "string"
+  const rawHtml = typeof items.html === "string"
     ? items.html
     : (typeof items.content === "string" ? items.content : "");
-  const css = typeof items.css === "string" ? items.css : "";
-  const styleHrefs = Array.isArray(items.styleHrefs)
+  const rawCss = typeof items.css === "string" ? items.css : "";
+  const rawStyleHrefs = Array.isArray(items.styleHrefs)
     ? items.styleHrefs.filter((item): item is string => typeof item === "string" && item.length > 0)
     : [];
   const isPublished = typeof items.isPublished === "boolean" ? items.isPublished : false;
 
-  return { html, css, styleHrefs, isPublished };
+  return {
+    html: normalizeVisualHtml(rawHtml),
+    css: normalizeVisualCss(rawCss),
+    styleHrefs: normalizeStyleHrefs(rawStyleHrefs),
+    isPublished,
+  };
 }
 
 export function isVisualPageKey(value: string): value is VisualPageKey {
@@ -168,6 +277,8 @@ export function isVisualPageKey(value: string): value is VisualPageKey {
 }
 
 export async function getVisualPage(key: VisualPageKey): Promise<VisualPageData> {
+  noStore();
+
   if (!prisma) {
     const defaults = getDefaultVisualTemplate(key);
     return { ...defaults, styleHrefs: [], isPublished: false, updatedAt: null, hasStoredContent: false };
@@ -204,10 +315,10 @@ export async function getVisualPage(key: VisualPageKey): Promise<VisualPageData>
   }
 
   if (!parsed.css.trim()) {
-    const defaults = getDefaultVisualTemplate(key);
+    const isDefaultTemplate = parsed.html.trim() === getDefaultVisualTemplate(key).html.trim();
     return {
       html: parsed.html,
-      css: defaults.css,
+      css: isDefaultTemplate ? getDefaultVisualTemplate(key).css : "",
       styleHrefs: parsed.styleHrefs,
       isPublished: parsed.isPublished,
       updatedAt: record.updatedAt,
@@ -219,6 +330,8 @@ export async function getVisualPage(key: VisualPageKey): Promise<VisualPageData>
 }
 
 export async function getVisualPagesOverview() {
+  noStore();
+
   const keys = Object.keys(VISUAL_PAGE_CONFIG) as VisualPageKey[];
   const pages = await Promise.all(
     keys.map(async (key) => {
@@ -235,19 +348,32 @@ export async function getVisualPagesOverview() {
 }
 
 export async function getPublishedVisualContent(key: VisualPageKey): Promise<string | null> {
+  noStore();
+
+  const page = await getPublishedVisualPage(key);
+  if (!page) return null;
+  const links = page.styleHrefs.map((href) => `<link rel="stylesheet" href="${href}">`).join("");
+  return `${links}<style>${page.css}</style>${page.html}`;
+}
+
+export async function getPublishedVisualPage(key: VisualPageKey): Promise<PublishedVisualPage | null> {
+  noStore();
+
   const page = await getVisualPage(key);
   if (!page.isPublished) return null;
-  const normalizedHtml = page.html.trim();
-  if (!normalizedHtml) return null;
-  const normalizedCss = page.css.trim();
-  const links = page.styleHrefs
-    .filter((href) => /^https?:\/\//.test(href) || href.startsWith("/"))
-    .map((href) => `<link rel="stylesheet" href="${href}">`)
-    .join("");
-  if (normalizedCss) {
-    return `${links}<style>${normalizedCss}</style>${normalizedHtml}`;
-  }
-  return `${links}${normalizedHtml}`;
+
+  const html = normalizeVisualHtml(page.html);
+  if (!html) return null;
+
+  const css = normalizeVisualCss(page.css);
+  const normalizedCss = isDefaultVisualCss(css) && !html.includes("vp-") ? "" : css;
+  const styleHrefs = normalizeStyleHrefs(page.styleHrefs);
+
+  return {
+    html,
+    css: normalizedCss,
+    styleHrefs,
+  };
 }
 
 export async function upsertVisualPage(
@@ -262,24 +388,28 @@ export async function upsertVisualPage(
   }
 
   const config = VISUAL_PAGE_CONFIG[key];
+  const normalizedHtml = normalizeVisualHtml(html);
+  const normalizedCss = normalizeVisualCss(css);
+  const normalizedStyleHrefs = normalizeStyleHrefs(styleHrefs);
+
   await prisma.dataList.upsert({
     where: { slug: config.storageSlug },
     create: {
       slug: config.storageSlug,
       name: `Visual page: ${config.title}`,
       items: {
-        html,
-        css,
-        styleHrefs,
+        html: normalizedHtml,
+        css: normalizedCss,
+        styleHrefs: normalizedStyleHrefs,
         isPublished,
       },
     },
     update: {
       name: `Visual page: ${config.title}`,
       items: {
-        html,
-        css,
-        styleHrefs,
+        html: normalizedHtml,
+        css: normalizedCss,
+        styleHrefs: normalizedStyleHrefs,
         isPublished,
       },
     },

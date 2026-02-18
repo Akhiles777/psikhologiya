@@ -3,7 +3,8 @@ import Image from "next/image";
 import { getPageBySlug } from "@/lib/page-content";
 import { buildMetadata } from "@/lib/seo";
 import { PageContent } from "@/components/PageContent";
-import { getPublishedVisualContent } from "@/lib/visual-pages";
+import { getPublishedVisualPage } from "@/lib/visual-pages";
+import VisualPageRuntime from "@/components/pages/VisualPageRuntime";
 
 export const metadata = buildMetadata({
   title: "Для психологов — Давай вместе",
@@ -20,15 +21,22 @@ export default async function ConnectPage({
   const params = searchParams ? await searchParams : {};
   const isVisualSource = (typeof params.visual_source === "string" ? params.visual_source : "") === "1";
 
-  const visualContent = await getPublishedVisualContent("connect");
-  if (visualContent && !isVisualSource) {
-    return <PageContent title="Для психологов — Давай вместе" template="empty" content={visualContent} />;
+  const visualPage = await getPublishedVisualPage("connect");
+  if (visualPage && !isVisualSource) {
+    return (
+      <VisualPageRuntime
+        html={visualPage.html}
+        css={visualPage.css}
+        styleHrefs={visualPage.styleHrefs}
+      />
+    );
   }
 
   const page = await getPageBySlug("connect");
 
   if (page) {
-    return <PageContent title={page.title} template={page.template} content={page.content} />;
+    const content = <PageContent title={page.title} template={page.template} content={page.content} />;
+    return isVisualSource ? <div data-vp-import-root>{content}</div> : content;
   }
 
   const benefits = [
@@ -113,7 +121,7 @@ export default async function ConnectPage({
     { label: "Супервизия", value: "75%", color: "bg-amber-500" },
   ];
 
-  return (
+  const fallbackContent = (
     <div className="min-h-screen bg-gradient-to-b from-white to-lime-50/20">
       {/* Герой с изображением */}
       <div className="relative overflow-hidden border-b border-gray-200">
@@ -368,4 +376,6 @@ export default async function ConnectPage({
       </div>
     </div>
   );
+
+  return isVisualSource ? <div data-vp-import-root>{fallbackContent}</div> : fallbackContent;
 }

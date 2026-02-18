@@ -40,7 +40,6 @@ type ImportedPagePayload = {
   html: string;
   styleHrefs: string[];
   inlineStyles: string[];
-  stylesheetRules: string;
   htmlClassName: string;
   bodyClassName: string;
   htmlStyleText: string;
@@ -56,6 +55,28 @@ declare global {
 
 const GRAPES_CSS_ID = "grapesjs-css";
 const GRAPES_JS_ID = "grapesjs-script";
+
+function isAllowedStyleHref(href: string): boolean {
+  if (!href) return false;
+  if (!/^https?:\/\//.test(href) && !href.startsWith("/")) return false;
+  return true;
+}
+
+function normalizeImportedHref(href: string, base: string): string {
+  try {
+    const resolved = new URL(href, base);
+    if (resolved.origin === window.location.origin) {
+      return `${resolved.pathname}${resolved.search}${resolved.hash}`;
+    }
+    return resolved.toString();
+  } catch {
+    return href.trim();
+  }
+}
+
+function uniqueStyleHrefs(hrefs: string[]): string[] {
+  return Array.from(new Set(hrefs.filter((href) => isAllowedStyleHref(href.trim())).map((href) => href.trim())));
+}
 
 function ensureGrapesCss(): void {
   if (document.getElementById(GRAPES_CSS_ID)) return;
@@ -96,6 +117,13 @@ function getParentStylesheets(): string[] {
     .map((href) => new URL(href, window.location.origin).toString());
 }
 
+function getParentInlineStyles(): string[] {
+  return Array.from(document.querySelectorAll("head style"))
+    .map((node) => node.textContent ?? "")
+    .map((text) => text.trim())
+    .filter(Boolean);
+}
+
 function defaultTemplate(): string {
   return [
     '<section style="padding:48px 24px;max-width:1100px;margin:0 auto;">',
@@ -119,7 +147,7 @@ function sanitizeNode(root: Element) {
 
 function pickRootElement(doc: Document): Element {
   return (
-    doc.querySelector("main.flex-1") ??
+    doc.querySelector("[data-vp-import-root]") ??
     doc.querySelector("main") ??
     (doc.body.firstElementChild as Element | null) ??
     doc.body
@@ -127,10 +155,12 @@ function pickRootElement(doc: Document): Element {
 }
 
 function collectHeadStyles(doc: Document, base: string): { hrefs: string[]; inline: string[] } {
-  const hrefs = Array.from(doc.querySelectorAll('head link[rel="stylesheet"]'))
+  const hrefs = uniqueStyleHrefs(
+    Array.from(doc.querySelectorAll('head link[rel="stylesheet"]'))
     .map((link) => link.getAttribute("href") ?? "")
     .filter(Boolean)
-    .map((href) => new URL(href, base).toString());
+    .map((href) => normalizeImportedHref(href, base))
+  );
 
   const inline = Array.from(doc.querySelectorAll("head style"))
     .map((style) => style.textContent ?? "")
@@ -138,25 +168,6 @@ function collectHeadStyles(doc: Document, base: string): { hrefs: string[]; inli
     .filter(Boolean);
 
   return { hrefs, inline };
-}
-
-function collectStylesheetRules(doc: Document): string {
-  const chunks: string[] = [];
-  const sheets = Array.from(doc.styleSheets);
-
-  for (const sheet of sheets) {
-    try {
-      const rules = (sheet as CSSStyleSheet).cssRules;
-      if (!rules) continue;
-      for (let i = 0; i < rules.length; i += 1) {
-        chunks.push(rules[i].cssText);
-      }
-    } catch {
-      // ignore cross-origin stylesheet access issues
-    }
-  }
-
-  return chunks.join("\n");
 }
 
 function extractPayloadFromDocument(doc: Document, base: string): ImportedPagePayload {
@@ -168,13 +179,11 @@ function extractPayloadFromDocument(doc: Document, base: string): ImportedPagePa
   if (!html) throw new Error("empty_import");
 
   const { hrefs, inline } = collectHeadStyles(doc, base);
-  const stylesheetRules = collectStylesheetRules(doc);
 
   return {
     html,
     styleHrefs: hrefs,
     inlineStyles: inline,
-    stylesheetRules,
     htmlClassName: doc.documentElement.className ?? "",
     bodyClassName: doc.body.className ?? "",
     htmlStyleText: doc.documentElement.getAttribute("style") ?? "",
@@ -248,12 +257,9 @@ function applyStylesToCanvas(editor: GrapesEditor, styleHrefs: string[], inlineC
   const canvasDoc = editor.Canvas?.getDocument();
   if (!canvasDoc) return;
 
-  const existingLinks = new Set(
-    Array.from(canvasDoc.querySelectorAll('link[data-vp-import-style="1"]')).map((el) => el.getAttribute("href") ?? "")
-  );
+  canvasDoc.querySelectorAll('link[data-vp-import-style="1"]').forEach((node) => node.remove());
 
   for (const href of styleHrefs) {
-    if (existingLinks.has(href)) continue;
     const link = canvasDoc.createElement("link");
     link.setAttribute("data-vp-import-style", "1");
     link.rel = "stylesheet";
@@ -271,36 +277,42 @@ function applyStylesToCanvas(editor: GrapesEditor, styleHrefs: string[], inlineC
   }
 }
 
-function buildImportCss(payload: ImportedPagePayload, loadedStylesheetCss: string[]): string {
+function applyParentInlineStylesToCanvas(editor: GrapesEditor) {
+  const canvasDoc = editor.Canvas?.getDocument();
+  if (!canvasDoc) return;
+
+  const incoming = getParentInlineStyles();
+  if (!incoming.length) return;
+
+  canvasDoc.querySelectorAll('style[data-vp-parent-inline-style="1"]').forEach((node) => node.remove());
+
+  for (const cssText of incoming) {
+    const style = canvasDoc.createElement("style");
+    style.setAttribute("data-vp-parent-inline-style", "1");
+    style.textContent = cssText;
+    canvasDoc.head.appendChild(style);
+  }
+}
+
+function applyInitialCanvasStyles(editor: GrapesEditor, styleHrefs: string[]) {
+  const prepared = uniqueStyleHrefs(styleHrefs);
+  applyStylesToCanvas(editor, prepared, []);
+  applyParentInlineStylesToCanvas(editor);
+}
+
+function buildImportCss(payload: ImportedPagePayload): string {
   const baseline = `
 *,*::before,*::after{box-sizing:border-box}
 img,video,canvas,svg{display:block;max-width:100%;height:auto}
+pre,table,iframe{max-width:100%}
+p,h1,h2,h3,h4,h5,h6{overflow-wrap:anywhere}
   `.trim();
 
   const parts = [
     baseline,
-    payload.stylesheetRules.trim(),
-    ...loadedStylesheetCss.map((css) => css.trim()).filter(Boolean),
     ...payload.inlineStyles.map((css) => css.trim()).filter(Boolean),
   ].filter(Boolean);
   return parts.join("\n\n");
-}
-
-async function loadStylesheetContents(hrefs: string[]): Promise<string[]> {
-  const cssList = await Promise.all(
-    hrefs.map(async (href) => {
-      try {
-        const resp = await fetch(href, { cache: "no-store" });
-        if (!resp.ok) return "";
-        const text = await resp.text();
-        return text.trim();
-      } catch {
-        return "";
-      }
-    })
-  );
-
-  return cssList.filter(Boolean);
 }
 
 function applyDocumentShellToCanvas(editor: GrapesEditor, payload: ImportedPagePayload) {
@@ -343,25 +355,21 @@ export default function VisualPageEditor({
   const styleHrefsInputRef = useRef<HTMLInputElement | null>(null);
   const statusRef = useRef<HTMLDivElement | null>(null);
   const importingRef = useRef(false);
-  const baseImportedCssRef = useRef(initialCss);
-  const importedStyleHrefsRef = useRef<string[]>(initialStyleHrefs);
+  const importedStyleHrefsRef = useRef<string[]>(uniqueStyleHrefs(initialStyleHrefs));
 
   const [mode, setMode] = useState<EditorMode>("visual");
   const [codeHtml, setCodeHtml] = useState(initialHtml);
   const [codeCss, setCodeCss] = useState(initialCss);
   const [isPublished, setIsPublished] = useState(initialPublished);
   const [isImporting, setIsImporting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const syncEditorToInputs = useCallback(() => {
     const editor = editorRef.current;
     if (!editor) return;
 
     const html = editor.getHtml();
-    const visualCss = editor.getCss().trim();
-    const baseCss = baseImportedCssRef.current.trim();
-    const css = baseCss
-      ? (visualCss ? (visualCss.includes(baseCss) ? visualCss : `${baseCss}\n\n${visualCss}`) : baseCss)
-      : visualCss;
+    const css = editor.getCss().trim();
 
     setCodeHtml(html);
     setCodeCss(css);
@@ -388,16 +396,16 @@ export default function VisualPageEditor({
         modeUsed = "fetch";
       }
 
+      const preparedStyleHrefs = uniqueStyleHrefs(payload.styleHrefs);
+
       editor.setComponents(payload.html);
-      applyStylesToCanvas(editor, payload.styleHrefs, payload.inlineStyles);
+      applyStylesToCanvas(editor, preparedStyleHrefs, payload.inlineStyles);
       applyDocumentShellToCanvas(editor, payload);
-      importedStyleHrefsRef.current = payload.styleHrefs;
+      importedStyleHrefsRef.current = preparedStyleHrefs;
       if (styleHrefsInputRef.current) {
-        styleHrefsInputRef.current.value = payload.styleHrefs.join("\n");
+        styleHrefsInputRef.current.value = preparedStyleHrefs.join("\n");
       }
-      const loadedStylesheetCss = await loadStylesheetContents(payload.styleHrefs);
-      const importCss = buildImportCss(payload, loadedStylesheetCss);
-      baseImportedCssRef.current = importCss;
+      const importCss = buildImportCss(payload);
       editor.setStyle(importCss);
       if (cssInputRef.current) cssInputRef.current.value = importCss;
       setCodeCss(importCss);
@@ -470,8 +478,9 @@ export default function VisualPageEditor({
         });
 
         editorRef.current = editor;
+        applyInitialCanvasStyles(editor, importedStyleHrefsRef.current);
         if (statusRef.current) {
-          statusRef.current.textContent = "Редактор загружен. Можно собирать страницу блоками.";
+          statusRef.current.textContent = "Редактор загружен. Сохраненные стили и блоки применены.";
           statusRef.current.className = "mt-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700";
         }
 
@@ -501,7 +510,6 @@ export default function VisualPageEditor({
 
     editor.setComponents(codeHtml || defaultTemplate());
     editor.setStyle(codeCss);
-    baseImportedCssRef.current = "";
   };
 
   return (
@@ -559,6 +567,7 @@ export default function VisualPageEditor({
         action={submitAction}
         className="mt-6 space-y-4"
         onSubmit={() => {
+          setIsSaving(true);
           if (mode === "code") {
             if (htmlInputRef.current) htmlInputRef.current.value = codeHtml;
             if (cssInputRef.current) cssInputRef.current.value = codeCss;
@@ -629,9 +638,10 @@ export default function VisualPageEditor({
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="submit"
-            className="rounded-lg bg-[#5858E2] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4848d0]"
+            disabled={isSaving}
+            className="rounded-lg bg-[#5858E2] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4848d0] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Сохранить
+            {isSaving ? "Сохранение..." : "Сохранить"}
           </button>
           <Link
             href={backHref}

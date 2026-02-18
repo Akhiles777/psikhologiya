@@ -3,11 +3,13 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('auth-session');
-  const adminCookie = request.cookies.get('admin-session'); // из старой системы
+  const adminCookie = request.cookies.get('admin_session');
+  const legacyAdminCookie = request.cookies.get('admin-session');
+  const managerCookie = request.cookies.get('manager_session');
   const pathname = request.nextUrl.pathname;
 
-  // Проверяем обе системы авторизации
-  const isAuthenticated = sessionCookie || adminCookie;
+  // Проверяем актуальные и legacy-cookie разных сценариев авторизации
+  const isAuthenticated = sessionCookie || adminCookie || legacyAdminCookie || managerCookie;
   
   // Пути, которые доступны без авторизации
   const publicPaths = [

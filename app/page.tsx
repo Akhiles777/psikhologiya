@@ -7,8 +7,8 @@ import { ForPsychologistsBlock } from "@/components/home/ForPsychologistsBlock";
 import { LibraryBlock } from "@/components/home/LibraryBlock";
 import { CtaBlock } from "@/components/home/CtaBlock";
 import { buildMetadata } from "@/lib/seo";
-import { PageContent } from "@/components/PageContent";
-import { getPublishedVisualContent } from "@/lib/visual-pages";
+import { getPublishedVisualPage } from "@/lib/visual-pages";
+import VisualPageRuntime from "@/components/pages/VisualPageRuntime";
 
 export const metadata = buildMetadata({
   title: "Давай вместе — Находим своего психолога вместе",
@@ -24,13 +24,19 @@ export default async function HomePage({
   const params = searchParams ? await searchParams : {};
   const isVisualSource = (typeof params.visual_source === "string" ? params.visual_source : "") === "1";
 
-  const visualContent = await getPublishedVisualContent("home");
-  if (visualContent && !isVisualSource) {
-    return <PageContent title="Главная страница" template="empty" content={visualContent} />;
+  const visualPage = await getPublishedVisualPage("home");
+  if (visualPage && !isVisualSource) {
+    return (
+      <VisualPageRuntime
+        html={visualPage.html}
+        css={visualPage.css}
+        styleHrefs={visualPage.styleHrefs}
+      />
+    );
   }
 
   return (
-    <>
+    <div data-vp-import-root>
       <HeroBlock />
       <TrustBlock />
       <ValuesBlock />
@@ -39,6 +45,6 @@ export default async function HomePage({
       <ForPsychologistsBlock />
       <LibraryBlock />
       <CtaBlock />
-    </>
+    </div>
   );
 }
