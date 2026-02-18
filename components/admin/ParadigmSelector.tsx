@@ -8,9 +8,10 @@ import { X, ChevronDown, Search } from 'lucide-react';
 interface ParadigmSelectorProps {
   defaultValue?: string[];
   name?: string;
+  onChange?: (paradigms: string[]) => void;
 }
 
-export function ParadigmSelector({ defaultValue = [], name = "mainParadigm" }: ParadigmSelectorProps) {
+export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onChange }: ParadigmSelectorProps) {
   const [allParadigms, setAllParadigms] = useState<string[]>([]);
   const [selectedParadigms, setSelectedParadigms] = useState<string[]>(defaultValue);
   const [search, setSearch] = useState('');
@@ -60,6 +61,10 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm" }: P
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    onChange?.(selectedParadigms);
+  }, [onChange, selectedParadigms]);
 
   const handleAddParadigm = (paradigm: string) => {
     if (!selectedParadigms.includes(paradigm)) {
@@ -149,7 +154,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm" }: P
         {isDropdownOpen && search && filteredParadigms.length === 0 && !loading && (
           <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg p-4">
             <p className="text-gray-500 text-center">
-              Парадигма не найдена. Доступные варианты можно добавить в разделе "Справочники".
+              Парадигма не найдена. Доступные варианты можно добавить в разделе &quot;Справочники&quot;.
             </p>
           </div>
         )}

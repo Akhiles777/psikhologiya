@@ -38,64 +38,54 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ArticlePage({ params }: PageProps) {
-  const { slug } = await params; // Добавьте await здесь
-  
-  try {
-    console.log("[ArticlePage] Fetching article with slug:", slug);
-    
-    const article = await getArticleBySlug(slug);
-    console.log("[ArticlePage] Article fetched:", article ? "found" : "not found");
-    
-    if (!article) {
-      console.log("[ArticlePage] Article not found, calling notFound()");
-      notFound();
-    }
+  const { slug } = await params;
+  const article = await getArticleBySlug(slug);
 
-    const author = article.author;
-
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <Link
-          href="/lib/articles"
-          className="text-sm text-neutral-dark hover:text-[#5858E2]"
-        >
-          ← К списку статей
-        </Link>
-
-        <article className="mt-6">
-          <h1 className="font-display text-3xl  font-bold tracking-normal text-foreground md:text-4xl">
-            {article.title}
-          </h1>
-          {article.tags && article.tags.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {article.tags.map((t: string) => (
-                <Badge key={t} variant="primary">
-                  {t}
-                </Badge>
-              ))}
-            </div>
-          )}
-          {article.publishedAt && (
-            <p className="mt-2 text-sm text-neutral-dark">
-              {new Date(article.publishedAt).toLocaleDateString("ru-RU", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
-          )}
-
-          <div
-            className="mt-8 prose prose-neutral max-w-none text-foreground [&_a]:text-[#5858E2] [&_a]:underline [&_ul]:list-disc [&_ol]:list-decimal"
-            dangerouslySetInnerHTML={{ __html: article.content }}
-          />
-
-          {author && <ArticleAuthorBadge author={author} />}
-        </article>
-      </div>
-    );
-  } catch (error) {
-    console.error("[ArticlePage] Error loading article:", error);
+  if (!article) {
     notFound();
   }
+
+  const author = article.author;
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+      <Link
+        href="/lib/articles"
+        className="text-sm text-neutral-dark hover:text-[#5858E2]"
+      >
+        ← К списку статей
+      </Link>
+
+      <article className="mt-6">
+        <h1 className="font-display text-3xl  font-bold tracking-normal text-foreground md:text-4xl">
+          {article.title}
+        </h1>
+        {article.tags && article.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {article.tags.map((t: string) => (
+              <Badge key={t} variant="primary">
+                {t}
+              </Badge>
+            ))}
+          </div>
+        )}
+        {article.publishedAt && (
+          <p className="mt-2 text-sm text-neutral-dark">
+            {new Date(article.publishedAt).toLocaleDateString("ru-RU", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        )}
+
+        <div
+          className="mt-8 prose prose-neutral max-w-none text-foreground [&_a]:text-[#5858E2] [&_a]:underline [&_ul]:list-disc [&_ol]:list-decimal"
+          dangerouslySetInnerHTML={{ __html: article.content }}
+        />
+
+        {author && <ArticleAuthorBadge author={author} />}
+      </article>
+    </div>
+  );
 }

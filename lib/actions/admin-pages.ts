@@ -26,6 +26,17 @@ export async function getPageById(id: string) {
   try {
     const p = await prisma.page.findUnique({
       where: { id },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        template: true,
+        content: true,
+        images: true,
+        isPublished: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return p;
   } catch (err) {
@@ -104,7 +115,7 @@ export async function updatePage(id: string, formData: FormData) {
 /** Удалить страницу и связанные изображения. */
 import { promises as fs } from "fs";
 import path from "path";
-export async function deletePage(id: string, _formData?: FormData) {
+export async function deletePage(id: string) {
   if (!prisma) redirect("/admin/pages?error=db_unavailable");
   try {
     // Получаем список изображений

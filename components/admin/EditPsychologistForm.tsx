@@ -1,16 +1,12 @@
-// app/(admin)/admin/psychologists/[id]/edit/page.tsx
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPsychologistById, updatePsychologist } from "@/lib/actions/admin-psychologists";
-import { DeletePsychologistButton } from "@/components/admin/DeletePsychologistButton";
-import { ImageUrlsField } from "@/components/admin/ImageUrlsField";
 import { EducationFormEdit } from '@/components/admin/EducationFormEdit';
 
 type PageProps = { params: Promise<{ id: string }> };
 
 // Helper функция для безопасного преобразования данных об образовании
-function safeParseEducation(data: any): Array<{
-  year: string | number;
+function safeParseEducation(data: unknown): Array<{
+  year: string;
   type: string;
   organization: string;
   title: string;
@@ -20,13 +16,16 @@ function safeParseEducation(data: any): Array<{
   
   try {
     if (Array.isArray(data)) {
-      return data.map(item => ({
-        year: item?.year?.toString() || "",
-        type: item?.type || "",
-        organization: item?.organization || "",
-        title: item?.title || "",
-        isDiploma: Boolean(item?.isDiploma)
-      })).filter(item => 
+      return data.map((item: unknown) => {
+        const row = (item && typeof item === "object") ? (item as Record<string, unknown>) : {};
+        return {
+        year: typeof row.year === "string" || typeof row.year === "number" ? String(row.year) : "",
+        type: typeof row.type === "string" ? row.type : "",
+        organization: typeof row.organization === "string" ? row.organization : "",
+        title: typeof row.title === "string" ? row.title : "",
+        isDiploma: Boolean(row.isDiploma)
+      };
+      }).filter(item => 
         item.year || item.type || item.organization || item.title
       );
     }
@@ -45,9 +44,6 @@ export default async function EditPsychologistPage({ params }: PageProps) {
   const p = await getPsychologistById(id);
   if (!p) notFound();
 
-  const mainParadigmStr = (p.mainParadigm ?? []).join("\n");
-  const imagesStr = (p.images ?? []).join("\n");
-  
   // Безопасно преобразуем данные об образовании
   const educationData = safeParseEducation(p.education);
 

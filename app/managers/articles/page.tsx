@@ -37,7 +37,7 @@ export default function AdminArticlesPage() {
   // Загружаем все данные через один API
   useEffect(() => {
     Promise.all([
-      fetch("/api/articles").then(res => res.json()),  // Получаем статьи
+      fetch("/api/articles", { cache: "no-store" }).then(res => res.json()),  // Получаем статьи
     ])
         .then(([articlesData]) => {
           if (articlesData.success && articlesData.articles) {
@@ -120,6 +120,14 @@ export default function AdminArticlesPage() {
     groups[catalog].push(article);
     return groups;
   }, {} as Record<string, Article[]>);
+
+  if (loading) {
+    return (
+      <AuthGuard requiredPermission={'articles.view'}>
+        <ArticlesLoadingState addHref="/managers/articles/new" />
+      </AuthGuard>
+    );
+  }
 
   return (
       <AuthGuard requiredPermission={'articles.view'}>
@@ -226,6 +234,36 @@ export default function AdminArticlesPage() {
           )}
         </div>
       </AuthGuard>
+  );
+}
+
+function ArticlesLoadingState({ addHref }: { addHref: string }) {
+  return (
+    <div className="max-w-5xl mx-auto py-8">
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="font-display text-3xl font-bold text-[#5858E2]">Статьи (библиотека)</h1>
+        <Link href={addHref}>
+          <Button size="md" variant="primary">Добавить статью</Button>
+        </Link>
+      </div>
+
+      <div className="mb-6 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-500">
+        Загружаем статьи...
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {[1, 2, 3, 4].map((item) => (
+          <Card key={item} className="p-5">
+            <div className="animate-pulse space-y-3">
+              <div className="h-5 w-3/4 rounded bg-neutral-200" />
+              <div className="h-4 w-full rounded bg-neutral-100" />
+              <div className="h-4 w-2/3 rounded bg-neutral-100" />
+              <div className="h-9 w-32 rounded bg-neutral-200" />
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }
 

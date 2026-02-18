@@ -29,6 +29,17 @@ export async function getPageById(id: string) {
   try {
     const p = await prisma.page.findUnique({
       where: { id },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        template: true,
+        content: true,
+        images: true,
+        isPublished: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
     return p;
   } catch (err) {
@@ -103,7 +114,7 @@ export async function updatePage(id: string, formData: FormData) {
 }
 
 /** Удалить страницу. Вызывается из формы: deletePage(id) или deletePage(id, formData). */
-export async function deletePage(id: string, _formData?: FormData) {
+export async function deletePage(id: string) {
   if (!prisma) redirect("/managers/pages?error=db_unavailable");
   try {
     // Получаем список изображений
@@ -116,9 +127,11 @@ export async function deletePage(id: string, _formData?: FormData) {
           const absPath = path.join(process.cwd(), "public", imgPath);
           try {
             await fs.unlink(absPath);
-          } catch (e: any) {
-            if (e && e.code !== "ENOENT") {
-              // eslint-disable-next-line no-console
+          } catch (e: unknown) {
+            const errCode = typeof e === "object" && e !== null && "code" in e
+              ? String((e as { code?: string }).code)
+              : "";
+            if (errCode !== "ENOENT") {
               console.error("Ошибка удаления файла:", absPath, e);
             }
           }

@@ -40,6 +40,7 @@ export default function ArticleForm({
   const [shortText, setShortText] = useState(initialData.shortText || "");
   const [content, setContent] = useState(initialData.content || "");
   const [tags, setTags] = useState<string[]>(initialData.tags || []);
+  const [tagsInput, setTagsInput] = useState<string>((initialData.tags || []).join(", "));
   const [allTags, setAllTags] = useState<string[]>([]);
   const [allCatalogs, setAllCatalogs] = useState<string[]>([]);
   const [authorId, setAuthorId] = useState(initialData.authorId || "");
@@ -58,7 +59,7 @@ export default function ArticleForm({
 
   // Загружаем тэги и каталоги через общий API /api/articles
   useEffect(() => {
-    fetch("/api/articles")
+    fetch("/api/articles", { cache: "no-store" })
         .then(res => res.json())
         .then(data => {
           if (data.success && data.articles) {
@@ -147,6 +148,12 @@ export default function ArticleForm({
     setSlugWarning(warning);
   };
 
+  const parseTags = (value: string): string[] =>
+    value
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
   function validate() {
     if (!title.trim()) return "Заполните заголовок";
     if (!slug.trim()) return "Заполните slug";
@@ -176,7 +183,7 @@ export default function ArticleForm({
         slug: slug.trim(),
         shortText: shortText.trim(),
         content: content.trim(),
-        tags: tags.filter(t => t.trim() !== ""),
+        tags: parseTags(tagsInput),
         authorId: authorId || null,
         catalogSlug: catalogSlug?.trim() || null,
         isPublished: Boolean(isPublished)
@@ -317,10 +324,12 @@ export default function ArticleForm({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Тэги (через запятую)</label>
             <input
-                value={tags.join(", ")}
-                onChange={e => {
-                  const val = e.target.value;
-                  setTags(val.split(",").map(t => t.trim()).filter(Boolean));
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                onBlur={() => {
+                  const parsed = parseTags(tagsInput);
+                  setTags(parsed);
+                  setTagsInput(parsed.join(", "));
                 }}
                 list="all-tags"
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
@@ -365,9 +374,15 @@ export default function ArticleForm({
                 type="text"
                 value={authorSearch}
                 onChange={(e) => {
-                  setAuthorSearch(e.target.value);
+                  const value = e.target.value;
+                  setAuthorSearch(value);
                   setShowDropdown(true);
-                  if (!e.target.value) {
+                  if (!value) {
+                    setAuthorId("");
+                    setAuthorName("");
+                    return;
+                  }
+                  if (value !== authorName) {
                     setAuthorId("");
                     setAuthorName("");
                   }
@@ -423,6 +438,11 @@ export default function ArticleForm({
             <p className="text-xs text-gray-500 mt-2">
               {psychologists.length} психологов доступно для выбора
             </p>
+            {authorSearch && !authorId && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Выберите автора из списка психологов или очистите поле
+                </p>
+            )}
           </div>
 
           <div className="flex items-center gap-3 mt-2">

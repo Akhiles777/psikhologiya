@@ -3,7 +3,7 @@ import { getArticleById, updateArticle, deleteArticle } from "@/lib/articles";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -30,7 +30,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -40,10 +40,10 @@ export async function PUT(
     const article = await updateArticle(id, data);
     
     return NextResponse.json({ success: true, article });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[API] Error updating article:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || "Failed to update article" },
+      { success: false, error: error instanceof Error ? error.message : "Failed to update article" },
       { status: 400 }
     );
   }
@@ -51,7 +51,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -60,10 +60,10 @@ export async function DELETE(
     await deleteArticle(id);
     
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[API] Error deleting article:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || "Failed to delete article" },
+      { success: false, error: error instanceof Error ? error.message : "Failed to delete article" },
       { status: 400 }
     );
   }
