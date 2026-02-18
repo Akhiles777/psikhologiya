@@ -48,14 +48,14 @@ export function HeroBlock() {
               </Link>
             </div>
           </div>
-          <div className="relative aspect-[4/3] min-h-[200px] overflow-hidden rounded-xl border-4 border-[#A7FF5A] bg-white shadow-xl sm:rounded-2xl lg:aspect-square">
+          <div className="relative aspect-[4/3] min-h-[220px] overflow-hidden rounded-xl border-4 border-[#A7FF5A] bg-white shadow-xl sm:aspect-[16/11] sm:min-h-[260px] sm:rounded-2xl lg:aspect-[4/3] lg:min-h-[320px] xl:aspect-[16/11] xl:min-h-[360px]">
             <Image
               src="/images/hero.png"
               alt="Подбор психолога: карточки специалистов"
               fill
               className="object-cover"
               priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, (max-width: 1536px) 46vw, 620px"
             />
           </div>
         </div>

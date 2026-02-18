@@ -159,7 +159,7 @@ export function TrustBlock() {
         alt="Профессиональная психологическая консультация в доверительной обстановке"
         fill
         className="object-cover"
-        sizes="(max-width: 640px) 100vw, (max-width: 768px) 95vw, (max-width: 1024px) 90vw, 85vw"
+        sizes="(max-width: 640px) 100vw, (max-width: 768px) 95vw, (max-width: 1024px) 90vw, (max-width: 1536px) 72vw, 60vw"
         priority
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent sm:bg-gradient-to-r sm:from-black/30 sm:via-black/10 sm:to-transparent"></div>

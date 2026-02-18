@@ -7,13 +7,13 @@ export function LibraryBlock() {
     <section className="bg-[#F5F5F7] px-4 py-10 sm:px-6 sm:py-16 md:px-8 lg:px-12">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
-          <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-xl border-2 border-[#5858E2]/20 bg-white sm:h-64 lg:order-2 lg:h-72 lg:w-80">
+          <div className="relative h-56 w-full shrink-0 overflow-hidden rounded-xl border-2 border-[#5858E2]/20 bg-white sm:h-64 lg:order-2 lg:h-72 lg:w-80 xl:h-80 xl:w-[360px] 2xl:h-[22rem] 2xl:w-[400px]">
             <Image
               src="/images/image-3.jpg"
               alt="Библиотека статей от психологов"
               fill
               className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 320px"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, (max-width: 1280px) 320px, (max-width: 1536px) 360px, 400px"
             />
           </div>
           <div className="min-w-0 flex-1 lg:order-1">

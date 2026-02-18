@@ -59,6 +59,19 @@ export default async function PagesListPage({
             Страницы отображаются по адресу /s/[slug]. Шаблон «текст» — заголовок и контент. «Пустой» — любой HTML.
           </p>
 
+          <div className="mt-4 rounded-xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-4">
+            <p className="text-sm font-medium text-gray-900">Отдельный раздел визуального редактирования</p>
+            <p className="mt-1 text-xs text-gray-600">
+              Для главной страницы и /connect используйте отдельный визуальный редактор.
+            </p>
+            <Link
+              href="/managers/pages/visual"
+              className="mt-3 inline-flex items-center rounded-lg bg-[#4CAF50] px-3 py-2 text-xs font-medium text-white hover:bg-[#43A047]"
+            >
+              Открыть визуальный редактор
+            </Link>
+          </div>
+
           {list.length === 0 ? (
             <div className="mt-6 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center sm:mt-8 sm:p-8">
               <div className="mx-auto max-w-sm">

@@ -42,13 +42,13 @@ export function CatalogBlock() {
               </Link>
             </div>
           </div>
-          <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl border-2 border-[#5858E2]/30 bg-white sm:h-56 lg:h-64 lg:w-96">
+          <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-xl border-2 border-[#5858E2]/30 bg-white sm:h-60 lg:h-64 lg:w-96 xl:h-72 xl:w-[430px] 2xl:h-80 2xl:w-[460px]">
             <Image
               src="/images/image-4.JPG"
               alt="Каталог психологов: подбор по фильтрам"
               fill
               className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 384px"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, (max-width: 1280px) 384px, (max-width: 1536px) 430px, 460px"
             />
           </div>
         </div>

@@ -29,13 +29,13 @@ export function ForPsychologistsBlock() {
               Уровни сертификации: <Link href="/certification-levels" className="text-[#5858E2] underline hover:no-underline">что это и как пройти</Link>
             </p>
           </div>
-          <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-xl border-2 border-[#A7FF5A]/50 bg-[#F5F5F7] sm:h-56 lg:h-64 lg:w-80">
+          <div className="relative h-52 w-full shrink-0 overflow-hidden rounded-xl border-2 border-[#A7FF5A]/50 bg-[#F5F5F7] sm:h-60 lg:h-64 lg:w-80 xl:h-72 xl:w-[360px] 2xl:h-80 2xl:w-[400px]">
             <Image
               src="/images/image-doctor.png"
               alt="Для психологов: присоединиться к реестру"
               fill
               className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 320px"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, (max-width: 1280px) 320px, (max-width: 1536px) 360px, 400px"
             />
           </div>
         </div>

@@ -12,7 +12,7 @@ export function PageContent({ title, template, content }: Props) {
   if (template === "empty") {
     return (
       <div
-        className="min-h-screen [&_img]:max-w-full [&_a]:text-[#5858E2] [&_a]:underline"
+        className="min-h-screen overflow-x-clip [&_img]:max-w-full [&_img]:h-auto [&_img]:block [&_video]:max-w-full [&_video]:h-auto [&_canvas]:max-w-full [&_svg]:max-w-full [&_iframe]:max-w-full [&_iframe]:w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto [&_a]:text-[#5858E2] [&_a]:underline"
         dangerouslySetInnerHTML={{ __html: content || "" }}
       />
     );

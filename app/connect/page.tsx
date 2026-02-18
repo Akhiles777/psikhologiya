@@ -3,6 +3,7 @@ import Image from "next/image";
 import { getPageBySlug } from "@/lib/page-content";
 import { buildMetadata } from "@/lib/seo";
 import { PageContent } from "@/components/PageContent";
+import { getPublishedVisualContent } from "@/lib/visual-pages";
 
 export const metadata = buildMetadata({
   title: "Для психологов — Давай вместе",
@@ -11,7 +12,19 @@ export const metadata = buildMetadata({
   path: "/connect",
 });
 
-export default async function ConnectPage() {
+export default async function ConnectPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = searchParams ? await searchParams : {};
+  const isVisualSource = (typeof params.visual_source === "string" ? params.visual_source : "") === "1";
+
+  const visualContent = await getPublishedVisualContent("connect");
+  if (visualContent && !isVisualSource) {
+    return <PageContent title="Для психологов — Давай вместе" template="empty" content={visualContent} />;
+  }
+
   const page = await getPageBySlug("connect");
 
   if (page) {
