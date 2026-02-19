@@ -28,6 +28,7 @@ export default async function ConnectPage({
         html={visualPage.html}
         css={visualPage.css}
         styleHrefs={visualPage.styleHrefs}
+        pageKey="connect"
       />
     );
   }

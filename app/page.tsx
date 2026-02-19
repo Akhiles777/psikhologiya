@@ -31,6 +31,7 @@ export default async function HomePage({
         html={visualPage.html}
         css={visualPage.css}
         styleHrefs={visualPage.styleHrefs}
+        pageKey="home"
       />
     );
   }

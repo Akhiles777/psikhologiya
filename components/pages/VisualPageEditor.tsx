@@ -14,6 +14,8 @@ type Props = {
   initialStyleHrefs: string[];
   initialPublished: boolean;
   submitAction: (formData: FormData) => void;
+  restoreAction?: (formData: FormData) => void;
+  canRestorePrevious?: boolean;
 };
 
 type EditorMode = "visual" | "code";
@@ -45,7 +47,16 @@ type ImportedPagePayload = {
   htmlStyleText: string;
   bodyStyleText: string;
   language: string;
+  nodeSnapshot: NodeSnapshotMap;
 };
+
+type NodeSnapshot = {
+  tagName: string;
+  className: string;
+  styleText: string;
+};
+
+type NodeSnapshotMap = Record<string, NodeSnapshot>;
 
 declare global {
   interface Window {
@@ -55,6 +66,53 @@ declare global {
 
 const GRAPES_CSS_ID = "grapesjs-css";
 const GRAPES_JS_ID = "grapesjs-script";
+const CANVAS_GUARDS_STYLE_ID = "vp-canvas-guards";
+const CLASS_BACKUP_ATTR = "data-vp-class-backup";
+const NODE_ID_ATTR = "data-vp-node-id";
+const GRAPES_CSS_URLS = [
+  "https://unpkg.com/grapesjs/dist/css/grapes.min.css",
+  "https://cdn.jsdelivr.net/npm/grapesjs/dist/css/grapes.min.css",
+] as const;
+const GRAPES_JS_URLS = [
+  "https://unpkg.com/grapesjs",
+  "https://cdn.jsdelivr.net/npm/grapesjs",
+] as const;
+const DANGEROUS_PROTOCOLS = ["javascript:", "vbscript:", "data:text/html"] as const;
+const DANGEROUS_INLINE_STYLE = /expression\s*\(|url\s*\(\s*['"]?\s*javascript:/i;
+const URL_ATTRS = new Set(["href", "src", "xlink:href", "formaction", "action", "poster"]);
+const COMPLEX_CLASS_PATTERN = /[:\[\]\\/()%]/;
+const RESPONSIVE_STYLE_PROPS = [
+  "position",
+  "inset",
+  "top",
+  "right",
+  "bottom",
+  "left",
+  "width",
+  "height",
+  "min-height",
+  "max-height",
+  "max-width",
+  "object-fit",
+  "object-position",
+  "aspect-ratio",
+  "overflow",
+  "display",
+] as const;
+
+type HtmlDomParser = {
+  parseFromString: (source: string, mimeType: string) => Document;
+};
+
+function parseHtmlDocument(html: string): Document | null {
+  const ParserConstructor = (globalThis as { DOMParser?: new () => HtmlDomParser }).DOMParser;
+  if (!ParserConstructor) return null;
+  try {
+    return new ParserConstructor().parseFromString(html, "text/html");
+  } catch {
+    return null;
+  }
+}
 
 function isAllowedStyleHref(href: string): boolean {
   if (!href) return false;
@@ -78,43 +136,118 @@ function uniqueStyleHrefs(hrefs: string[]): string[] {
   return Array.from(new Set(hrefs.filter((href) => isAllowedStyleHref(href.trim())).map((href) => href.trim())));
 }
 
-function ensureGrapesCss(): void {
-  if (document.getElementById(GRAPES_CSS_ID)) return;
+function ensureGrapesCss(): { element: HTMLLinkElement; created: boolean } {
+  const existing = document.getElementById(GRAPES_CSS_ID) as HTMLLinkElement | null;
+  if (existing) {
+    return { element: existing, created: false };
+  }
 
   const link = document.createElement("link");
   link.id = GRAPES_CSS_ID;
   link.rel = "stylesheet";
-  link.href = "https://unpkg.com/grapesjs/dist/css/grapes.min.css";
+  link.crossOrigin = "anonymous";
+  link.setAttribute("data-vp-managed", "1");
+
+  let attempt = 0;
+  link.href = GRAPES_CSS_URLS[attempt];
+  link.addEventListener("error", () => {
+    attempt += 1;
+    if (attempt < GRAPES_CSS_URLS.length) {
+      link.href = GRAPES_CSS_URLS[attempt];
+    }
+  });
+
   document.head.appendChild(link);
+  return { element: link, created: true };
 }
 
-function ensureGrapesScript(): Promise<void> {
-  if (window.grapesjs) return Promise.resolve();
-
+function ensureGrapesScript(): Promise<{ element: HTMLScriptElement | null; created: boolean }> {
   return new Promise((resolve, reject) => {
+    if (window.grapesjs) {
+      const existing = document.getElementById(GRAPES_JS_ID) as HTMLScriptElement | null;
+      resolve({ element: existing, created: false });
+      return;
+    }
+
     const existing = document.getElementById(GRAPES_JS_ID) as HTMLScriptElement | null;
     if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("failed_to_load_grapesjs")), { once: true });
+      if (existing.getAttribute("data-vp-ready") === "1") {
+        resolve({ element: existing, created: false });
+        return;
+      }
+
+      let timedOut = false;
+      const cleanup = () => {
+        existing.removeEventListener("load", onLoad);
+        existing.removeEventListener("error", onError);
+      };
+      const timeoutId = window.setTimeout(() => {
+        timedOut = true;
+        cleanup();
+        reject(new Error("failed_to_load_grapesjs"));
+      }, 7000);
+
+      const onLoad = () => {
+        if (timedOut) return;
+        window.clearTimeout(timeoutId);
+        cleanup();
+        resolve({ element: existing, created: false });
+      };
+      const onError = () => {
+        if (timedOut) return;
+        window.clearTimeout(timeoutId);
+        cleanup();
+        reject(new Error("failed_to_load_grapesjs"));
+      };
+      existing.addEventListener("load", onLoad, { once: true });
+      existing.addEventListener("error", onError, { once: true });
       return;
     }
 
     const script = document.createElement("script");
     script.id = GRAPES_JS_ID;
-    script.src = "https://unpkg.com/grapesjs";
     script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("failed_to_load_grapesjs"));
+    script.crossOrigin = "anonymous";
+    script.setAttribute("data-vp-managed", "1");
+
+    let attempt = 0;
+    const cleanup = () => {
+      script.removeEventListener("load", onLoad);
+      script.removeEventListener("error", onError);
+    };
+    const onLoad = () => {
+      script.setAttribute("data-vp-ready", "1");
+      cleanup();
+      resolve({ element: script, created: true });
+    };
+    const onError = () => {
+      attempt += 1;
+      if (attempt < GRAPES_JS_URLS.length) {
+        script.src = GRAPES_JS_URLS[attempt];
+        return;
+      }
+      cleanup();
+      reject(new Error("failed_to_load_grapesjs"));
+    };
+
+    script.addEventListener("load", onLoad, { once: true });
+    script.addEventListener("error", onError);
+    script.src = GRAPES_JS_URLS[attempt];
     document.body.appendChild(script);
   });
 }
 
 function getParentStylesheets(): string[] {
   const links = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
-  return links
-    .map((link) => link.getAttribute("href") ?? "")
-    .filter(Boolean)
-    .map((href) => new URL(href, window.location.origin).toString());
+  return Array.from(
+    new Set(
+      links
+        .filter((link) => link.id !== GRAPES_CSS_ID)
+        .map((link) => link.getAttribute("href") ?? "")
+        .filter(Boolean)
+        .map((href) => new URL(href, window.location.origin).toString())
+    )
+  );
 }
 
 function getParentInlineStyles(): string[] {
@@ -141,8 +274,294 @@ function withVisualSourceParam(path: string): string {
   return url.toString();
 }
 
+function isDangerousUrl(value: string): boolean {
+  const normalized = value.replace(/[\u0000-\u001F\u007F\s]+/g, "").toLowerCase();
+  return DANGEROUS_PROTOCOLS.some((protocol) => normalized.startsWith(protocol));
+}
+
 function sanitizeNode(root: Element) {
-  root.querySelectorAll("script,noscript").forEach((node) => node.remove());
+  root.querySelectorAll("script,noscript,base,object,embed,applet,meta[http-equiv='refresh' i]").forEach((node) => node.remove());
+
+  const allElements = [root, ...Array.from(root.querySelectorAll("*"))];
+
+  for (const element of allElements) {
+    for (const attr of Array.from(element.attributes)) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value ?? "";
+
+      if (name.startsWith("on") || name === "srcdoc") {
+        element.removeAttribute(attr.name);
+        continue;
+      }
+
+      if (name === "style" && DANGEROUS_INLINE_STYLE.test(value)) {
+        element.removeAttribute(attr.name);
+        continue;
+      }
+
+      if (URL_ATTRS.has(name) && isDangerousUrl(value)) {
+        element.removeAttribute(attr.name);
+      }
+    }
+  }
+}
+
+function splitClassTokens(value: string): string[] {
+  return value
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+function mergeClassValues(current: string, backup: string): string {
+  const tokens = splitClassTokens(current);
+  const set = new Set(tokens);
+
+  for (const token of splitClassTokens(backup)) {
+    if (!set.has(token)) {
+      set.add(token);
+      tokens.push(token);
+    }
+  }
+
+  return tokens.join(" ").trim();
+}
+
+function hasComplexClasses(value: string): boolean {
+  return splitClassTokens(value).some((token) => COMPLEX_CLASS_PATTERN.test(token));
+}
+
+function addClassBackups(root: Element): void {
+  const allElements = [root, ...Array.from(root.querySelectorAll("*"))];
+  for (const element of allElements) {
+    const currentClass = (element.getAttribute("class") ?? "").trim();
+    if (!currentClass || !hasComplexClasses(currentClass)) continue;
+    if (!element.hasAttribute(CLASS_BACKUP_ATTR)) {
+      element.setAttribute(CLASS_BACKUP_ATTR, currentClass);
+    }
+  }
+}
+
+function stabilizeComplexClassesInHtml(html: string): string {
+  const value = html.trim();
+  if (!value) return value;
+
+  const doc = parseHtmlDocument(value);
+  if (!doc) return value;
+  const body = doc.body;
+  if (!body) return value;
+
+  for (const element of Array.from(body.querySelectorAll<HTMLElement>("*"))) {
+    const currentClass = (element.getAttribute("class") ?? "").trim();
+    if (currentClass && hasComplexClasses(currentClass) && !element.hasAttribute(CLASS_BACKUP_ATTR)) {
+      element.setAttribute(CLASS_BACKUP_ATTR, currentClass);
+    }
+
+    const backupClass = (element.getAttribute(CLASS_BACKUP_ATTR) ?? "").trim();
+    if (!backupClass) continue;
+
+    const merged = mergeClassValues(currentClass, backupClass);
+    if (merged) {
+      element.setAttribute("class", merged);
+      continue;
+    }
+
+    element.removeAttribute("class");
+  }
+
+  const output = body.innerHTML.trim();
+  return output || value;
+}
+
+function toStylePropertyMap(styleText: string): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const part of styleText.split(";")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const separatorIndex = trimmed.indexOf(":");
+    if (separatorIndex <= 0) continue;
+    const rawName = trimmed.slice(0, separatorIndex).trim().toLowerCase();
+    const rawValue = trimmed.slice(separatorIndex + 1).trim();
+    if (!rawName || !rawValue) continue;
+    map.set(rawName, rawValue);
+  }
+  return map;
+}
+
+function fromStylePropertyMap(map: Map<string, string>): string {
+  return Array.from(map.entries())
+    .map(([name, value]) => `${name}:${value}`)
+    .join(";");
+}
+
+function mergeResponsiveStyleText(currentStyleText: string, snapshotStyleText: string): string {
+  if (!snapshotStyleText.trim()) return currentStyleText.trim();
+
+  const current = toStylePropertyMap(currentStyleText);
+  const snapshot = toStylePropertyMap(snapshotStyleText);
+
+  for (const property of RESPONSIVE_STYLE_PROPS) {
+    const key = property.toLowerCase();
+    const snapshotValue = snapshot.get(key);
+    if (!snapshotValue) continue;
+    if (!current.has(key)) {
+      current.set(key, snapshotValue);
+    }
+  }
+
+  return fromStylePropertyMap(current);
+}
+
+function snapshotNode(node: Element): NodeSnapshot {
+  return {
+    tagName: node.tagName.toLowerCase(),
+    className: (node.getAttribute("class") ?? "").trim(),
+    styleText: (node.getAttribute("style") ?? "").trim(),
+  };
+}
+
+function assignNodeIdsAndBuildSnapshot(root: Element): NodeSnapshotMap {
+  const snapshot: NodeSnapshotMap = {};
+  const nodes = [root, ...Array.from(root.querySelectorAll("*"))];
+
+  nodes.forEach((node, index) => {
+    const element = node as Element;
+    const existingId = (element.getAttribute(NODE_ID_ATTR) ?? "").trim();
+    const nodeId = existingId || `vp-${index.toString(36)}`;
+    if (!existingId) {
+      element.setAttribute(NODE_ID_ATTR, nodeId);
+    }
+    snapshot[nodeId] = snapshotNode(element);
+  });
+
+  return snapshot;
+}
+
+function buildSnapshotFromDocumentBody(body: HTMLElement): NodeSnapshotMap {
+  const snapshot: NodeSnapshotMap = {};
+  for (const element of Array.from(body.querySelectorAll<HTMLElement>(`[${NODE_ID_ATTR}]`))) {
+    const nodeId = (element.getAttribute(NODE_ID_ATTR) ?? "").trim();
+    if (!nodeId) continue;
+    snapshot[nodeId] = snapshotNode(element);
+  }
+  return snapshot;
+}
+
+function extractNodeSnapshotFromHtml(html: string): NodeSnapshotMap {
+  const value = html.trim();
+  if (!value) return {};
+  const doc = parseHtmlDocument(value);
+  if (!doc) return {};
+  return buildSnapshotFromDocumentBody(doc.body);
+}
+
+function serializeNodeSnapshot(snapshot: NodeSnapshotMap): string {
+  try {
+    return JSON.stringify(snapshot);
+  } catch {
+    return "{}";
+  }
+}
+
+function hasSnapshotEntries(snapshot: NodeSnapshotMap): boolean {
+  return Object.keys(snapshot).length > 0;
+}
+
+function ensureNodeIdsInHtml(html: string): { html: string; snapshot: NodeSnapshotMap } {
+  const value = html.trim();
+  if (!value) {
+    return { html: value, snapshot: {} };
+  }
+
+  const doc = parseHtmlDocument(value);
+  if (!doc) {
+    return { html: value, snapshot: {} };
+  }
+  const body = doc.body;
+  if (!body) {
+    return { html: value, snapshot: {} };
+  }
+
+  const used = new Set<string>();
+  for (const element of Array.from(body.querySelectorAll<HTMLElement>(`[${NODE_ID_ATTR}]`))) {
+    const nodeId = (element.getAttribute(NODE_ID_ATTR) ?? "").trim();
+    if (nodeId) used.add(nodeId);
+  }
+
+  let counter = 0;
+  for (const element of Array.from(body.querySelectorAll<HTMLElement>("*"))) {
+    const existing = (element.getAttribute(NODE_ID_ATTR) ?? "").trim();
+    if (existing) continue;
+
+    let candidate = `vp-${counter.toString(36)}`;
+    while (used.has(candidate)) {
+      counter += 1;
+      candidate = `vp-${counter.toString(36)}`;
+    }
+    element.setAttribute(NODE_ID_ATTR, candidate);
+    used.add(candidate);
+    counter += 1;
+  }
+
+  return {
+    html: body.innerHTML.trim() || value,
+    snapshot: buildSnapshotFromDocumentBody(body),
+  };
+}
+
+function restoreHtmlFromSnapshot(html: string, snapshot: NodeSnapshotMap): string {
+  const value = html.trim();
+  if (!value || !Object.keys(snapshot).length) return value;
+
+  const doc = parseHtmlDocument(value);
+  if (!doc) return value;
+  const body = doc.body;
+  if (!body) return value;
+
+  for (const element of Array.from(body.querySelectorAll<HTMLElement>(`[${NODE_ID_ATTR}]`))) {
+    const nodeId = (element.getAttribute(NODE_ID_ATTR) ?? "").trim();
+    if (!nodeId) continue;
+
+    const source = snapshot[nodeId];
+    if (!source) continue;
+    if (source.tagName && source.tagName !== element.tagName.toLowerCase()) continue;
+
+    const currentClassName = (element.getAttribute("class") ?? "").trim();
+    const backupClassName = (element.getAttribute(CLASS_BACKUP_ATTR) ?? "").trim();
+
+    let mergedClassName = currentClassName;
+    if (backupClassName) {
+      mergedClassName = mergeClassValues(mergedClassName, backupClassName);
+    }
+    if (source.className) {
+      mergedClassName = mergeClassValues(mergedClassName, source.className);
+    }
+
+    if (mergedClassName) {
+      element.setAttribute("class", mergedClassName);
+      if (!element.hasAttribute(CLASS_BACKUP_ATTR) && hasComplexClasses(mergedClassName)) {
+        element.setAttribute(CLASS_BACKUP_ATTR, mergedClassName);
+      }
+    } else {
+      element.removeAttribute("class");
+    }
+
+    const currentStyleText = (element.getAttribute("style") ?? "").trim();
+    const mergedStyleText = mergeResponsiveStyleText(currentStyleText, source.styleText).trim();
+    if (mergedStyleText) {
+      element.setAttribute("style", mergedStyleText);
+    } else {
+      element.removeAttribute("style");
+    }
+  }
+
+  return body.innerHTML.trim() || value;
+}
+
+function normalizeHtmlForStorage(html: string, snapshot: NodeSnapshotMap): string {
+  const stabilizedHtml = stabilizeComplexClassesInHtml(html);
+  const restoredHtml = restoreHtmlFromSnapshot(stabilizedHtml, snapshot);
+  return stabilizeComplexClassesInHtml(restoredHtml);
 }
 
 function pickRootElement(doc: Document): Element {
@@ -174,8 +593,10 @@ function extractPayloadFromDocument(doc: Document, base: string): ImportedPagePa
   const root = pickRootElement(doc);
   const cloned = root.cloneNode(true) as Element;
   sanitizeNode(cloned);
+  const nodeSnapshot = assignNodeIdsAndBuildSnapshot(cloned);
+  addClassBackups(cloned);
 
-  const html = cloned.outerHTML.trim();
+  const html = stabilizeComplexClassesInHtml(cloned.outerHTML.trim());
   if (!html) throw new Error("empty_import");
 
   const { hrefs, inline } = collectHeadStyles(doc, base);
@@ -189,6 +610,7 @@ function extractPayloadFromDocument(doc: Document, base: string): ImportedPagePa
     htmlStyleText: doc.documentElement.getAttribute("style") ?? "",
     bodyStyleText: doc.body.getAttribute("style") ?? "",
     language: doc.documentElement.lang ?? "ru",
+    nodeSnapshot,
   };
 }
 
@@ -249,7 +671,10 @@ async function importByFetch(path: string): Promise<ImportedPagePayload> {
   }
 
   const htmlText = await response.text();
-  const doc = new DOMParser().parseFromString(htmlText, "text/html");
+  const doc = parseHtmlDocument(htmlText);
+  if (!doc) {
+    throw new Error("dom_parser_unavailable");
+  }
   return extractPayloadFromDocument(doc, url);
 }
 
@@ -277,6 +702,30 @@ function applyStylesToCanvas(editor: GrapesEditor, styleHrefs: string[], inlineC
   }
 }
 
+function applyCanvasGuards(editor: GrapesEditor) {
+  const canvasDoc = editor.Canvas?.getDocument();
+  if (!canvasDoc) return;
+
+  let style = canvasDoc.getElementById(CANVAS_GUARDS_STYLE_ID) as HTMLStyleElement | null;
+  if (!style) {
+    style = canvasDoc.createElement("style");
+    style.id = CANVAS_GUARDS_STYLE_ID;
+    canvasDoc.head.appendChild(style);
+  }
+
+  style.textContent = [
+    "html,body{max-width:100%;overflow-x:hidden;}",
+    "body *{min-width:0;}",
+    "img,video,canvas,svg,picture,figure,iframe{max-width:100%;}",
+    "img:not([style*='position:absolute']):not([style*='position: absolute']){height:auto;}",
+    "img[data-nimg='fill']{width:100% !important;height:100% !important;}",
+    "pre{max-width:100%;overflow-x:auto;}",
+    "table{max-width:100%;overflow-x:auto;}",
+    "iframe{width:100%;}",
+    "@media (min-width:868px) and (max-width:1023.98px){img[data-nimg='fill']{width:100% !important;height:100% !important;}}",
+  ].join("");
+}
+
 function applyParentInlineStylesToCanvas(editor: GrapesEditor) {
   const canvasDoc = editor.Canvas?.getDocument();
   if (!canvasDoc) return;
@@ -298,21 +747,7 @@ function applyInitialCanvasStyles(editor: GrapesEditor, styleHrefs: string[]) {
   const prepared = uniqueStyleHrefs(styleHrefs);
   applyStylesToCanvas(editor, prepared, []);
   applyParentInlineStylesToCanvas(editor);
-}
-
-function buildImportCss(payload: ImportedPagePayload): string {
-  const baseline = `
-*,*::before,*::after{box-sizing:border-box}
-img,video,canvas,svg{display:block;max-width:100%;height:auto}
-pre,table,iframe{max-width:100%}
-p,h1,h2,h3,h4,h5,h6{overflow-wrap:anywhere}
-  `.trim();
-
-  const parts = [
-    baseline,
-    ...payload.inlineStyles.map((css) => css.trim()).filter(Boolean),
-  ].filter(Boolean);
-  return parts.join("\n\n");
+  applyCanvasGuards(editor);
 }
 
 function applyDocumentShellToCanvas(editor: GrapesEditor, payload: ImportedPagePayload) {
@@ -347,36 +782,81 @@ export default function VisualPageEditor({
   initialStyleHrefs,
   initialPublished,
   submitAction,
+  restoreAction,
+  canRestorePrevious = false,
 }: Props) {
+  const initialPayloadRef = useRef({
+    html: initialHtml,
+    css: initialCss,
+    styleHrefs: uniqueStyleHrefs(initialStyleHrefs),
+    autoImportFromLive,
+    importSourcePath,
+  });
   const editorRef = useRef<GrapesEditor | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const htmlInputRef = useRef<HTMLInputElement | null>(null);
   const cssInputRef = useRef<HTMLInputElement | null>(null);
   const styleHrefsInputRef = useRef<HTMLInputElement | null>(null);
+  const nodeSnapshotInputRef = useRef<HTMLInputElement | null>(null);
   const statusRef = useRef<HTMLDivElement | null>(null);
+  const grapesCssNodeRef = useRef<HTMLLinkElement | null>(null);
+  const grapesScriptNodeRef = useRef<HTMLScriptElement | null>(null);
+  const importSourcePathRef = useRef(initialPayloadRef.current.importSourcePath);
   const importingRef = useRef(false);
-  const importedStyleHrefsRef = useRef<string[]>(uniqueStyleHrefs(initialStyleHrefs));
+  const hasAutoImportedRef = useRef(false);
+  const importedStyleHrefsRef = useRef<string[]>(initialPayloadRef.current.styleHrefs);
+  const nodeSnapshotRef = useRef<NodeSnapshotMap>(extractNodeSnapshotFromHtml(initialPayloadRef.current.html));
 
   const [mode, setMode] = useState<EditorMode>("visual");
-  const [codeHtml, setCodeHtml] = useState(initialHtml);
-  const [codeCss, setCodeCss] = useState(initialCss);
+  const [codeHtml, setCodeHtml] = useState(() => initialPayloadRef.current.html);
+  const [codeCss, setCodeCss] = useState(() => initialPayloadRef.current.css);
   const [isPublished, setIsPublished] = useState(initialPublished);
   const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [isEditorReady, setIsEditorReady] = useState(false);
+
+  useEffect(() => {
+    importSourcePathRef.current = importSourcePath;
+  }, [importSourcePath]);
+
+  const writeInputs = useCallback((html: string, css: string, snapshotOverride?: NodeSnapshotMap) => {
+    const activeSnapshot = snapshotOverride ?? nodeSnapshotRef.current;
+    let sourceHtml = html;
+    let sourceSnapshot = activeSnapshot;
+
+    if (!hasSnapshotEntries(sourceSnapshot)) {
+      const ensured = ensureNodeIdsInHtml(sourceHtml);
+      sourceHtml = ensured.html;
+      sourceSnapshot = ensured.snapshot;
+    }
+
+    const normalizedHtml = normalizeHtmlForStorage(sourceHtml, sourceSnapshot);
+    const extractedSnapshot = extractNodeSnapshotFromHtml(normalizedHtml);
+    if (hasSnapshotEntries(extractedSnapshot)) {
+      nodeSnapshotRef.current = extractedSnapshot;
+    } else if (snapshotOverride) {
+      nodeSnapshotRef.current = snapshotOverride;
+    }
+    if (htmlInputRef.current) htmlInputRef.current.value = normalizedHtml;
+    if (cssInputRef.current) cssInputRef.current.value = css;
+    if (nodeSnapshotInputRef.current) {
+      nodeSnapshotInputRef.current.value = serializeNodeSnapshot(nodeSnapshotRef.current);
+    }
+    return normalizedHtml;
+  }, []);
 
   const syncEditorToInputs = useCallback(() => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    const html = editor.getHtml();
     const css = editor.getCss().trim();
+    const html = writeInputs(editor.getHtml(), css);
 
     setCodeHtml(html);
     setCodeCss(css);
-
-    if (htmlInputRef.current) htmlInputRef.current.value = html;
     if (cssInputRef.current) cssInputRef.current.value = css;
-  }, []);
+  }, [writeInputs]);
 
   const importFromLivePage = useCallback(async () => {
     const editor = editorRef.current;
@@ -386,13 +866,14 @@ export default function VisualPageEditor({
     setIsImporting(true);
 
     try {
+      const sourcePath = importSourcePathRef.current;
       let payload: ImportedPagePayload;
       let modeUsed: "iframe" | "fetch" = "iframe";
 
       try {
-        payload = await importByIframe(importSourcePath);
+        payload = await importByIframe(sourcePath);
       } catch {
-        payload = await importByFetch(importSourcePath);
+        payload = await importByFetch(sourcePath);
         modeUsed = "fetch";
       }
 
@@ -400,15 +881,19 @@ export default function VisualPageEditor({
 
       editor.setComponents(payload.html);
       applyStylesToCanvas(editor, preparedStyleHrefs, payload.inlineStyles);
+      applyParentInlineStylesToCanvas(editor);
+      applyCanvasGuards(editor);
       applyDocumentShellToCanvas(editor, payload);
       importedStyleHrefsRef.current = preparedStyleHrefs;
+      nodeSnapshotRef.current = payload.nodeSnapshot;
       if (styleHrefsInputRef.current) {
         styleHrefsInputRef.current.value = preparedStyleHrefs.join("\n");
       }
-      const importCss = buildImportCss(payload);
-      editor.setStyle(importCss);
-      if (cssInputRef.current) cssInputRef.current.value = importCss;
-      setCodeCss(importCss);
+      if (nodeSnapshotInputRef.current) {
+        nodeSnapshotInputRef.current.value = serializeNodeSnapshot(nodeSnapshotRef.current);
+      }
+      editor.setStyle("");
+      setCodeCss("");
       syncEditorToInputs();
 
       if (statusRef.current) {
@@ -431,25 +916,28 @@ export default function VisualPageEditor({
       importingRef.current = false;
       setIsImporting(false);
     }
-  }, [importSourcePath, syncEditorToInputs]);
+  }, [syncEditorToInputs]);
 
   useEffect(() => {
     let isUnmounted = false;
 
     const init = async () => {
       try {
-        ensureGrapesCss();
-        await ensureGrapesScript();
+        const cssAsset = ensureGrapesCss();
+        if (cssAsset.created) grapesCssNodeRef.current = cssAsset.element;
+
+        const scriptAsset = await ensureGrapesScript();
+        if (scriptAsset.created) grapesScriptNodeRef.current = scriptAsset.element;
 
         if (isUnmounted || !containerRef.current || !window.grapesjs) return;
 
         const editor = window.grapesjs.init({
           container: containerRef.current,
           fromElement: false,
-          height: "70vh",
+          height: "760px",
           storageManager: false,
-          components: initialHtml || defaultTemplate(),
-          style: initialCss || "",
+          components: initialPayloadRef.current.html || defaultTemplate(),
+          style: initialPayloadRef.current.css || "",
           canvas: {
             styles: getParentStylesheets(),
           },
@@ -479,12 +967,15 @@ export default function VisualPageEditor({
 
         editorRef.current = editor;
         applyInitialCanvasStyles(editor, importedStyleHrefsRef.current);
+        setIsEditorReady(true);
+        syncEditorToInputs();
         if (statusRef.current) {
           statusRef.current.textContent = "Редактор загружен. Сохраненные стили и блоки применены.";
           statusRef.current.className = "mt-4 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700";
         }
 
-        if (autoImportFromLive) {
+        if (initialPayloadRef.current.autoImportFromLive && !hasAutoImportedRef.current) {
+          hasAutoImportedRef.current = true;
           void importFromLivePage();
         }
       } catch {
@@ -501,15 +992,28 @@ export default function VisualPageEditor({
       isUnmounted = true;
       editorRef.current?.destroy();
       editorRef.current = null;
+      if (grapesCssNodeRef.current && grapesCssNodeRef.current.parentNode) {
+        grapesCssNodeRef.current.parentNode.removeChild(grapesCssNodeRef.current);
+      }
+      if (grapesScriptNodeRef.current && grapesScriptNodeRef.current.parentNode) {
+        grapesScriptNodeRef.current.parentNode.removeChild(grapesScriptNodeRef.current);
+      }
+      grapesCssNodeRef.current = null;
+      grapesScriptNodeRef.current = null;
     };
-  }, [initialHtml, initialCss, autoImportFromLive, importFromLivePage]);
+  }, [importFromLivePage, syncEditorToInputs]);
 
   const applyCodeToEditor = () => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    editor.setComponents(codeHtml || defaultTemplate());
+    const normalizedHtml = stabilizeComplexClassesInHtml(codeHtml || defaultTemplate());
+    const snapshotFromCode = extractNodeSnapshotFromHtml(normalizedHtml);
+    nodeSnapshotRef.current = snapshotFromCode;
+    const storedHtml = writeInputs(normalizedHtml, codeCss.trim(), snapshotFromCode);
+    editor.setComponents(storedHtml);
     editor.setStyle(codeCss);
+    setCodeHtml(storedHtml);
   };
 
   return (
@@ -534,9 +1038,10 @@ export default function VisualPageEditor({
         <button
           type="button"
           onClick={() => {
-            setMode("visual");
             applyCodeToEditor();
+            setMode("visual");
           }}
+          disabled={!isEditorReady}
           className={`rounded-lg px-3 py-2 text-sm font-medium ${mode === "visual" ? "bg-[#5858E2] text-white" : "bg-gray-100 text-gray-700"}`}
         >
           Визуальный режим
@@ -561,7 +1066,39 @@ export default function VisualPageEditor({
         >
           {isImporting ? "Импорт..." : "Импортировать текущую страницу"}
         </button>
+        {restoreAction && (
+          <form
+            action={restoreAction}
+            onSubmit={(event) => {
+              if (!canRestorePrevious || isRestoring) {
+                event.preventDefault();
+                return;
+              }
+
+              const confirmed = window.confirm(
+                "Вернуть прошлую сохраненную версию страницы? Текущая сохраненная версия станет прошлой."
+              );
+              if (!confirmed) {
+                event.preventDefault();
+                return;
+              }
+
+              setIsRestoring(true);
+            }}
+          >
+            <button
+              type="submit"
+              disabled={!canRestorePrevious || isRestoring || isImporting || isSaving}
+              className="rounded-lg border border-[#5858E2] px-3 py-2 text-sm font-medium text-[#5858E2] hover:bg-[#5858E2]/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isRestoring ? "Восстановление..." : "Вернуть прошлую версию"}
+            </button>
+          </form>
+        )}
       </div>
+      {restoreAction && !canRestorePrevious && (
+        <p className="mt-2 text-xs text-gray-500">Прошлая версия появится после следующего сохранения.</p>
+      )}
 
       <form
         action={submitAction}
@@ -569,8 +1106,10 @@ export default function VisualPageEditor({
         onSubmit={() => {
           setIsSaving(true);
           if (mode === "code") {
-            if (htmlInputRef.current) htmlInputRef.current.value = codeHtml;
-            if (cssInputRef.current) cssInputRef.current.value = codeCss;
+            const snapshotFromCode = extractNodeSnapshotFromHtml(codeHtml);
+            nodeSnapshotRef.current = snapshotFromCode;
+            const normalizedHtml = writeInputs(codeHtml, codeCss.trim(), snapshotFromCode);
+            setCodeHtml(normalizedHtml);
           } else {
             syncEditorToInputs();
           }
@@ -580,7 +1119,15 @@ export default function VisualPageEditor({
         }}
       >
         <div className={mode === "visual" ? "block" : "hidden"}>
-          <div ref={containerRef} className="w-full overflow-hidden rounded-xl border border-gray-200" />
+          {!isEditorReady && (
+            <div className="mb-3 flex min-h-[600px] items-center justify-center rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-500">
+              Загружаем визуальный редактор...
+            </div>
+          )}
+          <div
+            ref={containerRef}
+            className={`w-full overflow-hidden rounded-xl border border-gray-200 ${isEditorReady ? "block" : "hidden"}`}
+          />
         </div>
 
         {mode === "code" && (
@@ -613,13 +1160,19 @@ export default function VisualPageEditor({
           </div>
         )}
 
-        <input ref={htmlInputRef} type="hidden" name="html" defaultValue={initialHtml} />
-        <input ref={cssInputRef} type="hidden" name="css" defaultValue={initialCss} />
+        <input ref={htmlInputRef} type="hidden" name="html" defaultValue={initialPayloadRef.current.html} />
+        <input ref={cssInputRef} type="hidden" name="css" defaultValue={initialPayloadRef.current.css} />
         <input
           ref={styleHrefsInputRef}
           type="hidden"
           name="styleHrefs"
-          defaultValue={initialStyleHrefs.join("\n")}
+          defaultValue={initialPayloadRef.current.styleHrefs.join("\n")}
+        />
+        <input
+          ref={nodeSnapshotInputRef}
+          type="hidden"
+          name="nodeSnapshot"
+          defaultValue={serializeNodeSnapshot(nodeSnapshotRef.current)}
         />
         <input type="hidden" name="isPublished" value="off" />
 
@@ -638,7 +1191,7 @@ export default function VisualPageEditor({
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || (mode === "visual" && !isEditorReady)}
             className="rounded-lg bg-[#5858E2] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#4848d0] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSaving ? "Сохранение..." : "Сохранить"}

@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isVisualPageKey, upsertVisualPage, VisualPageKey } from "@/lib/visual-pages";
+import {
+  isVisualPageKey,
+  restorePreviousVisualPage,
+  upsertVisualPage,
+  VisualPageKey,
+} from "@/lib/visual-pages";
 
 function toIsPublished(formData: FormData): boolean {
   const values = formData.getAll("isPublished");
@@ -23,6 +28,17 @@ function parseStyleHrefs(formData: FormData): string[] {
         .filter((line) => /^https?:\/\//.test(line) || line.startsWith("/"))
     )
   );
+}
+
+function revalidateVisualPaths(key: VisualPageKey, scope: "admin" | "managers") {
+  const publicPath = key === "home" ? "/" : "/connect";
+  revalidatePath(publicPath);
+  revalidatePath("/admin/pages/visual");
+  revalidatePath(`/admin/pages/visual/${key}`);
+  revalidatePath("/managers/pages/visual");
+  revalidatePath(`/managers/pages/visual/${key}`);
+  revalidatePath(`/${scope}/pages/visual`);
+  revalidatePath(`/${scope}/pages/visual/${key}`);
 }
 
 async function saveVisualPage(
@@ -46,16 +62,33 @@ async function saveVisualPage(
     redirect(`/${scope}/pages/visual/${key}?error=save_failed`);
   }
 
-  const publicPath = key === "home" ? "/" : "/connect";
-  revalidatePath(publicPath);
-  revalidatePath("/admin/pages/visual");
-  revalidatePath(`/admin/pages/visual/${key}`);
-  revalidatePath("/managers/pages/visual");
-  revalidatePath(`/managers/pages/visual/${key}`);
-  revalidatePath(`/${scope}/pages/visual`);
-  revalidatePath(`/${scope}/pages/visual/${key}`);
+  revalidateVisualPaths(key, scope);
 
   redirect(`/${scope}/pages/visual/${key}?saved=1&t=${Date.now()}`);
+}
+
+async function restoreVisualPage(
+  keyRaw: string,
+  scope: "admin" | "managers"
+) {
+  const key = parseKey(keyRaw);
+  if (!key) {
+    redirect(`/${scope}/pages/visual?error=invalid_key`);
+  }
+
+  let restored = false;
+  try {
+    restored = await restorePreviousVisualPage(key);
+  } catch {
+    redirect(`/${scope}/pages/visual/${key}?error=restore_failed`);
+  }
+
+  if (!restored) {
+    redirect(`/${scope}/pages/visual/${key}?error=no_previous_version`);
+  }
+
+  revalidateVisualPaths(key, scope);
+  redirect(`/${scope}/pages/visual/${key}?restored=1&t=${Date.now()}`);
 }
 
 export async function updateVisualPageAsAdmin(key: string, formData: FormData) {
@@ -64,4 +97,14 @@ export async function updateVisualPageAsAdmin(key: string, formData: FormData) {
 
 export async function updateVisualPageAsManager(key: string, formData: FormData) {
   return saveVisualPage(key, formData, "managers");
+}
+
+export async function restorePreviousVisualPageAsAdmin(key: string, formData?: FormData) {
+  void formData;
+  return restoreVisualPage(key, "admin");
+}
+
+export async function restorePreviousVisualPageAsManager(key: string, formData?: FormData) {
+  void formData;
+  return restoreVisualPage(key, "managers");
 }

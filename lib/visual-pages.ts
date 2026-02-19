@@ -25,12 +25,21 @@ export type VisualPageData = {
   isPublished: boolean;
   updatedAt: Date | null;
   hasStoredContent: boolean;
+  hasPreviousVersion: boolean;
 };
 
 export type PublishedVisualPage = {
   html: string;
   css: string;
   styleHrefs: string[];
+};
+
+type StoredVisualVersion = {
+  html: string;
+  css: string;
+  styleHrefs: string[];
+  isPublished: boolean;
+  savedAt: string;
 };
 
 const HOME_DEFAULT_HTML = `
@@ -162,11 +171,18 @@ const DEFAULT_VISUAL_CSS = `
 .vp-home .vp-step p,.vp-connect .vp-step p{margin-top:8px}
 .vp-home .vp-actions,.vp-connect .vp-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
 .vp-home .vp-btn,.vp-connect .vp-btn{display:inline-block;text-decoration:none;padding:11px 16px;border-radius:10px;font-weight:600}
-.vp-home .vp-btn-primary,.vp-connect .vp-btn-primary{background:#5858E2;color:#fff}
+.vp-home .vp-btn-primary,.vp-connect .vp-btn-primary,.vp-home .vp-btn-primary:visited,.vp-connect .vp-btn-primary:visited{background:#5858E2;color:#fff !important}
 .vp-home .vp-btn-outline,.vp-connect .vp-btn-outline{border:2px solid #5858E2;color:#5858E2;background:transparent}
 .vp-home .vp-list,.vp-connect .vp-list{display:grid;gap:10px;padding-left:20px}
 .vp-home img,.vp-connect img{display:block;max-width:100%;height:auto}
 .vp-home table,.vp-connect table{display:block;max-width:100%;overflow-x:auto}
+@media (min-width:1200px){
+  .vp-home .vp-container,.vp-connect .vp-container{max-width:1200px}
+  .vp-home .vp-hero img{width:min(100%,860px)}
+}
+@media (min-width:1536px){
+  .vp-home .vp-container,.vp-connect .vp-container{max-width:1280px}
+}
 @media (max-width:1024px){
   .vp-home h1,.vp-connect h1{font-size:38px}
   .vp-home h2,.vp-connect h2{font-size:30px}
@@ -184,6 +200,69 @@ const DEFAULT_VISUAL_CSS = `
   .vp-home h2,.vp-connect h2{font-size:24px}
 }
 `.trim();
+
+const LEGACY_IMPORTED_CSS_RULES = [
+  "*,*::before,*::after{box-sizing:border-box}",
+  "img,video,canvas,svg{display:block;max-width:100%;height:auto}",
+  "pre,table,iframe{max-width:100%}",
+  "p,h1,h2,h3,h4,h5,h6{overflow-wrap:anywhere}",
+];
+const DANGEROUS_PROTOCOLS = ["javascript:", "vbscript:", "data:text/html"];
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stripLegacyImportedCss(value: string): string {
+  let css = value;
+  for (const rule of LEGACY_IMPORTED_CSS_RULES) {
+    const pattern = new RegExp(`${escapeRegExp(rule)}\\s*`, "g");
+    css = css.replace(pattern, "");
+  }
+  return css.trim();
+}
+
+function hasDangerousUrlProtocol(value: string): boolean {
+  const normalized = value.replace(/[\u0000-\u001F\u007F\s]+/g, "").toLowerCase();
+  return DANGEROUS_PROTOCOLS.some((protocol) => normalized.startsWith(protocol));
+}
+
+function encodeHtmlAttribute(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+function sanitizeUnsafeAttributes(html: string): string {
+  let sanitized = html;
+
+  sanitized = sanitized.replace(/\s+on[a-z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+  sanitized = sanitized.replace(/\s+srcdoc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+  sanitized = sanitized.replace(/<meta[^>]*http-equiv\s*=\s*['"]?\s*refresh\s*['"]?[^>]*>/gi, "");
+
+  sanitized = sanitized.replace(
+    /\s+(href|src|xlink:href|formaction|action|poster)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi,
+    (_fullMatch, attrName: string, dq?: string, sq?: string, bare?: string) => {
+      const value = (dq ?? sq ?? bare ?? "").trim();
+      if (!value || hasDangerousUrlProtocol(value)) {
+        return "";
+      }
+      return ` ${attrName}="${encodeHtmlAttribute(value)}"`;
+    }
+  );
+
+  sanitized = sanitized.replace(
+    /\s+style\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi,
+    (_fullMatch, dq?: string, sq?: string, bare?: string) => {
+      const value = (dq ?? sq ?? bare ?? "").trim();
+      if (!value) return "";
+      if (/expression\s*\(|url\s*\(\s*['"]?\s*javascript:/i.test(value)) {
+        return "";
+      }
+      return ` style="${encodeHtmlAttribute(value)}"`;
+    }
+  );
+
+  return sanitized;
+}
 
 function normalizeCssSignature(value: string): string {
   return value.replace(/\s+/g, " ").trim();
@@ -219,7 +298,15 @@ function normalizeVisualHtml(value: string): string {
   }
 
   html = html.replace(/<\/?(html|head)[^>]*>/gi, "").trim();
-  html = html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<noscript[\s\S]*?<\/noscript>/gi, "").trim();
+  html = html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, "")
+    .replace(/<base[^>]*>/gi, "")
+    .replace(/<object[\s\S]*?<\/object>/gi, "")
+    .replace(/<embed[^>]*>/gi, "")
+    .replace(/<applet[\s\S]*?<\/applet>/gi, "")
+    .trim();
+  html = sanitizeUnsafeAttributes(html);
 
   return html;
 }
@@ -237,7 +324,7 @@ function normalizeVisualCss(value: string): string {
     }
   }
 
-  return css.trim();
+  return stripLegacyImportedCss(css.trim());
 }
 
 function isAllowedStyleHref(href: string): boolean {
@@ -250,9 +337,58 @@ function normalizeStyleHrefs(hrefs: string[]): string[] {
   );
 }
 
-function parseStoredVisualData(items: unknown): { html: string; css: string; styleHrefs: string[]; isPublished: boolean } {
+function createStoredVisualVersion(
+  value: { html: string; css: string; styleHrefs: string[]; isPublished: boolean },
+  savedAt: string = new Date().toISOString()
+): StoredVisualVersion | null {
+  const html = normalizeVisualHtml(value.html);
+  if (!html.trim()) return null;
+
+  return {
+    html,
+    css: normalizeVisualCss(value.css),
+    styleHrefs: normalizeStyleHrefs(value.styleHrefs),
+    isPublished: value.isPublished,
+    savedAt,
+  };
+}
+
+function parseStoredVersion(value: unknown): StoredVisualVersion | null {
+  if (!isRecord(value)) return null;
+
+  const rawHtml = typeof value.html === "string"
+    ? value.html
+    : (typeof value.content === "string" ? value.content : "");
+  const rawCss = typeof value.css === "string" ? value.css : "";
+  const rawStyleHrefs = Array.isArray(value.styleHrefs)
+    ? value.styleHrefs.filter((item): item is string => typeof item === "string" && item.length > 0)
+    : [];
+  const isPublished = typeof value.isPublished === "boolean" ? value.isPublished : false;
+  const savedAt =
+    typeof value.savedAt === "string" && value.savedAt.trim().length > 0
+      ? value.savedAt.trim()
+      : new Date(0).toISOString();
+
+  return createStoredVisualVersion(
+    {
+      html: rawHtml,
+      css: rawCss,
+      styleHrefs: rawStyleHrefs,
+      isPublished,
+    },
+    savedAt
+  );
+}
+
+function parseStoredVisualData(items: unknown): {
+  html: string;
+  css: string;
+  styleHrefs: string[];
+  isPublished: boolean;
+  previousVersion: StoredVisualVersion | null;
+} {
   if (!isRecord(items)) {
-    return { html: "", css: "", styleHrefs: [], isPublished: false };
+    return { html: "", css: "", styleHrefs: [], isPublished: false, previousVersion: null };
   }
 
   const rawHtml = typeof items.html === "string"
@@ -263,12 +399,14 @@ function parseStoredVisualData(items: unknown): { html: string; css: string; sty
     ? items.styleHrefs.filter((item): item is string => typeof item === "string" && item.length > 0)
     : [];
   const isPublished = typeof items.isPublished === "boolean" ? items.isPublished : false;
+  const previousVersion = parseStoredVersion(items.previousVersion);
 
   return {
     html: normalizeVisualHtml(rawHtml),
     css: normalizeVisualCss(rawCss),
     styleHrefs: normalizeStyleHrefs(rawStyleHrefs),
     isPublished,
+    previousVersion,
   };
 }
 
@@ -281,7 +419,7 @@ export async function getVisualPage(key: VisualPageKey): Promise<VisualPageData>
 
   if (!prisma) {
     const defaults = getDefaultVisualTemplate(key);
-    return { ...defaults, styleHrefs: [], isPublished: false, updatedAt: null, hasStoredContent: false };
+    return { ...defaults, styleHrefs: [], isPublished: false, updatedAt: null, hasStoredContent: false, hasPreviousVersion: false };
   }
 
   const config = VISUAL_PAGE_CONFIG[key];
@@ -294,15 +432,16 @@ export async function getVisualPage(key: VisualPageKey): Promise<VisualPageData>
     });
   } catch {
     const defaults = getDefaultVisualTemplate(key);
-    return { ...defaults, styleHrefs: [], isPublished: false, updatedAt: null, hasStoredContent: false };
+    return { ...defaults, styleHrefs: [], isPublished: false, updatedAt: null, hasStoredContent: false, hasPreviousVersion: false };
   }
 
   if (!record) {
     const defaults = getDefaultVisualTemplate(key);
-    return { ...defaults, styleHrefs: [], isPublished: false, updatedAt: null, hasStoredContent: false };
+    return { ...defaults, styleHrefs: [], isPublished: false, updatedAt: null, hasStoredContent: false, hasPreviousVersion: false };
   }
 
   const parsed = parseStoredVisualData(record.items);
+  const hasPreviousVersion = Boolean(parsed.previousVersion);
   if (!parsed.html.trim()) {
     const defaults = getDefaultVisualTemplate(key);
     return {
@@ -311,6 +450,7 @@ export async function getVisualPage(key: VisualPageKey): Promise<VisualPageData>
       isPublished: parsed.isPublished,
       updatedAt: record.updatedAt,
       hasStoredContent: false,
+      hasPreviousVersion,
     };
   }
 
@@ -323,10 +463,19 @@ export async function getVisualPage(key: VisualPageKey): Promise<VisualPageData>
       isPublished: parsed.isPublished,
       updatedAt: record.updatedAt,
       hasStoredContent: true,
+      hasPreviousVersion,
     };
   }
 
-  return { ...parsed, updatedAt: record.updatedAt, hasStoredContent: true };
+  return {
+    html: parsed.html,
+    css: parsed.css,
+    styleHrefs: parsed.styleHrefs,
+    isPublished: parsed.isPublished,
+    updatedAt: record.updatedAt,
+    hasStoredContent: true,
+    hasPreviousVersion,
+  };
 }
 
 export async function getVisualPagesOverview() {
@@ -391,6 +540,20 @@ export async function upsertVisualPage(
   const normalizedHtml = normalizeVisualHtml(html);
   const normalizedCss = normalizeVisualCss(css);
   const normalizedStyleHrefs = normalizeStyleHrefs(styleHrefs);
+  const existing = await prisma.dataList.findUnique({
+    where: { slug: config.storageSlug },
+    select: { items: true },
+  });
+  const existingParsed = existing ? parseStoredVisualData(existing.items) : null;
+  const nextPreviousVersion =
+    existingParsed
+      ? (createStoredVisualVersion({
+          html: existingParsed.html,
+          css: existingParsed.css,
+          styleHrefs: existingParsed.styleHrefs,
+          isPublished: existingParsed.isPublished,
+        }) ?? existingParsed.previousVersion)
+      : null;
 
   await prisma.dataList.upsert({
     where: { slug: config.storageSlug },
@@ -402,6 +565,7 @@ export async function upsertVisualPage(
         css: normalizedCss,
         styleHrefs: normalizedStyleHrefs,
         isPublished,
+        previousVersion: null,
       },
     },
     update: {
@@ -411,7 +575,49 @@ export async function upsertVisualPage(
         css: normalizedCss,
         styleHrefs: normalizedStyleHrefs,
         isPublished,
+        previousVersion: nextPreviousVersion,
       },
     },
   });
+}
+
+export async function restorePreviousVisualPage(key: VisualPageKey): Promise<boolean> {
+  if (!prisma) {
+    throw new Error("db_unavailable");
+  }
+
+  const config = VISUAL_PAGE_CONFIG[key];
+  const record = await prisma.dataList.findUnique({
+    where: { slug: config.storageSlug },
+    select: { items: true },
+  });
+
+  if (!record) return false;
+
+  const parsed = parseStoredVisualData(record.items);
+  const previous = parsed.previousVersion;
+  if (!previous) return false;
+
+  const swappedPrevious = createStoredVisualVersion({
+    html: parsed.html,
+    css: parsed.css,
+    styleHrefs: parsed.styleHrefs,
+    isPublished: parsed.isPublished,
+  });
+
+  await prisma.dataList.update({
+    where: { slug: config.storageSlug },
+    data: {
+      name: `Visual page: ${config.title}`,
+      items: {
+        html: previous.html,
+        css: previous.css,
+        styleHrefs: previous.styleHrefs,
+        isPublished: previous.isPublished,
+        previousVersion: swappedPrevious,
+      },
+    },
+  });
+
+  return true;
 }

@@ -1,22 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 type Props = {
   html: string;
   css: string;
   styleHrefs: string[];
+  pageKey?: "home" | "connect";
 };
 
-const MIN_HEIGHT = 720;
+const STYLE_LINK_ATTR = "data-vp-runtime-style";
+const OVERFLOW_FIX_ATTR = "data-vp-overflow-fix";
+const CONNECT_HERO_ATTR = "data-vp-connect-hero";
+const TABLET_MIN_WIDTH = 868;
+const TABLET_MAX_WIDTH = 1023.98;
 
 function isAllowedHref(href: string): boolean {
+  if (!href) return false;
   return /^https?:\/\//.test(href) || href.startsWith("/");
 }
 
 function canonicalizeHref(href: string): string {
-  if (!href) return "";
-  if (typeof window === "undefined") return href;
+  if (!href || typeof window === "undefined") return href;
   try {
     return new URL(href, window.location.origin).toString();
   } catch {
@@ -24,190 +29,195 @@ function canonicalizeHref(href: string): string {
   }
 }
 
-function escapeAttr(value: string): string {
-  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+function normalizeStyleHrefs(styleHrefs: string[]): string[] {
+  return Array.from(new Set(styleHrefs.map((href) => href.trim()).filter(isAllowedHref).map(canonicalizeHref))).filter(Boolean);
 }
 
-function escapeStyleTag(value: string): string {
-  return value.replace(/<\/style/gi, "<\\/style");
+function isTabletViewport(viewportWidth: number): boolean {
+  return viewportWidth >= TABLET_MIN_WIDTH && viewportWidth <= TABLET_MAX_WIDTH;
 }
 
-function resolveHref(href: string): string {
-  return new URL(href, window.location.origin).toString();
+function markOverflowChain(start: HTMLElement | null, root: HTMLElement, viewportWidth: number): void {
+  let current = start;
+  while (current && current !== root) {
+    const parent = current.parentElement as HTMLElement | null;
+    if (!parent) {
+      current.setAttribute(OVERFLOW_FIX_ATTR, "1");
+      break;
+    }
+
+    const currentWidth = current.getBoundingClientRect().width;
+    const parentWidth = parent.getBoundingClientRect().width || viewportWidth;
+    const allowedWidth = Math.min(viewportWidth, parentWidth);
+
+    if (currentWidth > allowedWidth + 1) {
+      current.setAttribute(OVERFLOW_FIX_ATTR, "1");
+      current = parent;
+      continue;
+    }
+
+    break;
+  }
 }
 
-function getParentStylesheetHrefs(): string[] {
-  if (typeof document === "undefined") return [];
-  return Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-    .map((node) => node.getAttribute("href") ?? "")
-    .filter(Boolean)
-    .map((href) => resolveHref(href))
-    .map((href) => canonicalizeHref(href))
-    .filter(Boolean);
+function markConnectHero(root: HTMLElement, pageKey?: "home" | "connect"): void {
+  root.querySelectorAll<HTMLElement>(`[${CONNECT_HERO_ATTR}="1"]`).forEach((node) => node.removeAttribute(CONNECT_HERO_ATTR));
+  if (pageKey !== "connect") return;
+
+  const firstBlock = root.firstElementChild as HTMLElement | null;
+  if (!firstBlock) return;
+  if (!firstBlock.querySelector('img[data-nimg="fill"]')) return;
+
+  firstBlock.setAttribute(CONNECT_HERO_ATTR, "1");
 }
 
-function getParentInlineStyles(): string[] {
-  if (typeof document === "undefined") return [];
-  return Array.from(document.querySelectorAll("head style"))
-    .map((node) => node.textContent ?? "")
-    .map((text) => text.trim())
-    .filter(Boolean);
+function fixOverflow(root: HTMLElement, pageKey?: "home" | "connect"): void {
+  const viewportWidth = window.innerWidth || root.clientWidth;
+  if (!viewportWidth) return;
+  const tabletViewport = isTabletViewport(viewportWidth);
+  markConnectHero(root, pageKey);
+
+  root.querySelectorAll<HTMLElement>(`[${OVERFLOW_FIX_ATTR}="1"]`).forEach((node) => node.removeAttribute(OVERFLOW_FIX_ATTR));
+
+  const media = Array.from(root.querySelectorAll<HTMLElement>("img,video,canvas,svg,iframe,picture,figure"));
+  for (const node of media) {
+    const parent = node.parentElement as HTMLElement | null;
+    if (!parent) continue;
+
+    const nodeWidth = node.getBoundingClientRect().width;
+    const parentWidth = parent.getBoundingClientRect().width || viewportWidth;
+    const allowedWidth = Math.min(viewportWidth, parentWidth);
+    const isOverflowing = nodeWidth > allowedWidth + 1;
+    const isFillImage = node.tagName === "IMG" && node.getAttribute("data-nimg") === "fill";
+
+    if (isOverflowing) {
+      node.setAttribute(OVERFLOW_FIX_ATTR, "1");
+      markOverflowChain(parent, root, viewportWidth);
+      continue;
+    }
+
+    if (tabletViewport && isFillImage) {
+      parent.setAttribute(OVERFLOW_FIX_ATTR, "1");
+    }
+  }
 }
 
-function buildSrcDoc(html: string, css: string, styleHrefs: string[]): string {
-  const links = Array.from(new Set(styleHrefs))
-    .filter(isAllowedHref)
-    .map((href) => `<link rel="stylesheet" href="${escapeAttr(href)}" />`)
-    .join("");
-
-  const runtimeGuards = [
-    "*,*::before,*::after{box-sizing:border-box;}",
-    "img,video,canvas,svg{display:block;max-width:100%;height:auto;}",
-    "pre,table,iframe{max-width:100%;}",
-    "iframe{width:100%;}",
-    "table{display:block;overflow-x:auto;}",
-    "html,body{max-width:100%;overflow-x:hidden;}",
-    "p,h1,h2,h3,h4,h5,h6{overflow-wrap:anywhere;word-break:break-word;}",
-    "[data-vp-runtime-root]{width:100%;max-width:100%;overflow-x:hidden;}",
-    "[data-vp-runtime-root] *{min-width:0;}",
-  ].join("");
-
-  return [
-    "<!doctype html>",
-    '<html lang="ru">',
-    "<head>",
-    '<meta charset="utf-8" />',
-    '<meta name="viewport" content="width=device-width, initial-scale=1" />',
-    '<base href="/" target="_top" />',
-    links,
-    `<style>html,body{margin:0;padding:0;}${runtimeGuards}${escapeStyleTag(css)}</style>`,
-    "</head>",
-    `<body><div data-vp-runtime-root>${html}</div></body>`,
-    "</html>",
-  ].join("");
-}
-
-export default function VisualPageRuntime({ html, css, styleHrefs }: Props) {
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const [height, setHeight] = useState<number>(MIN_HEIGHT);
-
-  const srcDoc = useMemo(() => buildSrcDoc(html, css, styleHrefs), [html, css, styleHrefs]);
+export default function VisualPageRuntime({ html, css, styleHrefs, pageKey }: Props) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const normalizedStyleHrefs = useMemo(() => normalizeStyleHrefs(styleHrefs), [styleHrefs]);
+  const hrefsKey = normalizedStyleHrefs.join("|");
 
   useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
+    if (typeof document === "undefined") return;
 
-    let observer: ResizeObserver | null = null;
-    let intervalId: number | null = null;
-    let imageCleanup: (() => void) | null = null;
-    let initialized = false;
+    const existing = new Set(
+      Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .map((node) => canonicalizeHref(node.getAttribute("href") ?? ""))
+        .filter(Boolean)
+    );
 
-    const measure = () => {
-      const doc = iframe.contentDocument;
-      if (!doc) return;
+    const created: HTMLLinkElement[] = [];
+    for (const href of normalizedStyleHrefs) {
+      const canonical = canonicalizeHref(href);
+      if (!canonical || existing.has(canonical)) continue;
 
-      const docHeight = Math.max(
-        doc.documentElement?.scrollHeight ?? 0,
-        doc.documentElement?.offsetHeight ?? 0,
-        doc.body?.scrollHeight ?? 0,
-        doc.body?.offsetHeight ?? 0
-      );
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = canonical;
+      link.setAttribute(STYLE_LINK_ATTR, "1");
+      document.head.appendChild(link);
 
-      const nextHeight = Math.max(docHeight, MIN_HEIGHT);
-      setHeight((prev) => (Math.abs(prev - nextHeight) > 1 ? nextHeight : prev));
-    };
-
-    const syncParentStyles = (doc: Document) => {
-      const parentHrefs = getParentStylesheetHrefs();
-      const existing = new Set(
-        Array.from(doc.querySelectorAll('link[rel="stylesheet"]'))
-          .map((node) => node.getAttribute("href") ?? "")
-          .map((href) => canonicalizeHref(href))
-          .filter(Boolean)
-      );
-
-      for (const href of parentHrefs) {
-        const normalizedHref = canonicalizeHref(href);
-        if (!isAllowedHref(normalizedHref) || existing.has(normalizedHref)) continue;
-        const link = doc.createElement("link");
-        link.rel = "stylesheet";
-        link.href = normalizedHref;
-        link.setAttribute("data-vp-parent-style", "1");
-        link.addEventListener("load", () => measure(), { once: true });
-        doc.head.appendChild(link);
-        existing.add(normalizedHref);
-      }
-
-      const parentInlineStyles = getParentInlineStyles();
-      const existingInline = new Set(
-        Array.from(doc.querySelectorAll('style[data-vp-parent-inline-style="1"]'))
-          .map((node) => (node.textContent ?? "").trim())
-          .filter(Boolean)
-      );
-
-      for (const cssText of parentInlineStyles) {
-        if (!cssText || existingInline.has(cssText)) continue;
-        const style = doc.createElement("style");
-        style.setAttribute("data-vp-parent-inline-style", "1");
-        style.textContent = cssText;
-        doc.head.appendChild(style);
-        existingInline.add(cssText);
-      }
-    };
-
-    const onLoad = () => {
-      if (initialized) return;
-      initialized = true;
-
-      const doc = iframe.contentDocument;
-      if (!doc) return;
-
-      syncParentStyles(doc);
-      measure();
-
-      if (typeof ResizeObserver !== "undefined") {
-        observer = new ResizeObserver(() => measure());
-        observer.observe(doc.documentElement);
-        if (doc.body) observer.observe(doc.body);
-      }
-
-      const imgs = Array.from(doc.images ?? []);
-      const listeners = imgs.map((img) => {
-        const handler = () => measure();
-        img.addEventListener("load", handler);
-        return { img, handler };
-      });
-      imageCleanup = () => {
-        for (const { img, handler } of listeners) {
-          img.removeEventListener("load", handler);
-        }
-      };
-
-      intervalId = window.setInterval(measure, 1000);
-    };
-
-    iframe.addEventListener("load", onLoad);
-    if (iframe.contentDocument?.readyState === "complete") {
-      onLoad();
+      existing.add(canonical);
+      created.push(link);
     }
 
     return () => {
-      iframe.removeEventListener("load", onLoad);
-      observer?.disconnect();
-      imageCleanup?.();
-      if (intervalId !== null) window.clearInterval(intervalId);
+      for (const link of created) {
+        if (link.parentNode) link.parentNode.removeChild(link);
+      }
     };
-  }, [srcDoc]);
+  }, [hrefsKey, normalizedStyleHrefs]);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    let rafId = 0;
+    const runFix = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => fixOverflow(root, pageKey));
+    };
+
+    runFix();
+
+    const resizeObserver = new ResizeObserver(runFix);
+    resizeObserver.observe(root);
+
+    const mutationObserver = new MutationObserver(runFix);
+    mutationObserver.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["style", "class", "width", "height", "src", "sizes"],
+    });
+
+    const onWindowResize = () => runFix();
+    window.addEventListener("resize", onWindowResize);
+
+    const onLoadCapture = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.tagName === "IMG" || target.tagName === "VIDEO" || target.tagName === "IFRAME") {
+        runFix();
+      }
+    };
+    root.addEventListener("load", onLoadCapture, true);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+      window.removeEventListener("resize", onWindowResize);
+      root.removeEventListener("load", onLoadCapture, true);
+    };
+  }, [html, css, hrefsKey, pageKey]);
 
   return (
-    <iframe
-      ref={iframeRef}
-      srcDoc={srcDoc}
-      suppressHydrationWarning
-      title="Visual page content"
-      className="block w-full border-0"
-      style={{ height }}
-      sandbox="allow-same-origin allow-top-navigation-by-user-activation"
-    />
+    <>
+      {css.trim() ? (
+        <style
+          data-vp-runtime-custom="1"
+          dangerouslySetInnerHTML={{ __html: css }}
+        />
+      ) : null}
+      <style
+        data-vp-runtime-guards="1"
+        dangerouslySetInnerHTML={{
+          __html: [
+            "[data-vp-runtime-root]{width:100%;max-width:100%;}",
+            "[data-vp-runtime-root] *{min-width:0;}",
+            "[data-vp-runtime-root] img,[data-vp-runtime-root] video,[data-vp-runtime-root] canvas,[data-vp-runtime-root] svg,[data-vp-runtime-root] picture,[data-vp-runtime-root] figure,[data-vp-runtime-root] iframe{max-width:100%;}",
+            `[data-vp-runtime-root] [${OVERFLOW_FIX_ATTR}="1"]{max-width:100% !important;}`,
+            `[data-vp-runtime-root] :where(div,section,article,picture,figure,span)[${OVERFLOW_FIX_ATTR}="1"]{max-width:100% !important;}`,
+            `[data-vp-runtime-root] iframe[${OVERFLOW_FIX_ATTR}="1"]{width:100% !important;}`,
+            `[data-vp-runtime-root] img[${OVERFLOW_FIX_ATTR}="1"]:not([data-nimg="fill"]){height:auto !important;}`,
+            `[data-vp-runtime-root] img[data-nimg="fill"][${OVERFLOW_FIX_ATTR}="1"]{width:100% !important;height:100% !important;}`,
+            `[data-vp-runtime-root][data-vp-page="connect"] > [${CONNECT_HERO_ATTR}="1"]{position:relative;overflow:hidden;width:100vw;max-width:100vw;margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);}`,
+            `[data-vp-runtime-root][data-vp-page="connect"] > [${CONNECT_HERO_ATTR}="1"] img[data-nimg="fill"]{width:100% !important;height:100% !important;object-fit:cover !important;}`,
+            `@media (min-width:${TABLET_MIN_WIDTH}px) and (max-width:${TABLET_MAX_WIDTH}px){`,
+            `[data-vp-runtime-root] :where(div,section,article,picture,figure,span)[${OVERFLOW_FIX_ATTR}="1"]{width:100% !important;overflow:hidden !important;}`,
+            `[data-vp-runtime-root][data-vp-page="connect"] > [${CONNECT_HERO_ATTR}="1"]{width:100vw !important;max-width:100vw !important;margin-left:calc(50% - 50vw) !important;margin-right:calc(50% - 50vw) !important;}`,
+            "}",
+          ].join(""),
+        }}
+      />
+      <div
+        ref={rootRef}
+        data-vp-runtime-root
+        data-vp-page={pageKey}
+        className="w-full max-w-full overflow-x-clip"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </>
   );
 }
