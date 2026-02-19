@@ -25,6 +25,8 @@ type GrapesEditor = {
   getCss: () => string;
   setComponents: (html: string) => void;
   setStyle: (css: string) => void;
+  setDevice?: (deviceName: string) => void;
+  getDevice?: () => string;
   destroy: () => void;
   BlockManager: {
     add: (id: string, options: { label: string; category: string; content: string }) => void;
@@ -100,9 +102,17 @@ const RESPONSIVE_STYLE_PROPS = [
   "display",
 ] as const;
 
+const VIEWPORT_OPTIONS: Array<{ key: EditorViewport; label: string }> = [
+  { key: "desktop", label: "Desktop" },
+  { key: "tablet", label: "Tablet" },
+  { key: "mobile", label: "Mobile" },
+];
+
 type HtmlDomParser = {
   parseFromString: (source: string, mimeType: string) => Document;
 };
+
+type EditorViewport = "desktop" | "tablet" | "mobile";
 
 function parseHtmlDocument(html: string): Document | null {
   const ParserConstructor = (globalThis as { DOMParser?: new () => HtmlDomParser }).DOMParser;
@@ -771,6 +781,11 @@ function applyDocumentShellToCanvas(editor: GrapesEditor, payload: ImportedPageP
   }
 }
 
+function setEditorViewport(editor: GrapesEditor | null, viewport: EditorViewport) {
+  if (!editor?.setDevice) return;
+  editor.setDevice(viewport);
+}
+
 export default function VisualPageEditor({
   title,
   publicPath,
@@ -815,6 +830,7 @@ export default function VisualPageEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [isEditorReady, setIsEditorReady] = useState(false);
+  const [viewport, setViewport] = useState<EditorViewport>("desktop");
 
   useEffect(() => {
     importSourcePathRef.current = importSourcePath;
@@ -941,6 +957,45 @@ export default function VisualPageEditor({
           canvas: {
             styles: getParentStylesheets(),
           },
+          deviceManager: {
+            devices: [
+              { id: "desktop", name: "Desktop", width: "" },
+              { id: "tablet", name: "Tablet", width: "900px", widthMedia: "1023px" },
+              { id: "mobile", name: "Mobile", width: "375px", widthMedia: "767px" },
+            ],
+          },
+          styleManager: {
+            sectors: [
+              {
+                id: "typography",
+                name: "Typography",
+                open: true,
+                buildProps: [
+                  "font-family",
+                  "font-size",
+                  "font-weight",
+                  "letter-spacing",
+                  "line-height",
+                  "color",
+                  "text-align",
+                  "text-decoration",
+                  "text-transform",
+                ],
+              },
+              {
+                id: "dimension",
+                name: "Dimension",
+                open: true,
+                buildProps: ["width", "max-width", "min-height", "height", "margin", "padding"],
+              },
+              {
+                id: "decorations",
+                name: "Decorations",
+                open: false,
+                buildProps: ["background-color", "border", "border-radius", "box-shadow", "opacity"],
+              },
+            ],
+          },
         });
 
         editor.BlockManager.add("section", {
@@ -953,6 +1008,11 @@ export default function VisualPageEditor({
           category: "Блоки",
           content: "<p>Новый текстовый блок</p>",
         });
+        editor.BlockManager.add("heading", {
+          label: "Заголовок",
+          category: "Блоки",
+          content: '<h2 style="font-size:36px;line-height:1.2;margin:0 0 12px;">Новый заголовок</h2>',
+        });
         editor.BlockManager.add("image", {
           label: "Изображение",
           category: "Блоки",
@@ -964,8 +1024,27 @@ export default function VisualPageEditor({
           content:
             '<a href="/contacts" style="display:inline-block;padding:10px 18px;border-radius:8px;background:#5858E2;color:#fff;text-decoration:none;">Кнопка</a>',
         });
+        editor.BlockManager.add("columns-2", {
+          label: "2 колонки",
+          category: "Блоки",
+          content: [
+            '<section style="padding:24px 0;">',
+            '<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;">',
+            '<div><h3>Левая колонка</h3><p>Текст блока.</p></div>',
+            '<div><h3>Правая колонка</h3><p>Текст блока.</p></div>',
+            "</div>",
+            "</section>",
+          ].join(""),
+        });
+        editor.BlockManager.add("spacer", {
+          label: "Отступ",
+          category: "Блоки",
+          content: '<div style="height:32px;"></div>',
+        });
 
         editorRef.current = editor;
+        setViewport("desktop");
+        setEditorViewport(editor, "desktop");
         applyInitialCanvasStyles(editor, importedStyleHrefsRef.current);
         setIsEditorReady(true);
         syncEditorToInputs();
@@ -1056,6 +1135,24 @@ export default function VisualPageEditor({
         >
           HTML/CSS код
         </button>
+        <div className="inline-flex items-center rounded-lg border border-gray-300 bg-white p-1">
+          {VIEWPORT_OPTIONS.map((option) => (
+            <button
+              key={option.key}
+              type="button"
+              disabled={!isEditorReady}
+              onClick={() => {
+                setViewport(option.key);
+                setEditorViewport(editorRef.current, option.key);
+              }}
+              className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition ${
+                viewport === option.key ? "bg-[#5858E2] text-white" : "text-gray-700 hover:bg-gray-100"
+              } disabled:cursor-not-allowed disabled:opacity-60`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           onClick={() => {
@@ -1099,6 +1196,9 @@ export default function VisualPageEditor({
       {restoreAction && !canRestorePrevious && (
         <p className="mt-2 text-xs text-gray-500">Прошлая версия появится после следующего сохранения.</p>
       )}
+      <p className="mt-2 text-xs text-gray-500">
+        Выберите элемент на холсте: в панели стилей доступны размер текста, цвет, отступы, ширина и другие параметры.
+      </p>
 
       <form
         action={submitAction}
