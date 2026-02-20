@@ -105,7 +105,7 @@ export default function AdminArticleEditPage({ params }: { params: Promise<{ id:
 
   if (loading || loadingPsychologists) {
     return (
-        <Card className="max-w-2xl mx-auto mt-8">
+        <Card className="mx-auto mt-8 w-full max-w-6xl">
           <CardContent className="py-12 text-center text-lg text-neutral-400">
             Загрузка...
           </CardContent>
@@ -115,7 +115,7 @@ export default function AdminArticleEditPage({ params }: { params: Promise<{ id:
 
   if (error || !article) {
     return (
-        <Card className="max-w-2xl mx-auto mt-8">
+        <Card className="mx-auto mt-8 w-full max-w-6xl">
           <CardContent className="py-12 text-center text-lg text-red-500">
             {error || "Статья не найдена"}
           </CardContent>
@@ -124,7 +124,7 @@ export default function AdminArticleEditPage({ params }: { params: Promise<{ id:
   }
 
   return (
-      <div className="max-w-2xl mx-auto py-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <Card>
           <CardHeader className="flex items-center justify-between gap-2">
             <span className="font-semibold text-xl text-[#5858E2]">Редактировать статью</span>

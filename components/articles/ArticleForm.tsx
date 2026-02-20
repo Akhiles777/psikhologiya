@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { ArticleContentEditor } from "@/components/articles/ArticleContentEditor";
 
 function FormInput({ label, ...props }: any) {
   return (
@@ -154,6 +155,15 @@ export default function ArticleForm({
       .map((t) => t.trim())
       .filter(Boolean);
 
+  const hasMeaningfulContent = (value: string): boolean => {
+    const plain = value
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return plain.length > 0;
+  };
+
   function validate() {
     if (!title.trim()) return "Заполните заголовок";
     if (!slug.trim()) return "Заполните slug";
@@ -163,7 +173,7 @@ export default function ArticleForm({
     if (slugWarning) return slugWarning;
 
     if (!shortText.trim()) return "Заполните короткий текст";
-    if (!content.trim()) return "Заполните длинный текст";
+    if (!hasMeaningfulContent(content)) return "Заполните длинный текст";
     return null;
   }
 
@@ -250,7 +260,7 @@ export default function ArticleForm({
   const isSubmitting = submitting || externalLoading;
 
   return (
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} noValidate className="space-y-8">
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
           <h2 className="font-display text-xl font-bold text-[#5858E2] mb-6">Данные статьи</h2>
 
@@ -312,13 +322,14 @@ export default function ArticleForm({
               disabled={isSubmitting}
           />
 
-          <FormTextarea
-              label="Длинный текст *"
+          <ArticleContentEditor
+              label="Длинный текст"
               value={content}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
-              rows={8}
+              onChange={setContent}
+              rows={14}
               required
               disabled={isSubmitting}
+              placeholder="Введите полный текст статьи..."
           />
 
           <div>

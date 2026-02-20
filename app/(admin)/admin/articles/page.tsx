@@ -23,6 +23,7 @@ interface Article {
 }
 
 export default function AdminArticlesPage() {
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -40,7 +41,7 @@ export default function AdminArticlesPage() {
     ])
         .then(([articlesData]) => {
           if (articlesData.success && articlesData.articles) {
-            // Устанавливаем статьи
+            setAllArticles(articlesData.articles);
             setArticles(articlesData.articles);
 
             // Собираем уникальные тэги из всех статей
@@ -82,7 +83,7 @@ export default function AdminArticlesPage() {
   // Фильтрация статей
   useEffect(() => {
     // Фильтруем уже загруженные статьи
-    let filtered = articles;
+    let filtered = allArticles;
 
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -106,7 +107,7 @@ export default function AdminArticlesPage() {
     }
 
     setArticles(filtered);
-  }, [search, tagFilter, authorFilter, catalogFilter]);
+  }, [allArticles, search, tagFilter, authorFilter, catalogFilter]);
 
   const isPublished = (article: Article) => {
     return article.publishedAt !== null;
