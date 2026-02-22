@@ -192,19 +192,19 @@ export default function ManagersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7 pr-2 sm:pr-3 lg:pr-5">
       {/* Заголовок и кнопки */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Менеджеры</h1>
-          <p className="mt-1 sm:mt-2 text-sm text-gray-600">
+          <h1 className="text-2xl sm:text-[2rem] font-bold text-gray-900">Менеджеры</h1>
+          <p className="mt-1 sm:mt-2 text-[15px] text-gray-600">
             Управление учетными записями менеджеров системы
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/admin/managers/new"
-            className="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+            className="inline-flex items-center justify-center px-5 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -216,26 +216,26 @@ export default function ManagersPage() {
 
       {/* Статистика */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
           <div className="text-sm font-medium text-gray-500">Всего менеджеров</div>
-          <div className="mt-1 text-2xl font-semibold text-gray-900">{stats.total}</div>
+          <div className="mt-1 text-[1.7rem] font-semibold text-gray-900">{stats.total}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
           <div className="text-sm font-medium text-gray-500">Активных</div>
-          <div className="mt-1 text-2xl font-semibold text-green-600">{stats.active}</div>
+          <div className="mt-1 text-[1.7rem] font-semibold text-green-600">{stats.active}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
           <div className="text-sm font-medium text-gray-500">Администраторов</div>
-          <div className="mt-1 text-2xl font-semibold text-purple-600">{stats.admins}</div>
+          <div className="mt-1 text-[1.7rem] font-semibold text-purple-600">{stats.admins}</div>
         </div>
-        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
           <div className="text-sm font-medium text-gray-500">Менеджеров</div>
-          <div className="mt-1 text-2xl font-semibold text-blue-600">{stats.managers}</div>
+          <div className="mt-1 text-[1.7rem] font-semibold text-blue-600">{stats.managers}</div>
         </div>
       </div>
 
       {/* Фильтры и поиск */}
-      <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white p-5 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex-1 max-w-lg">
             <div className="relative">
@@ -249,7 +249,7 @@ export default function ManagersPage() {
                 placeholder="Поиск по имени или email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full pl-10 pr-3 py-3 text-[15px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
@@ -258,7 +258,7 @@ export default function ManagersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-3 text-[15px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">Все статусы</option>
               <option value="active">Активные</option>
@@ -268,7 +268,7 @@ export default function ManagersPage() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as any)}
-              className="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-3 text-[15px] border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">Все роли</option>
               <option value="ADMIN">Администраторы</option>
@@ -281,7 +281,7 @@ export default function ManagersPage() {
                 setStatusFilter('all');
                 setRoleFilter('all');
               }}
-              className="px-4 py-2.5 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-4 py-3 text-[15px] text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               Сбросить
             </button>
@@ -331,7 +331,7 @@ export default function ManagersPage() {
                 <tr>
                   <th
                     onClick={() => handleSort('name')}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-6 py-3.5 text-left text-[13px] font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
                       Имя {renderSortIcon('name')}
@@ -339,7 +339,7 @@ export default function ManagersPage() {
                   </th>
                   <th
                     onClick={() => handleSort('email')}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-6 py-3.5 text-left text-[13px] font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
                       Email {renderSortIcon('email')}
@@ -347,7 +347,7 @@ export default function ManagersPage() {
                   </th>
                   <th
                     onClick={() => handleSort('role')}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-6 py-3.5 text-left text-[13px] font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
                       Роль {renderSortIcon('role')}
@@ -355,7 +355,7 @@ export default function ManagersPage() {
                   </th>
                   <th
                     onClick={() => handleSort('status')}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-6 py-3.5 text-left text-[13px] font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
                       Статус {renderSortIcon('status')}
@@ -363,13 +363,13 @@ export default function ManagersPage() {
                   </th>
                   <th
                     onClick={() => handleSort('createdAt')}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    className="px-6 py-3.5 text-left text-[13px] font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex items-center">
                       Дата создания {renderSortIcon('createdAt')}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3.5 text-left text-[13px] font-medium text-gray-500 uppercase tracking-wider">
                     Действия
                   </th>
                 </tr>
@@ -377,22 +377,22 @@ export default function ManagersPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredManagers.map((manager) => (
                   <tr key={manager.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-5">
                       <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <div className="flex-shrink-0 h-11 w-11 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-blue-800 font-medium">
                             {manager.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{manager.name}</div>
+                          <div className="text-[15px] font-medium text-gray-900">{manager.name}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{manager.email}</div>
+                    <td className="px-6 py-5">
+                      <div className="text-[15px] text-gray-900">{manager.email}</div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-5">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         manager.role === 'ADMIN'
                           ? 'bg-purple-100 text-purple-800'
@@ -401,7 +401,7 @@ export default function ManagersPage() {
                         {manager.role === 'ADMIN' ? 'Администратор' : 'Менеджер'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-5">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         manager.isActive
                           ? 'bg-green-100 text-green-800'
@@ -410,14 +410,14 @@ export default function ManagersPage() {
                         {manager.isActive ? 'Активен' : 'Неактивен'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className="px-6 py-5 text-sm text-gray-900">
                       {new Date(manager.createdAt).toLocaleDateString('ru-RU', {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric'
                       })}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-5">
                       <div className="flex space-x-3">
                         <Link
                           href={`/admin/managers/${manager.id}/edit`}
@@ -447,7 +447,7 @@ export default function ManagersPage() {
           {/* Mobile Cards */}
           <div className="md:hidden divide-y divide-gray-200">
             {filteredManagers.map((manager) => (
-              <div key={manager.id} className="p-4 hover:bg-gray-50">
+              <div key={manager.id} className="p-5 hover:bg-gray-50">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">

@@ -8,6 +8,7 @@ import { prisma } from "@/lib/db";
 import { isDbSyncError } from "@/lib/db-error";
 import { getSystemPageBySlug, isSystemPageSlug, SYSTEM_PAGE_CONFIG, SYSTEM_PAGE_SLUGS } from "@/lib/system-pages";
 import { getSystemPageDefaultContentBySlug } from "@/lib/system-page-default-content";
+import { CATALOG_PAGE_SLUG, serializeCatalogPageSections } from "@/lib/catalog-page-config";
 
 function isNextRedirectError(err: unknown): err is { digest: string } {
   return (
@@ -140,6 +141,11 @@ export async function getOrCreateConnectPage() {
   return getOrCreateSystemPage(SYSTEM_PAGE_CONFIG.connect.slug);
 }
 
+/** Получить или создать системную страницу каталога */
+export async function getOrCreateCatalogPage() {
+  return getOrCreateSystemPage(SYSTEM_PAGE_CONFIG.catalog.slug);
+}
+
 function revalidatePublicPathBySlug(slug?: string | null) {
   if (!slug) return;
 
@@ -167,6 +173,10 @@ function revalidatePublicPathBySlug(slug?: string | null) {
     revalidatePath("/contacts");
   }
 
+  if (slug === CATALOG_PAGE_SLUG) {
+    revalidatePath("/psy-list");
+  }
+
   if (slug === "site-footer") {
     revalidatePath("/", "layout");
     revalidatePath("/");
@@ -184,6 +194,7 @@ function revalidatePageTargets(slug?: string | null, oldSlug?: string | null) {
   revalidatePath("/managers/pages/footer");
   revalidatePath("/managers/pages/home");
   revalidatePath("/managers/pages/connect");
+  revalidatePath("/managers/pages/catalog");
 
   revalidatePublicPathBySlug(slug);
 
@@ -368,6 +379,39 @@ export async function updatePage(id: string, formData: FormData) {
   }
 
   redirect("/managers/pages");
+}
+
+/** Обновить верхний и нижний HTML-блоки страницы каталога (/psy-list). */
+export async function updateCatalogPageSections(formData: FormData) {
+  if (!prisma) redirect("/managers/pages/catalog?error=db_unavailable");
+
+  const topHtml = ((formData.get("topHtml") as string) || "").trim();
+  const bottomHtml = ((formData.get("bottomHtml") as string) || "").trim();
+  const page = await getOrCreateCatalogPage();
+
+  if (!page) {
+    redirect("/managers/pages/catalog?error=db_unavailable");
+  }
+
+  try {
+    await prisma.page.update({
+      where: { id: page.id },
+      data: {
+        slug: SYSTEM_PAGE_CONFIG.catalog.slug,
+        title: SYSTEM_PAGE_CONFIG.catalog.title,
+        template: "empty",
+        isPublished: true,
+        content: serializeCatalogPageSections({ topHtml, bottomHtml }),
+      },
+    });
+  } catch (err: unknown) {
+    if (isDbSyncError(err)) redirect("/managers/pages/catalog?error=db_sync");
+    console.error("manager.pages.updateCatalogPageSections failed", { err });
+    redirect("/managers/pages/catalog?error=update_failed");
+  }
+
+  revalidatePageTargets(SYSTEM_PAGE_CONFIG.catalog.slug);
+  redirect("/managers/pages/catalog?saved=1");
 }
 
 /** Удалить страницу и связанные изображения. */

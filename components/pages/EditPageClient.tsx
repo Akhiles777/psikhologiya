@@ -141,14 +141,6 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
                     )}
                   </div>
 
-                  <div className="mt-2 flex items-start gap-2 text-amber-700 bg-amber-50 p-2 rounded text-xs">
-                    <span className="text-lg">⚠️</span>
-                    <span>
-                    <p>Важно:</p> Кириллица, пробелы и спецсимволы недопустимы в URL.
-                    Используйте только латиницу, цифры, дефисы и нижние подчеркивания.
-                  </span>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Шаблон страницы

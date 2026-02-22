@@ -139,17 +139,6 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
                       </p>
                   )}
 
-                  {/* Полезные примеры */}
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <span className="text-gray-500">✅ примеры:</span>
-                    <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">about-us</span>
-                    <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">contacts</span>
-                    <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">faq</span>
-                  </div>
-
-                  <p className="mt-1 text-xs text-gray-500">
-                    Будет автоматически преобразован в нижний регистр и очищен от кириллицы и спецсимволов.
-                  </p>
                 </div>
 
                 <div>

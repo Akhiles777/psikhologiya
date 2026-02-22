@@ -1,13 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useTransition, useState, useEffect } from "react";
+import { useCallback, useTransition } from "react";
 import { buildCatalogUrl, searchParamsToObject } from "@/lib/url";
 import { PARADIGM_OPTIONS } from "@/lib/paradigm-options";
-import { RefreshCw, X } from "lucide-react";
+import { X } from "lucide-react";
 
 const LEVELS: (1 | 2 | 3)[] = [1, 2, 3];
-const CURRENT_YEAR = 2026;
 
 type Props = {
   initialParams: Record<string, string | string[] | undefined>;
@@ -116,26 +115,15 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
   const ageMaxValue = getAgeValue('ageMax');
 
   return (
-    <aside className="w-full  shrink-0 lg:w-72">
-      <div className="rounded-xl border border-neutral-200 bg-white">
-        <div className="p-4">
-          {/* Заголовок с кнопкой сброса */}
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-foreground">Фильтры</h3>
-            {hasActiveFilters() && (
-              <button
-                type="button"
-                onClick={resetFilters}
-                disabled={isPending}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
-              >
-                <RefreshCw className="h-3 w-3" />
-                Сбросить
-              </button>
-            )}
+    <aside className="w-full shrink-0 lg:w-[300px]">
+      <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="p-5">
+          {/* Заголовок */}
+          <div className="mb-4">
+            <h3 className="text-xl font-bold text-foreground">Фильтры</h3>
           </div>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Цена */}
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Цена (₽)</label>
@@ -271,7 +259,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
             </div>
 
             {/* Кнопки действий */}
-            <div className="space-y-3">
+            <div className="space-y-2.5 pt-1">
               <button
                 type="submit"
                 disabled={isPending}
@@ -294,28 +282,6 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
                 </button>
               )}
             </div>
-
-            {/* Индикация активных фильтров */}
-            {hasActiveFilters() && (
-              <div className="rounded-lg bg-blue-50 p-3">
-                <p className="text-xs font-medium text-blue-800">
-                  Активные фильтры: {
-                    [
-                      get("priceMin") && `Цена от ${get("priceMin")}`,
-                      get("priceMax") && `Цена до ${get("priceMax")}`,
-                      get("city") && `Город: ${get("city")}`,
-                      get("gender") && `Пол: ${get("gender") === "М" ? "Мужской" : "Женский"}`,
-                      selectedParadigm && `Метод: ${PARADIGM_OPTIONS.find(o => o.value === selectedParadigm)?.label || selectedParadigm}`,
-                      selectedLevel && `Уровень: ${selectedLevel}`,
-                      ageMinValue && `Возраст от ${ageMinValue}`,
-                      ageMaxValue && `Возраст до ${ageMaxValue}`,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")
-                  }
-                </p>
-              </div>
-            )}
           </form>
         </div>
       </div>

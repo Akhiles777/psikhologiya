@@ -287,8 +287,8 @@ export default function EditManagerPage() {
   }
 
   return (
-    <div>
-      <div className="mb-8">
+    <div className="-mt-2 sm:-mt-3">
+      <div className="mb-5 sm:mb-6">
         <div className="flex items-center">
           <Link
             href="/admin/managers"
@@ -299,13 +299,13 @@ export default function EditManagerPage() {
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Редактировать менеджера</h1>
-            <p className="mt-2 text-gray-600">Обновите информацию о менеджере: {manager?.name}</p>
+            <h1 className="text-[1.75rem] sm:text-3xl font-bold text-gray-900">Редактировать менеджера</h1>
+            <p className="mt-2 text-[15px] text-gray-600">Обновите информацию о менеджере: {manager?.name}</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Кнопка полного удаления менеджера */}
           <div className="flex justify-end">
@@ -319,8 +319,8 @@ export default function EditManagerPage() {
             </button>
           </div>
           {/* Основная информация */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Основная информация</h2>
+          <div className="bg-white shadow rounded-lg p-7">
+            <h2 className="text-xl font-medium text-gray-900 mb-4">Основная информация</h2>
             
             {error && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
@@ -349,7 +349,7 @@ export default function EditManagerPage() {
                   required
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -364,7 +364,7 @@ export default function EditManagerPage() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -377,7 +377,7 @@ export default function EditManagerPage() {
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="MANAGER">Менеджер</option>
                   <option value="ADMIN">Администратор</option>
@@ -406,8 +406,8 @@ export default function EditManagerPage() {
           </div>
 
           {/* Смена пароля */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Смена пароля</h2>
+          <div className="bg-white shadow rounded-lg p-7">
+            <h2 className="text-xl font-medium text-gray-900 mb-4">Смена пароля</h2>
             <p className="text-sm text-gray-600 mb-4">
               Оставьте поле пустым, если не хотите менять пароль. 
               Новый пароль будет автоматически зашифрован.
@@ -425,13 +425,13 @@ export default function EditManagerPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Оставьте пустым для сохранения старого пароля"
                   />
                   <button
                     type="button"
                     onClick={handleGeneratePassword}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                    className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                   >
                     Сгенерировать
                   </button>
@@ -452,8 +452,8 @@ export default function EditManagerPage() {
           </div>
 
           {/* Права доступа - с разделом менеджеров */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Права доступа</h2>
+          <div className="bg-white shadow rounded-lg p-7">
+            <h2 className="text-xl font-medium text-gray-900 mb-4">Права доступа</h2>
             <p className="text-sm text-gray-600 mb-4">
               {formData.role === 'ADMIN' 
                 ? 'Администратор имеет полный доступ ко всем разделам системы, включая управление менеджерами.'
@@ -597,7 +597,7 @@ export default function EditManagerPage() {
                   }
                 }
               }}
-              className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="px-5 py-2.5 bg-red-600 text-white text-[15px] font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
               Деактивировать
             </button>
@@ -605,14 +605,14 @@ export default function EditManagerPage() {
             <div className="flex space-x-4">
               <Link
                 href="/admin/managers"
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-5 py-2.5 border border-gray-300 rounded-md text-[15px] font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Отмена
               </Link>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-5 py-2.5 bg-blue-600 border border-transparent rounded-md text-[15px] font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? (
                   <>

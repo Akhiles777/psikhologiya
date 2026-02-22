@@ -18,7 +18,7 @@ export default async function PagesListPage({
     db_unavailable: "База данных недоступна.",
     delete_failed: "Не удалось удалить страницу.",
     footer_protected: "Системный футер нельзя удалить из общего списка.",
-    system_page_protected: "Системные страницы (футер, главная, connect) нельзя удалить из общего списка.",
+    system_page_protected: "Системные страницы (футер, главная, connect, каталог) нельзя удалить из общего списка.",
   };
   const errorBanner = errorCode ? errorMessages[errorCode] ?? "Произошла ошибка." : null;
 
@@ -55,11 +55,11 @@ export default async function PagesListPage({
 
           <p className="mt-3 text-xs text-gray-600 sm:mt-4 sm:text-sm">
             Страницы отображаются по адресу /s/[slug]. Специальные slug: courses → /courses, lib → /lib, contacts → /contacts.
-            Главная и connect редактируются в системных карточках ниже.
+            Главная, connect и каталог психологов редактируются в системных карточках ниже.
             Шаблон «текст» — единый вид страницы. «Пустой» — выводится как чистый HTML-контент без обрамления.
           </p>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-4">
+          <div className="mt-4 grid gap-3 md:grid-cols-5">
             <div className="rounded-xl border border-[#5858E2]/20 bg-[#5858E2]/5 p-4">
               <p className="text-sm font-medium text-gray-900">Управление футером</p>
               <p className="mt-1 text-xs text-gray-600">
@@ -96,6 +96,19 @@ export default async function PagesListPage({
                 className="mt-3 inline-flex items-center rounded-lg bg-[#5858E2] px-3 py-2 text-xs font-medium text-white hover:bg-[#4848d0]"
               >
                 Открыть connect
+              </Link>
+            </div>
+
+            <div className="rounded-xl border border-[#5858E2]/20 bg-[#5858E2]/5 p-4">
+              <p className="text-sm font-medium text-gray-900">Страница каталога</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Верхний и нижний HTML-блоки страницы <code>/psy-list</code>.
+              </p>
+              <Link
+                href="/admin/pages/catalog"
+                className="mt-3 inline-flex items-center rounded-lg bg-[#5858E2] px-3 py-2 text-xs font-medium text-white hover:bg-[#4848d0]"
+              >
+                Открыть каталог
               </Link>
             </div>
 

@@ -10,6 +10,9 @@ const ALLOWED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 
 type JsonValue = Prisma.InputJsonValue;
+type OrderedImageInput =
+  | { type: "file"; fileIndex: number }
+  | { type: "url"; url: string };
 
 function toText(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value.trim() : "";
@@ -59,12 +62,56 @@ export function parseEducation(value: string): JsonValue {
 }
 
 export function parseLocalImageUrls(value: string): string[] {
+  return parseImageUrls(value).filter((item) => item.startsWith("/uploads/"));
+}
+
+function isAllowedImageUrl(value: string): boolean {
+  return value.startsWith("/uploads/") || /^https?:\/\//i.test(value);
+}
+
+function parseImageUrls(value: string): string[] {
   if (!value) return [];
   return value
     .split("\n")
     .map((item) => item.trim())
     .filter(Boolean)
-    .filter((item) => item.startsWith("/uploads/"));
+    .filter((item) => isAllowedImageUrl(item));
+}
+
+function parseOrderedImages(value: string): OrderedImageInput[] {
+  if (!value) return [];
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+
+    const items: OrderedImageInput[] = [];
+    for (const raw of parsed) {
+      if (!raw || typeof raw !== "object") continue;
+      const item = raw as Record<string, unknown>;
+
+      if (
+        item.type === "file" &&
+        typeof item.fileIndex === "number" &&
+        Number.isInteger(item.fileIndex) &&
+        item.fileIndex >= 0
+      ) {
+        items.push({ type: "file", fileIndex: item.fileIndex });
+        continue;
+      }
+
+      if (item.type === "url" && typeof item.url === "string") {
+        const url = item.url.trim();
+        if (isAllowedImageUrl(url)) {
+          items.push({ type: "url", url });
+        }
+      }
+    }
+
+    return items;
+  } catch {
+    return [];
+  }
 }
 
 async function saveUploadedFile(file: File): Promise<string> {
@@ -143,8 +190,17 @@ export async function buildPsychologistPayload(
   const slug = rawSlug || slugFromName(fullName);
 
   const uploadedImages = await saveNewImages(formData);
-  const localImageUrls = parseLocalImageUrls(toText(formData.get("imageUrls")));
-  const images = [...uploadedImages, ...localImageUrls];
+  const orderedImages = parseOrderedImages(toText(formData.get("orderedImages")));
+  const fallbackImageUrls = parseImageUrls(toText(formData.get("imageUrls")));
+
+  const images = orderedImages.length > 0
+    ? orderedImages
+        .map((item) => {
+          if (item.type === "file") return uploadedImages[item.fileIndex] ?? null;
+          return item.url;
+        })
+        .filter((item): item is string => Boolean(item))
+    : [...uploadedImages, ...fallbackImageUrls];
 
   const birthDateStr = toText(formData.get("birthDate"));
   const firstDiplomaStr = toText(formData.get("firstDiplomaDate"));

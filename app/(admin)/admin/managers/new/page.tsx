@@ -147,17 +147,17 @@ export default function NewManagerPage() {
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Добавить нового менеджера</h1>
-            <p className="mt-2 text-gray-600">Заполните информацию о новом менеджере</p>
+            <h1 className="text-[1.75rem] sm:text-3xl font-bold text-gray-900">Добавить нового менеджера</h1>
+            <p className="mt-2 text-[15px] text-gray-600">Заполните информацию о новом менеджере</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-4xl mx-auto">
+        <form onSubmit={handleSubmit} className="space-y-7">
           {/* Основная информация */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Основная информация</h2>
+          <div className="bg-white shadow rounded-lg p-7">
+            <h2 className="text-xl font-medium text-gray-900 mb-4">Основная информация</h2>
             
             {error && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
@@ -186,7 +186,7 @@ export default function NewManagerPage() {
                   required
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Иван Иванов"
                 />
               </div>
@@ -202,7 +202,7 @@ export default function NewManagerPage() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="manager@example.com"
                 />
               </div>
@@ -218,7 +218,7 @@ export default function NewManagerPage() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Не менее 6 символов"
                 />
               </div>
@@ -234,7 +234,7 @@ export default function NewManagerPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Повторите пароль"
                 />
               </div>
@@ -248,7 +248,7 @@ export default function NewManagerPage() {
                   name="role"
                   value={formData.role}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-[15px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="MANAGER">Менеджер</option>
                   <option value="ADMIN">Администратор</option>
@@ -277,8 +277,8 @@ export default function NewManagerPage() {
           </div>
 
           {/* Права доступа - упрощенная версия */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Права доступа</h2>
+          <div className="bg-white shadow rounded-lg p-7">
+            <h2 className="text-xl font-medium text-gray-900 mb-4">Права доступа</h2>
             <p className="text-sm text-gray-600 mb-4">
               {formData.role === 'ADMIN' 
                 ? 'Администратор имеет полный доступ ко всем разделам системы, включая управление менеджерами.'
@@ -401,14 +401,14 @@ export default function NewManagerPage() {
           <div className="flex justify-end space-x-4 pt-6">
             <Link
               href="/admin/managers"
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-5 py-2.5 border border-gray-300 rounded-md text-[15px] font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Отмена
             </Link>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 bg-blue-600 border border-transparent rounded-md text-[15px] font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

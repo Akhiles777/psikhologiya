@@ -3,6 +3,7 @@ import "server-only";
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { isDbSyncError } from "@/lib/db-error";
+import { CATALOG_PAGE_SLUG } from "@/lib/catalog-page-config";
 import {
   getPublicPathBySlug,
   normalizeMenuHrefInput,
@@ -13,7 +14,7 @@ import {
 export const SITE_MENU_STORAGE_SLUG = "site-header-menu";
 export type { SiteMenuItem, SiteMenuPageOption } from "@/lib/site-menu-shared";
 
-const RESERVED_PAGE_SLUGS = new Set(["site-footer"]);
+const RESERVED_PAGE_SLUGS = new Set(["site-footer", CATALOG_PAGE_SLUG]);
 
 const DEFAULT_SITE_MENU_ITEMS: SiteMenuItem[] = [
   { id: "menu-psy-list", label: "Подобрать психолога", href: "/psy-list" },

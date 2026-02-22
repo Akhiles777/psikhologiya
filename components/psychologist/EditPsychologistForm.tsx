@@ -100,6 +100,23 @@ export default function EditPsychologistForm({
     });
   };
 
+  const moveItem = (index: number, direction: -1 | 1) => {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= urls.length) return;
+
+    setUrls((prev) => {
+      const next = [...prev];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+
+    setFiles((prev) => {
+      const next = [...prev];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+  };
+
   // Добавить URL
   const addUrl = () => {
     const trimmed = newUrl.trim();
@@ -137,15 +154,33 @@ export default function EditPsychologistForm({
 
     const formData = new FormData(formRef.current!);
 
-    // Добавляем файлы в FormData
-    files.forEach(file => {
-      if (file) formData.append("images", file);
+    const orderedImages: Array<{ type: "file"; fileIndex: number } | { type: "url"; url: string }> = [];
+    let fileIndex = 0;
+
+    urls.forEach((url, index) => {
+      const file = files[index];
+      if (file) {
+        formData.append("images", file);
+        orderedImages.push({ type: "file", fileIndex });
+        fileIndex += 1;
+        return;
+      }
+
+      if (!url.startsWith("blob:")) {
+        orderedImages.push({ type: "url", url });
+      }
     });
 
-    // Добавляем URL (те, которые не из файлов)
-    const externalUrls = urls.filter(url => !url.startsWith('blob:'));
-    if (externalUrls.length > 0) {
-      formData.append("imageUrls", externalUrls.join("\n"));
+    if (orderedImages.length > 0) {
+      formData.set("orderedImages", JSON.stringify(orderedImages));
+      const imageUrls = orderedImages
+        .filter((item): item is { type: "url"; url: string } => item.type === "url")
+        .map((item) => item.url);
+      if (imageUrls.length > 0) {
+        formData.set("imageUrls", imageUrls.join("\n"));
+      } else {
+        formData.delete("imageUrls");
+      }
     }
 
     // Добавляем данные об образовании как JSON
@@ -153,7 +188,7 @@ export default function EditPsychologistForm({
 
     console.log("📤 Отправка формы редактирования...");
     console.log("📎 Файлов:", files.length);
-    console.log("🔗 URL:", externalUrls.length);
+    console.log("🔗 URL:", orderedImages.filter((item) => item.type === "url").length);
     console.log("📚 Образование:", educationData);
     console.log("ID психолога:", psychologistId);
 
@@ -481,6 +516,7 @@ export default function EditPsychologistForm({
                         <p className="text-sm font-medium text-gray-700 mb-2">
                           Выбранные изображения ({urls.length}/5):
                         </p>
+                        <p className="mb-2 text-xs text-gray-500">Используйте ↑ ↓ для изменения порядка.</p>
                         <div className="space-y-2">
                           {urls.map((url, index) => (
                               <div
@@ -508,16 +544,36 @@ export default function EditPsychologistForm({
                                     </p>
                                   </div>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => removeItem(index)}
-                                    className="text-red-600 hover:text-red-800"
-                                    title="Удалить"
-                                >
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                      type="button"
+                                      onClick={() => moveItem(index, -1)}
+                                      disabled={index === 0}
+                                      className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                                      title="Переместить выше"
+                                  >
+                                    ↑
+                                  </button>
+                                  <button
+                                      type="button"
+                                      onClick={() => moveItem(index, 1)}
+                                      disabled={index === urls.length - 1}
+                                      className="rounded border border-gray-300 px-2 py-1 text-xs text-gray-700 hover:bg-gray-100 disabled:opacity-40"
+                                      title="Переместить ниже"
+                                  >
+                                    ↓
+                                  </button>
+                                  <button
+                                      type="button"
+                                      onClick={() => removeItem(index)}
+                                      className="text-red-600 hover:text-red-800"
+                                      title="Удалить"
+                                  >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                </div>
                               </div>
                           ))}
                         </div>
