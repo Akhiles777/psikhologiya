@@ -25,6 +25,8 @@ export default async function NewPageForm({
   const errorMessage = errorCode ? ERROR_MESSAGES[errorCode] ?? "Произошла ошибка." : null;
 
   return (
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+      <div className="mx-auto max-w-[1900px]">
       <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
         <h1 className="font-display text-2xl font-bold text-foreground">
           Добавить страницу
@@ -50,7 +52,7 @@ export default async function NewPageForm({
                 name="title"
                 required
                 placeholder="О проекте"
-                className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
+                className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
             />
           </div>
 
@@ -68,7 +70,7 @@ export default async function NewPageForm({
                   placeholder="about"
                   pattern="[a-z0-9\-_]+"
                   title="Только латиница, цифры, дефис и нижнее подчеркивание. Без пробелов!"
-                  className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
+                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
               />
 
               {/* Предпросмотр URL - статичный, без JS */}
@@ -102,7 +104,7 @@ export default async function NewPageForm({
             <label className="block text-sm font-medium text-foreground">Шаблон</label>
             <select
                 name="template"
-                className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
+                className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
             >
               <option value="text">Текст (заголовок + контент)</option>
               <option value="empty">Пустой (свой HTML)</option>
@@ -113,7 +115,7 @@ export default async function NewPageForm({
             {/* Поле добавления файлов для страницы */}
             <div className="mt-4">
               <h3 className="text-sm font-medium text-foreground mb-2">Добавить файлы для страницы</h3>
-              <div className="max-w-md">
+              <div className="w-full">
                 <AddImageToPage />
               </div>
               <p className="mt-1 text-xs text-neutral-dark">
@@ -166,5 +168,7 @@ export default async function NewPageForm({
           </div>
         </form>
       </div>
+      </div>
+    </div>
   );
 }

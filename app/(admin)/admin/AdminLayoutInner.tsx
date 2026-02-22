@@ -64,7 +64,7 @@ export function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#F5F5F7]">
       <header className="sticky top-0 z-30 border-b-2 border-[#5858E2]/30 bg-white px-3 py-3 shadow-sm sm:px-4 sm:py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -102,7 +102,7 @@ export function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      <div className="mx-auto flex max-w-6xl gap-0 px-3 py-4 sm:px-4 sm:py-8 lg:gap-8">
+      <div className="mx-auto flex w-full max-w-[1900px] gap-0 px-3 py-4 sm:px-4 sm:py-8 lg:gap-8">
         {/* Сайдбар: на мобиле — выдвижной, на lg — слева */}
         <aside
           className={`fixed left-0 top-14 z-50 h-[calc(100vh-3.5rem)] w-72 max-w-[85vw] transform border-r border-neutral-200 bg-white p-4 shadow-xl transition-transform duration-200 lg:static lg:top-0 lg:z-auto lg:block lg:h-auto lg:w-52 lg:max-w-none lg:shrink-0 lg:translate-x-0 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}

@@ -212,7 +212,7 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
               <h3 className="text-sm font-medium text-gray-700 mb-2">
                 {isSystemPage ? "Файлы системной страницы" : "Файлы страницы"}
               </h3>
-              <div className="max-w-md">
+              <div className="w-full">
                 <AddImageToPage initialImages={page.images ?? []} entityKey={`page-${pageId}`} />
               </div>
             </div>

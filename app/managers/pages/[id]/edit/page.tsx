@@ -37,7 +37,7 @@ export default async function EditPagePage({
 
   return (
       <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-[1900px]">
           <div className="mb-6">
             <h1 className="font-display text-2xl font-bold text-gray-900">
               {isSystemPage ? `Редактирование: ${systemPage?.title}` : `Редактирование: ${page.title}`}

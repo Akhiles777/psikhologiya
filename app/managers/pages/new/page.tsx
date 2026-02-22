@@ -67,7 +67,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
 
   return (
       <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-[1900px]">
           <div className="mb-6">
             <h1 className="font-display text-2xl font-bold text-gray-900">
               Создание страницы
@@ -228,7 +228,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
 
                 <div className="mt-4">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Добавить файлы для страницы</h3>
-                  <div className="max-w-md">
+                  <div className="w-full">
                     <AddImageToPage />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">Загрузите файлы и скопируйте путь для вставки в HTML контент страницы.</p>

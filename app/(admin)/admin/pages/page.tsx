@@ -26,7 +26,7 @@ export default async function PagesListPage({
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-[1900px]">
         {errorBanner && (
           <div className="mb-4 rounded-lg border-2 border-amber-300 bg-amber-50 p-3 text-amber-800 sm:rounded-xl sm:p-4">
             <p className="font-medium text-sm sm:text-base">{errorBanner}</p>
@@ -59,7 +59,7 @@ export default async function PagesListPage({
             Шаблон «текст» — единый вид страницы. «Пустой» — выводится как чистый HTML-контент без обрамления.
           </p>
 
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
             <div className="rounded-xl border border-[#5858E2]/20 bg-[#5858E2]/5 p-4">
               <p className="text-sm font-medium text-gray-900">Управление футером</p>
               <p className="mt-1 text-xs text-gray-600">
@@ -96,6 +96,19 @@ export default async function PagesListPage({
                 className="mt-3 inline-flex items-center rounded-lg bg-[#5858E2] px-3 py-2 text-xs font-medium text-white hover:bg-[#4848d0]"
               >
                 Открыть connect
+              </Link>
+            </div>
+
+            <div className="rounded-xl border border-[#5858E2]/20 bg-[#5858E2]/5 p-4">
+              <p className="text-sm font-medium text-gray-900">Управление меню</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Отдельный раздел для добавления, удаления, переименования и сортировки пунктов меню.
+              </p>
+              <Link
+                href="/admin/pages/menu"
+                className="mt-3 inline-flex items-center rounded-lg bg-[#5858E2] px-3 py-2 text-xs font-medium text-white hover:bg-[#4848d0]"
+              >
+                Открыть меню
               </Link>
             </div>
           </div>

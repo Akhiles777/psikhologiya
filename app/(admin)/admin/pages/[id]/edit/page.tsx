@@ -36,6 +36,8 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
   const currentPublicPath = page.slug === "home" ? "/" : directPathSlugs.includes(page.slug) ? `/${page.slug}` : `/s/${page.slug}`;
 
   return (
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+      <div className="mx-auto max-w-[1900px]">
       <div className="rounded-2xl border-2 border-[#5858E2]/20 bg-white p-8 shadow-lg">
         <h1 className="font-display text-2xl font-bold text-foreground">
           {isSystemPage ? `Редактирование: ${systemPage?.title}` : `Редактировать: ${page.title}`}
@@ -82,7 +84,7 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
                       name="title"
                       required
                       defaultValue={page.title}
-                      className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
                   />
                 </div>
 
@@ -100,7 +102,7 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
                         defaultValue={page.slug}
                         pattern="[a-z0-9\-_]+"
                         title="Только латиница, цифры, дефис и нижнее подчеркивание. Без пробелов!"
-                        className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
+                        className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
                     />
 
                     <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
@@ -135,7 +137,7 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
                   <select
                       name="template"
                       defaultValue={page.template}
-                      className="mt-1 w-full max-w-md rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
+                      className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
                   >
                     <option value="text">Текст</option>
                     <option value="empty">Пустой (HTML)</option>
@@ -149,7 +151,7 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
               <h3 className="text-sm font-medium text-foreground mb-2">
                 {isSystemPage ? "Файлы системной страницы" : "Добавить файлы для страницы"}
               </h3>
-              <div className="max-w-md">
+              <div className="w-full">
                 <AddImageToPage initialImages={page.images ?? []} entityKey={`page-${page.id}`} />
               </div>
               <p className="mt-1 text-xs text-neutral-dark">
@@ -210,5 +212,7 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
             </div>
         )}
       </div>
+      </div>
+    </div>
   );
 }

@@ -1,21 +1,27 @@
 import Image from "next/image";
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
+import { getSiteMenuItems } from "@/lib/site-menu";
 
-const menu = [
-  { href: "/psy-list", label: "Подобрать психолога" },
-  { href: "/courses", label: "Курсы" },
-  {
-    label: "Библиотека",
-    children: [
-      { href: "/lib", label: "Библиотека" },
-      { href: "/lib/articles", label: "Статьи" },
-    ],
-  },
-  { href: "/connect", label: "Для психологов" },
-  { href: "/contacts", label: "Контакты" },
-];
+function isExternalHref(href: string) {
+  return /^(https?:\/\/|mailto:|tel:)/i.test(href);
+}
 
-export function SiteHeader() {
+function getMenuEmoji(href: string) {
+  if (isExternalHref(href)) return "🔗";
+  if (href === "/psy-list") return "👤";
+  if (href === "/courses") return "📚";
+  if (href === "/connect") return "💼";
+  if (href === "/contacts") return "📞";
+  if (href.startsWith("/lib")) return "📖";
+  if (href === "/complaint") return "⚠️";
+  return "🔍";
+}
+
+export async function SiteHeader() {
+  noStore();
+  const menu = await getSiteMenuItems();
+
   return (
       <header className="sticky top-0 z-50 border-b border-gray-200/50 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
@@ -41,40 +47,25 @@ export function SiteHeader() {
             {/* Десктопное меню */}
             <nav className="hidden md:flex items-center gap-1" aria-label="Главное меню">
               {menu.map((item) =>
-                  "href" in item ? (
-                      <Link
-                          key={item.href}
-                          href={item.href || "/"}
-                          className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
-                      >
-                        {item.label}
-                      </Link>
-                  ) : (
-                      <div key={item.label} className="relative group">
-                        <button
-                            type="button"
-                            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
-                            aria-expanded="false"
-                            aria-haspopup="true"
-                        >
-                          {item.label}
-                          <span className="ml-1 opacity-60">▾</span>
-                        </button>
-                        <div className="invisible opacity-0 translate-y-2 absolute left-1/2 top-full pt-2 -translate-x-1/2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
-                          <div className="rounded-xl border border-gray-200/50 bg-white/95 backdrop-blur-md py-2 shadow-lg min-w-[160px] ring-1 ring-black/5">
-                            {item.children.map((child) => (
-                                <Link
-                                    key={child.href}
-                                    href={child.href}
-                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-[#5858E2]/10 hover:text-[#5858E2] whitespace-nowrap transition-colors"
-                                >
-                                  {child.label}
-                                </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                  )
+                isExternalHref(item.href) ? (
+                  <a
+                    key={item.id}
+                    href={item.href || "/"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={item.id}
+                    href={item.href || "/"}
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
+                  >
+                    {item.label}
+                  </Link>
+                )
               )}
             </nav>
 
@@ -103,39 +94,33 @@ export function SiteHeader() {
                     <div className="p-4">
                       <div className="space-y-1">
                         {menu.map((item) =>
-                            "href" in item ? (
-                                <Link
-                                    key={item.href}
-                                    href={item.href || "/"}
-                                    className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
-                                >
-                                  <div className="h-6 w-6 rounded-lg bg-[#5858E2]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <span className="text-[#5858E2] text-xs">
-                                {item.label === "Подобрать психолога" ? "👤" :
-                                        item.label === "Курсы" ? "📚" :
-                                            item.label === "Для психологов" ? "💼" :
-                                                item.label === "Контакты" ? "📞" : "🔍"}
-                              </span>
-                                  </div>
-                                  <span>{item.label}</span>
-                                  <span className="ml-auto opacity-40 text-xs">→</span>
-                                </Link>
-                            ) : (
-                                <div key={item.label} className="space-y-1">
-                                  <div className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#5858E2]/80">
-                                    {item.label}
-                                  </div>
-                                  {item.children.map((child) => (
-                                      <Link
-                                          key={child.href}
-                                          href={child.href}
-                                          className="block rounded-xl px-6 py-2 text-sm text-gray-600 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-colors"
-                                      >
-                                        • {child.label}
-                                      </Link>
-                                  ))}
-                                </div>
-                            )
+                          isExternalHref(item.href) ? (
+                            <a
+                              key={item.id}
+                              href={item.href || "/"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
+                            >
+                              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#5858E2]/10 transition-transform group-hover:scale-110">
+                                <span className="text-xs text-[#5858E2]">{getMenuEmoji(item.href)}</span>
+                              </div>
+                              <span>{item.label}</span>
+                              <span className="ml-auto opacity-40 text-xs">→</span>
+                            </a>
+                          ) : (
+                            <Link
+                              key={item.id}
+                              href={item.href || "/"}
+                              className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-800 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200"
+                            >
+                              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#5858E2]/10 transition-transform group-hover:scale-110">
+                                <span className="text-xs text-[#5858E2]">{getMenuEmoji(item.href)}</span>
+                              </div>
+                              <span>{item.label}</span>
+                              <span className="ml-auto opacity-40 text-xs">→</span>
+                            </Link>
+                          )
                         )}
                       </div>
 
