@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { ArticleContentEditor, type ArticleContentEditorApi } from "@/components/articles/ArticleContentEditor";
 import EntityFilesField from "@/components/files/EntityFilesField";
+import { getDataListItems } from "@/lib/actions/admin-references";
+import { ArticleTagsSelector } from "@/components/articles/ArticleTagsSelector";
 
 function FormInput({ label, ...props }: any) {
   return (
@@ -42,7 +44,6 @@ export default function ArticleForm({
   const [shortText, setShortText] = useState(initialData.shortText || "");
   const [content, setContent] = useState(initialData.content || "");
   const [tags, setTags] = useState<string[]>(initialData.tags || []);
-  const [tagsInput, setTagsInput] = useState<string>((initialData.tags || []).join(", "));
   const [allTags, setAllTags] = useState<string[]>([]);
   const [allCatalogs, setAllCatalogs] = useState<string[]>([]);
   const [authorId, setAuthorId] = useState(initialData.authorId || "");
@@ -71,29 +72,28 @@ export default function ArticleForm({
   const inputRef = useRef<HTMLInputElement>(null);
   const contentEditorApiRef = useRef<ArticleContentEditorApi | null>(null);
 
-  // Загружаем тэги и каталоги через общий API /api/articles
+  // Загружаем тэги и каталоги
   useEffect(() => {
-    fetch("/api/articles", { cache: "no-store" })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.articles) {
-            // Собираем уникальные тэги из всех статей
-            const tagsSet = new Set<string>();
-            // Собираем уникальные каталоги из всех статей
-            const catalogsSet = new Set<string>();
+    Promise.all([
+      fetch("/api/articles", { cache: "no-store" }).then((res) => res.json()),
+      getDataListItems("article-tags"),
+    ])
+      .then(([articlesData, tagItems]) => {
+        const normalizedTags = Array.isArray(tagItems) ? tagItems.filter(Boolean) : [];
+        setAllTags(normalizedTags);
 
-            data.articles.forEach((article: any) => {
-              article.tags?.forEach((tag: string) => tagsSet.add(tag));
-              if (article.catalogSlug) {
-                catalogsSet.add(article.catalogSlug);
-              }
-            });
+        if (articlesData?.success && Array.isArray(articlesData.articles)) {
+          const catalogsSet = new Set<string>();
+          articlesData.articles.forEach((article: any) => {
+            if (article.catalogSlug) catalogsSet.add(article.catalogSlug);
+          });
+          setAllCatalogs(Array.from(catalogsSet));
+        }
 
-            setAllTags(Array.from(tagsSet));
-            setAllCatalogs(Array.from(catalogsSet));
-          }
-        })
-        .catch(err => console.error("Error loading data:", err));
+        // Защита от старых/несуществующих тэгов в уже сохраненных статьях
+        setTags((prev) => prev.filter((tag) => normalizedTags.includes(tag)));
+      })
+      .catch((err) => console.error("Error loading data:", err));
   }, []);
 
   // Закрываем дропдаун при клике вне
@@ -161,12 +161,6 @@ export default function ArticleForm({
     const warning = validateSlug(newSlug);
     setSlugWarning(warning);
   };
-
-  const parseTags = (value: string): string[] =>
-    value
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
 
   const hasMeaningfulContent = (value: string): boolean => {
     const plain = value
@@ -248,7 +242,7 @@ export default function ArticleForm({
         slug: slug.trim(),
         shortText: shortText.trim(),
         content: content.trim(),
-        tags: parseTags(tagsInput),
+        tags,
         authorId: authorId || null,
         catalogSlug: catalogSlug?.trim() || null,
         isPublished: Boolean(isPublished)
@@ -387,28 +381,13 @@ export default function ArticleForm({
               editorApiRef={contentEditorApiRef}
           />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Тэги (через запятую)</label>
-            <input
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                onBlur={() => {
-                  const parsed = parseTags(tagsInput);
-                  setTags(parsed);
-                  setTagsInput(parsed.join(", "));
-                }}
-                list="all-tags"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
-                placeholder="тег1, тег2, тег3"
-                disabled={isSubmitting}
-            />
-            <datalist id="all-tags">
-              {allTags.map(tag => <option key={tag} value={tag} />)}
-            </datalist>
-            <div className="text-xs text-gray-500 mt-1">
-              Существующие тэги: {allTags.length > 0 ? allTags.join(", ") : "нет"}
-            </div>
-          </div>
+          <ArticleTagsSelector
+            label="Тэги статьи"
+            availableTags={allTags}
+            value={tags}
+            onChange={setTags}
+            disabled={isSubmitting}
+          />
 
           <EntityFilesField
               scope="articles"

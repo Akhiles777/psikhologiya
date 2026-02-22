@@ -113,23 +113,6 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
                     </p>
                   </div>
 
-                  <div className="mt-3 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
-                    <p className="text-xs font-medium text-red-800 mt-2 mb-1">❌ Неправильные примеры:</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-white px-2 py-1 rounded border border-red-200 text-red-700 line-through">о проекте</span>
-                      <span className="bg-white px-2 py-1 rounded border border-red-200 text-red-700 line-through">my page</span>
-                      <span className="bg-white px-2 py-1 rounded border border-red-200 text-red-700 line-through">page@123</span>
-                      <span className="bg-white px-2 py-1 rounded border border-red-200 text-red-700 line-through">страница!</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-2 flex items-start gap-2 text-amber-700 bg-amber-50 p-2 rounded text-xs">
-                    <span className="text-lg">⚠️</span>
-                    <span>
-                    <strong>Важно:</strong> Кириллица, пробелы и спецсимволы недопустимы в URL.
-                    Используйте только латиницу, цифры, дефисы и нижние подчеркивания.
-                  </span>
-                  </div>
                 </div>
 
                 <div>

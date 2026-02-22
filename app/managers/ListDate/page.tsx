@@ -6,7 +6,7 @@ import { Plus, Trash2, Save, Edit, GripVertical, X, Check } from 'lucide-react';
 import AuthGuard from '@/components/AuthGuard';
 
 export default function ReferencesPage() {
-  const [activeTab, setActiveTab] = useState<'work-formats' | 'paradigms' | 'certification-levels'>('work-formats');
+  const [activeTab, setActiveTab] = useState<'work-formats' | 'paradigms' | 'certification-levels' | 'article-tags'>('work-formats');
   const [items, setItems] = useState<string[]>([]);
   const [newItem, setNewItem] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,6 +20,7 @@ export default function ReferencesPage() {
     'work-formats': 'Форматы работы',
     'paradigms': 'Парадигмы', 
     'certification-levels': 'Уровни сертификации',
+    'article-tags': 'Тэги статей',
   };
 
   // Загружаем данные при смене вкладки

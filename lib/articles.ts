@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
+const ARTICLE_TAGS_SLUG = "article-tags";
+
 // Проверка существования модели
 function checkPrismaModel() {
   if (!prisma) {
@@ -14,6 +16,71 @@ function checkPrismaModel() {
   }
   
   return prisma.article;
+}
+
+function normalizeTag(value: unknown): string {
+  return typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+}
+
+function normalizeTagList(values: unknown[]): string[] {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+  for (const raw of values) {
+    const tag = normalizeTag(raw);
+    if (!tag || seen.has(tag)) continue;
+    seen.add(tag);
+    normalized.push(tag);
+  }
+  return normalized;
+}
+
+async function getAllowedArticleTags(model: ReturnType<typeof checkPrismaModel>): Promise<string[]> {
+  if (!prisma) return [];
+
+  try {
+    const dataList = await prisma.dataList.findUnique({
+      where: { slug: ARTICLE_TAGS_SLUG },
+      select: { items: true },
+    });
+
+    const fromDataList = normalizeTagList(Array.isArray(dataList?.items) ? dataList.items : []);
+    if (fromDataList.length > 0) return fromDataList;
+  } catch {
+    // fallback ниже
+  }
+
+  const rows = await model.findMany({ select: { tags: true } });
+  const fromArticles = normalizeTagList(rows.flatMap((row) => row.tags ?? []));
+
+  // Заполняем data list автоматически для первого запуска функционала тегов.
+  if (fromArticles.length > 0 && prisma) {
+    try {
+      await prisma.dataList.upsert({
+        where: { slug: ARTICLE_TAGS_SLUG },
+        update: {
+          name: "Тэги статей",
+          items: fromArticles,
+        },
+        create: {
+          slug: ARTICLE_TAGS_SLUG,
+          name: "Тэги статей",
+          items: fromArticles,
+        },
+      });
+    } catch {
+      // Не прерываем операцию статьи из-за фоновой синхронизации тэгов
+    }
+  }
+
+  return fromArticles;
+}
+
+function validateAndNormalizeArticleTags(inputTags: unknown[], allowedTags: string[]) {
+  const allowedSet = new Set(allowedTags.map(normalizeTag));
+  const normalizedInput = normalizeTagList(inputTags);
+  const invalid = normalizedInput.filter((tag) => !allowedSet.has(tag));
+  const valid = normalizedInput.filter((tag) => allowedSet.has(tag));
+  return { valid, invalid };
 }
 
 // Получить статью по slug (для клиентской части)
@@ -99,6 +166,12 @@ export async function createArticle(data: CreateArticleInput) {
     if (exists) {
       throw new Error("Статья с таким slug уже существует");
     }
+
+    const allowedTags = await getAllowedArticleTags(model);
+    const { valid: safeTags, invalid } = validateAndNormalizeArticleTags(data.tags || [], allowedTags);
+    if (invalid.length > 0) {
+      throw new Error(`Недопустимые тэги: ${invalid.join(", ")}`);
+    }
     
     // Формируем объект для создания
     const createData: Prisma.ArticleCreateInput = {
@@ -106,7 +179,7 @@ export async function createArticle(data: CreateArticleInput) {
       slug: data.slug,
       shortText: data.shortText ?? null,
       content: data.content,
-      tags: data.tags || [],
+      tags: safeTags,
       catalogSlug: data.catalogSlug,
       publishedAt: data.isPublished ? new Date() : null,
     };
@@ -156,12 +229,22 @@ export async function updateArticle(id: string, data: {
     }
     
     // Формируем данные для обновления
+    let normalizedTags: string[] | undefined;
+    if (data.tags !== undefined) {
+      const allowedTags = await getAllowedArticleTags(model);
+      const { valid: safeTags, invalid } = validateAndNormalizeArticleTags(data.tags || [], allowedTags);
+      if (invalid.length > 0) {
+        throw new Error(`Недопустимые тэги: ${invalid.join(", ")}`);
+      }
+      normalizedTags = safeTags;
+    }
+
     const updateData: Prisma.ArticleUpdateInput = {
       ...(data.title !== undefined ? { title: data.title } : {}),
       ...(data.slug !== undefined ? { slug: data.slug } : {}),
       ...(data.shortText !== undefined ? { shortText: data.shortText } : {}),
       ...(data.content !== undefined ? { content: data.content } : {}),
-      ...(data.tags !== undefined ? { tags: data.tags } : {}),
+      ...(normalizedTags !== undefined ? { tags: normalizedTags } : {}),
       ...(data.catalogSlug !== undefined ? { catalogSlug: data.catalogSlug } : {}),
     };
 
