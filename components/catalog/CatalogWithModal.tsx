@@ -87,7 +87,7 @@ function CardBlock({
       onClick={onClick}
       className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white p-0 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#5858E2]/35 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#5858E2]"
     >
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F5F5F7] lg:aspect-[3/2]">
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#F5F5F7] lg:aspect-[7/5]">
         {imageSrc ? (
           <Image
             src={imageSrc}
