@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type MutableRefObject } from "react";
 
 type EditorMode = "plain" | "wysiwyg";
 
 type TinyMceEditorInstance = {
   getContent: () => string;
   setContent: (content: string) => void;
+  insertContent?: (content: string) => void;
+  focus?: () => void;
   on: (event: string, callback: () => void) => void;
   remove: () => void;
 };
@@ -22,6 +24,12 @@ declare global {
   }
 }
 
+export type ArticleContentEditorApi = {
+  insertHtml: (snippet: string) => boolean;
+  focus: () => void;
+  getMode: () => EditorMode;
+};
+
 type Props = {
   label: string;
   value: string;
@@ -31,6 +39,7 @@ type Props = {
   placeholder?: string;
   rows?: number;
   storageKey?: string;
+  editorApiRef?: MutableRefObject<ArticleContentEditorApi | null>;
 };
 
 const TINYMCE_SCRIPT_ID = "tinymce-cdn-script";
@@ -107,6 +116,7 @@ export function ArticleContentEditor({
   placeholder,
   rows = 14,
   storageKey = DEFAULT_STORAGE_KEY,
+  editorApiRef,
 }: Props) {
   const [mode, setMode] = useState<EditorMode>("plain");
   const [isClientReady, setIsClientReady] = useState(false);
@@ -114,6 +124,7 @@ export function ArticleContentEditor({
   const [editorError, setEditorError] = useState<string | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const plainTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const editorRef = useRef<TinyMceEditorInstance | null>(null);
   const onChangeRef = useRef(onChange);
   const valueRef = useRef(value);
@@ -244,6 +255,64 @@ export function ArticleContentEditor({
     }
   }, [mode, value]);
 
+  const insertHtml = useCallback(
+    (snippet: string): boolean => {
+      const html = snippet || "";
+      if (!html.trim()) return false;
+
+      if (mode === "wysiwyg") {
+        const editor = editorRef.current;
+        if (editor && typeof editor.insertContent === "function") {
+          editor.focus?.();
+          editor.insertContent(html);
+          onChangeRef.current(editor.getContent());
+          return true;
+        }
+        return false;
+      }
+
+      const textarea = plainTextareaRef.current;
+      const currentValue = valueRef.current || "";
+      const start = textarea?.selectionStart ?? currentValue.length;
+      const end = textarea?.selectionEnd ?? currentValue.length;
+      const nextValue = `${currentValue.slice(0, start)}${html}${currentValue.slice(end)}`;
+      const caret = start + html.length;
+
+      onChangeRef.current(nextValue);
+
+      window.setTimeout(() => {
+        const node = plainTextareaRef.current;
+        if (!node) return;
+        node.focus();
+        node.setSelectionRange(caret, caret);
+      }, 0);
+
+      return true;
+    },
+    [mode]
+  );
+
+  useEffect(() => {
+    if (!editorApiRef) return;
+    editorApiRef.current = {
+      insertHtml,
+      focus: () => {
+        if (mode === "wysiwyg") {
+          editorRef.current?.focus?.();
+          return;
+        }
+        plainTextareaRef.current?.focus();
+      },
+      getMode: () => mode,
+    };
+
+    return () => {
+      if (editorApiRef.current) {
+        editorApiRef.current = null;
+      }
+    };
+  }, [editorApiRef, insertHtml, mode]);
+
   return (
     <div>
       <div className="mb-2 flex items-center justify-between gap-4">
@@ -278,6 +347,7 @@ export function ArticleContentEditor({
         />
       ) : (
         <textarea
+          ref={plainTextareaRef}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           disabled={disabled}

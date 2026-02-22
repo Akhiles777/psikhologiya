@@ -70,15 +70,12 @@ export default function AdminArticleEditPage({ params }: { params: Promise<{ id:
       });
 
       const data = await res.json();
-      if (data.success) {
-        router.push("/managers/articles");
-        router.refresh();
-      } else {
-        alert(data.error || "Ошибка при сохранении");
+      if (!data.success) {
+        throw new Error(data.error || "Ошибка при сохранении");
       }
     } catch (error) {
       console.error("Error updating article:", error);
-      alert("Ошибка при сохранении");
+      throw error;
     }
   }
 

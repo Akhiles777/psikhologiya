@@ -32,8 +32,8 @@ export default async function NewPageForm({
 
         <p className="mt-2 text-sm text-neutral-dark">
           Slug — адрес страницы (только латиница, цифры, дефис). Например: about → /s/about.
-          Для разделов «Курсы», «Библиотека» используйте slug: courses, lib, connect, contacts —
-          тогда контент откроется по /courses, /lib и т.д.
+          Для прямых адресов работают slug: courses, lib, contacts. 
+          Главная (<code>home</code>) и <code>connect</code> теперь редактируются отдельно в разделе «Страницы сайта».
         </p>
 
         {errorMessage && (
@@ -74,7 +74,7 @@ export default async function NewPageForm({
               {/* Предпросмотр URL - статичный, без JS */}
               <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                 <span className="text-gray-400">📌</span>
-                Будет доступно по адресу: <span className="font-mono text-[#5858E2] bg-[#5858E2]/5 px-1.5 py-0.5 rounded">/pages/[ваш-slug]</span>
+                Будет доступно по адресу: <span className="font-mono text-[#5858E2] bg-[#5858E2]/5 px-1.5 py-0.5 rounded">/s/[ваш-slug]</span>
               </p>
             </div>
 
@@ -110,14 +110,14 @@ export default async function NewPageForm({
           </div>
 
           <div>
-            {/* Кнопка добавления изображения для страницы */}
+            {/* Поле добавления файлов для страницы */}
             <div className="mt-4">
-              <h3 className="text-sm font-medium text-foreground mb-2">Добавить изображение для страницы</h3>
+              <h3 className="text-sm font-medium text-foreground mb-2">Добавить файлы для страницы</h3>
               <div className="max-w-md">
                 <AddImageToPage />
               </div>
               <p className="mt-1 text-xs text-neutral-dark">
-                Загрузите изображения — они сохранятся автоматически и будут доступны для вставки в HTML контент страницы.
+                Загрузите файлы — они сохранятся автоматически и будут доступны для вставки в HTML контент страницы.
               </p>
             </div>
           </div>

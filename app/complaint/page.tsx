@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
+import { ComplaintModalTrigger } from "@/components/complaint/ComplaintModalTrigger";
 
 export const metadata = buildMetadata({
   title: "Жалоба — Давай вместе",
@@ -14,19 +15,12 @@ export default function ComplaintPage() {
         Жалоба
       </h1>
       <p className="mt-4 leading-relaxed text-neutral-dark">
-        Если вы столкнулись с некорректным поведением специалиста или нарушением правил сервиса, напишите нам. Мы разберём обращение и при необходимости примем меры.
+        Если вы столкнулись с некорректным поведением специалиста или нарушением правил сервиса, отправьте жалобу через форму ниже.
+        После отправки письмо будет отправлено через сайт на gasanalunkachev@gmail.com.
       </p>
-      <p className="mt-6">
-        <strong className="text-foreground">Куда писать:</strong>{" "}
-        <a
-          href="https://t.me/psy_smirnov"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#5858E2] underline hover:no-underline"
-        >
-          Телеграм @psy_smirnov
-        </a>
-      </p>
+      <div className="mt-6">
+        <ComplaintModalTrigger triggerLabel="Открыть форму жалобы" />
+      </div>
       <p className="mt-8">
         <Link href="/contacts" className="text-[#5858E2] underline hover:no-underline">
           Все контакты

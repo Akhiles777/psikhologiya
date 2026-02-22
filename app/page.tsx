@@ -1,14 +1,7 @@
-import { HeroBlock } from "@/components/home/HeroBlock";
-import { TrustBlock } from "@/components/home/TrustBlock";
-import { ValuesBlock } from "@/components/home/ValuesBlock";
-import { HowBlock } from "@/components/home/HowBlock";
-import { CatalogBlock } from "@/components/home/CatalogBlock";
-import { ForPsychologistsBlock } from "@/components/home/ForPsychologistsBlock";
-import { LibraryBlock } from "@/components/home/LibraryBlock";
-import { CtaBlock } from "@/components/home/CtaBlock";
 import { buildMetadata } from "@/lib/seo";
-import { getPublishedVisualPage } from "@/lib/visual-pages";
-import VisualPageRuntime from "@/components/pages/VisualPageRuntime";
+import { getPageBySlug } from "@/lib/page-content";
+import { PageContent } from "@/components/PageContent";
+import { HomeFallback } from "@/components/pages/HomeFallback";
 
 export const metadata = buildMetadata({
   title: "Давай вместе — Находим своего психолога вместе",
@@ -16,36 +9,13 @@ export const metadata = buildMetadata({
   path: "/",
 });
 
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const params = searchParams ? await searchParams : {};
-  const isVisualSource = (typeof params.visual_source === "string" ? params.visual_source : "") === "1";
+export default async function HomePage() {
+  const page = await getPageBySlug("home");
+  const hasCustomHomeContent = Boolean(page?.content?.trim());
 
-  const visualPage = await getPublishedVisualPage("home");
-  if (visualPage && !isVisualSource) {
-    return (
-      <VisualPageRuntime
-        html={visualPage.html}
-        css={visualPage.css}
-        styleHrefs={visualPage.styleHrefs}
-        pageKey="home"
-      />
-    );
+  if (page && hasCustomHomeContent) {
+    return <PageContent title={page.title} template={page.template} content={page.content} />;
   }
 
-  return (
-    <div data-vp-import-root>
-      <HeroBlock />
-      <TrustBlock />
-      <ValuesBlock />
-      <HowBlock />
-      <CatalogBlock />
-      <ForPsychologistsBlock />
-      <LibraryBlock />
-      <CtaBlock />
-    </div>
-  );
+  return <HomeFallback />;
 }

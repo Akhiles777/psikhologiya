@@ -20,6 +20,8 @@ export default async function PagesListPage({
     db_sync: DB_SYNC_MESSAGE,
     db_unavailable: "База данных недоступна.",
     delete_failed: "Не удалось удалить страницу.",
+    footer_protected: "Системный футер нельзя удалить из общего списка.",
+    system_page_protected: "Системные страницы (футер, главная, connect) нельзя удалить из общего списка.",
   };
   const errorBanner = errorCode ? errorMessages[errorCode] ?? "Произошла ошибка." : null;
 
@@ -56,20 +58,50 @@ export default async function PagesListPage({
           </div>
 
           <p className="mt-3 text-xs text-gray-600 sm:mt-4 sm:text-sm">
-            Страницы отображаются по адресу /s/[slug]. Шаблон «текст» — заголовок и контент. «Пустой» — любой HTML.
+            Страницы отображаются по адресу /s/[slug]. Специальные slug: courses → /courses, lib → /lib, contacts → /contacts.
+            Главная и connect редактируются в системных карточках ниже.
+            Шаблон «текст» — единый вид страницы. «Пустой» — выводится как чистый HTML-контент без обрамления.
           </p>
 
-          <div className="mt-4 rounded-xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-4">
-            <p className="text-sm font-medium text-gray-900">Отдельный раздел визуального редактирования</p>
-            <p className="mt-1 text-xs text-gray-600">
-              Для главной страницы и /connect используйте отдельный визуальный редактор.
-            </p>
-            <Link
-              href="/managers/pages/visual"
-              className="mt-3 inline-flex items-center rounded-lg bg-[#4CAF50] px-3 py-2 text-xs font-medium text-white hover:bg-[#43A047]"
-            >
-              Открыть визуальный редактор
-            </Link>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-4">
+              <p className="text-sm font-medium text-gray-900">Управление футером</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Полный HTML-код футера, общий для всех публичных страниц.
+              </p>
+              <Link
+                href="/managers/pages/footer"
+                className="mt-3 inline-flex items-center rounded-lg bg-[#4CAF50] px-3 py-2 text-xs font-medium text-white hover:bg-[#43A047]"
+              >
+                Открыть футер
+              </Link>
+            </div>
+
+            <div className="rounded-xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-4">
+              <p className="text-sm font-medium text-gray-900">Управление главной</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Прямое редактирование HTML-кода страницы <code>/</code>.
+              </p>
+              <Link
+                href="/managers/pages/home"
+                className="mt-3 inline-flex items-center rounded-lg bg-[#4CAF50] px-3 py-2 text-xs font-medium text-white hover:bg-[#43A047]"
+              >
+                Открыть главную
+              </Link>
+            </div>
+
+            <div className="rounded-xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-4">
+              <p className="text-sm font-medium text-gray-900">Управление connect</p>
+              <p className="mt-1 text-xs text-gray-600">
+                Прямое редактирование HTML-кода страницы <code>/connect</code>.
+              </p>
+              <Link
+                href="/managers/pages/connect"
+                className="mt-3 inline-flex items-center rounded-lg bg-[#4CAF50] px-3 py-2 text-xs font-medium text-white hover:bg-[#43A047]"
+              >
+                Открыть connect
+              </Link>
+            </div>
           </div>
 
           {list.length === 0 ? (
@@ -115,9 +147,11 @@ export default async function PagesListPage({
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
                       {list.map((page) => {
-                        const pageUrl = ["courses", "lib", "connect", "contacts"].includes(page.slug) 
-                          ? `/${page.slug}` 
-                          : `/s/${page.slug}`;
+                        const pageUrl = page.slug === "home"
+                          ? "/"
+                          : ["courses", "lib", "connect", "contacts"].includes(page.slug)
+                            ? `/${page.slug}`
+                            : `/s/${page.slug}`;
                         
                         return (
                           <tr key={page.id} className="hover:bg-gray-50">

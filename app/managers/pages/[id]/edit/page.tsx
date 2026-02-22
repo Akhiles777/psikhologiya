@@ -1,7 +1,7 @@
-import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getPageById, updatePage } from "@/lib/actions/manager-pages";
 import EditPageClient from "@/components/pages/EditPageClient";
+import { getSystemPageBySlug } from "@/lib/system-pages";
 
 export default async function EditPagePage({
                                              params,
@@ -26,20 +26,26 @@ export default async function EditPagePage({
     duplicate_slug: "Страница с таким URL уже существует.",
     update_failed: "Не удалось обновить страницу.",
     invalid_slug: "URL может содержать только латинские буквы, цифры и дефисы (-).",
+    db_sync: "Ошибка базы данных. Проверьте подключение.",
   };
 
   const errorCode = typeof searchParamsObj.error === "string" ? searchParamsObj.error : "";
   const errorBanner = errorCode ? errorMessages[errorCode] ?? "Произошла ошибка." : null;
+  const savedBanner = searchParamsObj.saved === "1" ? "Изменения сохранены." : null;
+  const systemPage = getSystemPageBySlug(page.slug);
+  const isSystemPage = Boolean(systemPage);
 
   return (
       <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
         <div className="mx-auto max-w-4xl">
           <div className="mb-6">
             <h1 className="font-display text-2xl font-bold text-gray-900">
-              Редактирование: {page.title}
+              {isSystemPage ? `Редактирование: ${systemPage?.title}` : `Редактирование: ${page.title}`}
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              Измените данные страницы.
+              {isSystemPage
+                ? systemPage?.description
+                : "Измените данные страницы."}
             </p>
           </div>
 
@@ -49,11 +55,16 @@ export default async function EditPagePage({
               </div>
           )}
 
+          {savedBanner && !errorBanner && (
+              <div className="mb-4 rounded-lg border-2 border-green-300 bg-green-50 p-3 text-green-800 sm:rounded-xl sm:p-4">
+                <p className="font-medium text-sm sm:text-base">{savedBanner}</p>
+              </div>
+          )}
+
           {/* Передаем данные в Client Component */}
           <EditPageClient
               page={page}
               pageId={id}
-              errorBanner={errorBanner}
               updatePage={updatePage}
           />
         </div>

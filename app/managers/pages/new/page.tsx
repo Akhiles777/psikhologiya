@@ -15,6 +15,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
   const [searchParamsState, setSearchParamsState] = useState<{ error?: string; slug?: string }>({});
   const [slug, setSlug] = useState("");
   const [slugError, setSlugError] = useState<string | null>(null);
+  const directPathSlugs = ["courses", "lib", "connect", "contacts"];
 
   // Используем useEffect для обработки Promise
   useEffect(() => {
@@ -30,10 +31,10 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
     if (!value) return null;
 
     // Разрешаем только латиницу, цифры, дефисы
-    const allowedPattern = /^[a-z0-9\-]+$/;
+    const allowedPattern = /^[a-z0-9\-_]+$/;
 
     if (!allowedPattern.test(value)) {
-      return "Slug может содержать только латинские буквы, цифры и дефисы (-)";
+      return "Slug может содержать только латинские буквы, цифры, дефисы (-) и нижние подчеркивания (_)";
     }
 
     return null;
@@ -44,7 +45,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
     let value = e.target.value;
 
     // Заменяем недопустимые символы (кириллица, пробелы, спецсимволы)
-    value = value.replace(/[^a-zA-Z0-9\-]/g, '');
+    value = value.replace(/[^a-zA-Z0-9\-_]/g, '');
     value = value.toLowerCase();
 
     setSlug(value);
@@ -62,6 +63,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
   };
 
   const errorBanner = searchParamsState.error ? errorMessages[searchParamsState.error] ?? "Произошла ошибка." : null;
+  const previewPath = slug === "home" ? "/" : directPathSlugs.includes(slug) ? `/${slug}` : `/s/${slug}`;
 
   return (
       <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
@@ -71,7 +73,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
               Создание страницы
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              Заполните форму для создания новой страницы.
+              Заполните форму для создания новой страницы. Для прямых адресов используйте slug: courses, lib, contacts. Главная (home) и connect редактируются в отдельных системных карточках на странице списка.
             </p>
           </div>
 
@@ -101,7 +103,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
                 <div>
                   <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
                     URL (англ., через дефис) *
-                    <span className="ml-2 text-xs text-amber-600">только латиница, цифры, дефис</span>
+                    <span className="ml-2 text-xs text-amber-600">только латиница, цифры, дефис, нижнее подчеркивание</span>
                   </label>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-500">/s/</span>
@@ -127,7 +129,13 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
                   {/* Предпросмотр URL */}
                   {slug && !slugError && (
                       <p className="mt-1 text-xs text-green-600">
-                        ✓ Будет доступно по адресу: /s/{slug}
+                        ✓ Будет доступно по адресу: {previewPath}
+                      </p>
+                  )}
+
+                  {["courses", "lib", "connect", "contacts"].includes(slug) && !slugError && (
+                      <p className="mt-1 text-xs text-blue-600">
+                        Специальный slug: страница будет открываться по адресу /{slug}
                       </p>
                   )}
 
@@ -219,11 +227,11 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
                 </div>
 
                 <div className="mt-4">
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Добавить изображение для страницы</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Добавить файлы для страницы</h3>
                   <div className="max-w-md">
                     <AddImageToPage />
                   </div>
-                  <p className="mt-1 text-xs text-gray-500">Загрузите изображение и скопируйте путь для вставки в HTML контент страницы.</p>
+                  <p className="mt-1 text-xs text-gray-500">Загрузите файлы и скопируйте путь для вставки в HTML контент страницы.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">

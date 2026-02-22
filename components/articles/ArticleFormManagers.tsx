@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { ArticleContentEditor } from "@/components/articles/ArticleContentEditor";
+import { ArticleContentEditor, type ArticleContentEditorApi } from "@/components/articles/ArticleContentEditor";
+import EntityFilesField from "@/components/files/EntityFilesField";
 
 function FormInput({ label, ...props }: any) {
   return (
@@ -35,7 +35,8 @@ export default function ArticleForm({
                                       loading: externalLoading,
                                       psychologists = []
                                     }: ArticleFormProps) {
-  const router = useRouter();
+  const articleId = typeof initialData.id === "string" ? initialData.id : "";
+  const [draftFilesKey] = useState(() => `article-draft-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
   const [title, setTitle] = useState(initialData.title || "");
   const [slug, setSlug] = useState(initialData.slug || "");
   const [shortText, setShortText] = useState(initialData.shortText || "");
@@ -55,9 +56,21 @@ export default function ArticleForm({
   const [submitting, setSubmitting] = useState(false);
   const [slugWarning, setSlugWarning] = useState<string | null>(null);
   const [slugExists, setSlugExists] = useState(false);
+  const initialManagedFiles = useRef<string[]>(
+    typeof initialData.content === "string"
+      ? Array.from(
+          new Set(
+            (initialData.content.match(/\/articles\/files\/[a-z0-9_-]+\/[^\s"'<>`]+/gi) || []).map((item: string) =>
+              item.replace(/[),.;]+$/, "")
+            )
+          )
+        )
+      : []
+  );
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const contentEditorApiRef = useRef<ArticleContentEditorApi | null>(null);
 
   // Загружаем тэги и каталоги через API - получаем из всех статей
   useEffect(() => {
@@ -172,6 +185,48 @@ export default function ArticleForm({
     return plain.length > 0;
   };
 
+  const escapeHtml = (value: string): string =>
+    value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const isImageFile = (value: string): boolean => /\.(png|jpe?g|gif|webp|avif|svg|heic|heif)(\?.*)?$/i.test(value);
+
+  const insertHtmlToArticleContent = (snippet: string) => {
+    const inserted = contentEditorApiRef.current?.insertHtml(snippet) ?? false;
+    if (!inserted) {
+      setContent((prev: string) => {
+        const base = prev.trimEnd();
+        return base ? `${base}\n\n${snippet}\n` : `${snippet}\n`;
+      });
+    }
+    contentEditorApiRef.current?.focus();
+    setSuccess("Файл вставлен в текст статьи.");
+    window.setTimeout(() => setSuccess(null), 1400);
+  };
+
+  const handleInsertFileLink = (file: { url: string; name: string }) => {
+    if (isImageFile(file.name) || isImageFile(file.url)) {
+      handleInsertFileImage(file);
+      return;
+    }
+    const safeName = escapeHtml(file.name || "Скачать файл");
+    const safeUrl = escapeHtml(file.url);
+    insertHtmlToArticleContent(
+      `<p><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeName}</a></p>`
+    );
+  };
+
+  const handleInsertFileImage = (file: { url: string; name: string }) => {
+    const alt = escapeHtml(file.name || "Изображение");
+    const safeUrl = escapeHtml(file.url);
+    insertHtmlToArticleContent(
+      `<p><img src="${safeUrl}" alt="${alt}" style="max-width:100%;height:auto;" loading="lazy" /></p>`
+    );
+  };
+
   // Генерация slug из заголовка
   const generateSlugFromTitle = () => {
     if (!title.trim()) {
@@ -232,9 +287,8 @@ export default function ArticleForm({
         await onSubmit(formData);
         setSuccess("Сохранено!");
         setTimeout(() => {
-          router.push("/managers/articles");
-          router.refresh();
-        }, 1000);
+          window.location.assign(`/managers/articles?updated=${Date.now()}`);
+        }, 450);
       }
       else {
         console.log("📡 Sending POST request to /api/articles");
@@ -277,9 +331,8 @@ export default function ArticleForm({
         setSuccess("Статья успешно сохранена!");
 
         setTimeout(() => {
-          router.push("/managers/articles");
-          router.refresh();
-        }, 1500);
+          window.location.assign(`/managers/articles?created=${Date.now()}`);
+        }, 650);
       }
     } catch (e: any) {
       console.error("❌ Form submission error:", e);
@@ -290,6 +343,7 @@ export default function ArticleForm({
   }
 
   const isSubmitting = submitting || externalLoading;
+  const articleFilesEntityKey = articleId ? `article-${articleId}` : draftFilesKey;
 
   return (
       <form onSubmit={handleSubmit} noValidate className="space-y-8">
@@ -377,6 +431,7 @@ export default function ArticleForm({
               required
               disabled={isSubmitting}
               placeholder="Введите полный текст статьи..."
+              editorApiRef={contentEditorApiRef}
           />
 
           <div>
@@ -401,6 +456,16 @@ export default function ArticleForm({
               Существующие тэги: {allTags.length > 0 ? allTags.join(", ") : "нет"}
             </div>
           </div>
+
+          <EntityFilesField
+              scope="articles"
+              entityKey={articleFilesEntityKey}
+              title="Файлы статьи"
+              hint="Перетащите файлы или выберите их с устройства. Файлы сохраняются в /articles/files/[ключ-статьи]/."
+              initialUrls={initialManagedFiles.current}
+              onInsertLink={handleInsertFileLink}
+              onInsertImage={handleInsertFileImage}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Каталог</label>

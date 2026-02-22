@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 // Проверка существования модели
 function checkPrismaModel() {
@@ -64,6 +64,30 @@ export interface CreateArticleInput {
   isPublished?: boolean;
 }
 
+function revalidateArticleViews(slugs: Array<string | null | undefined> = []) {
+  revalidateTag("articles", "max");
+
+  // Публичные страницы библиотеки
+  revalidatePath("/lib/articles");
+  revalidatePath("/lib/articles/[slug]", "page");
+
+  // Служебные списки в админке и менеджерке
+  revalidatePath("/admin/articles");
+  revalidatePath("/managers/articles");
+
+  const uniqSlugs = Array.from(
+    new Set(
+      slugs
+        .map((slug) => (typeof slug === "string" ? slug.trim() : ""))
+        .filter(Boolean)
+    )
+  );
+
+  for (const slug of uniqSlugs) {
+    revalidatePath(`/lib/articles/${slug}`);
+  }
+}
+
 export async function createArticle(data: CreateArticleInput) {
   try {
     const model = checkPrismaModel();
@@ -96,7 +120,7 @@ export async function createArticle(data: CreateArticleInput) {
     
     const article = await model.create({ data: createData });
     console.log("[createArticle] created:", article);
-    revalidateTag("articles", "max");
+    revalidateArticleViews([article.slug, data.slug]);
     return article;
   } catch (e) {
     console.error("[createArticle] error:", e);
@@ -118,6 +142,10 @@ export async function updateArticle(id: string, data: {
 }) {
   try {
     const model = checkPrismaModel();
+    const current = await model.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
     
     // Проверка уникальности slug (если меняется)
     if (data.slug) {
@@ -159,7 +187,7 @@ export async function updateArticle(id: string, data: {
       where: { id },
       data: updateData,
     });
-    revalidateTag("articles", "max");
+    revalidateArticleViews([current?.slug, updated.slug, data.slug]);
     return updated;
   } catch (error) {
     console.error("[updateArticle] error:", error);
@@ -171,8 +199,12 @@ export async function updateArticle(id: string, data: {
 export async function deleteArticle(id: string) {
   try {
     const model = checkPrismaModel();
+    const current = await model.findUnique({
+      where: { id },
+      select: { slug: true },
+    });
     const deleted = await model.delete({ where: { id } });
-    revalidateTag("articles", "max");
+    revalidateArticleViews([current?.slug, deleted.slug]);
     return deleted;
   } catch (error) {
     console.error("[deleteArticle] error:", error);

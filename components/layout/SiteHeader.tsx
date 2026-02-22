@@ -1,7 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const menu = [
-  { href: "/", label: "Главная" },
   { href: "/psy-list", label: "Подобрать психолога" },
   { href: "/courses", label: "Курсы" },
   {
@@ -23,9 +23,19 @@ export function SiteHeader() {
             {/* Логотип */}
             <Link
                 href="/"
-                className="text-lg font-bold text-gray-900 hover:text-[#5858E2] transition-colors sm:text-xl"
+                className="-ml-1 inline-flex items-center gap-3 text-lg font-bold text-gray-900 transition-colors hover:text-[#5858E2] sm:-ml-2 sm:text-xl"
             >
-              Давай вместе
+              {/* Логотип увеличен и сдвинут левее */}
+              <Image
+                src="/logo.png"
+                alt="Логотип Давай вместе"
+                width={56}  // Увеличено с 44 до 56
+                height={56} // Увеличено с 44 до 56
+                className="h-14 w-14 rounded-md object-cover -ml-0.5" // Добавлен отрицательный отступ слева
+                priority
+              />
+              {/* Текст сдвинут правее */}
+              <span className="ml-1.5 sm:ml-2.5">Давай вместе</span>
             </Link>
 
             {/* Десктопное меню */}
@@ -101,8 +111,7 @@ export function SiteHeader() {
                                 >
                                   <div className="h-6 w-6 rounded-lg bg-[#5858E2]/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                               <span className="text-[#5858E2] text-xs">
-                                {item.label === "Главная" ? "🏠" :
-                                    item.label === "Подобрать психолога" ? "👤" :
+                                {item.label === "Подобрать психолога" ? "👤" :
                                         item.label === "Курсы" ? "📚" :
                                             item.label === "Для психологов" ? "💼" :
                                                 item.label === "Контакты" ? "📞" : "🔍"}

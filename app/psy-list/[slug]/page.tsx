@@ -5,6 +5,7 @@ import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
 import { prisma } from "@/lib/db";
 import { buildMetadata, canonicalUrl, personJsonLd } from "@/lib/seo";
+import { ComplaintModalTrigger } from "@/components/complaint/ComplaintModalTrigger";
 
 export const revalidate = 60;
 
@@ -384,11 +385,10 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                         Уровни сертификации
                       </span>
                       </Link>
-                      <Link href="/complaint">
-                      <span className="text-xs text-gray-600 hover:text-[#5858E2] sm:text-sm">
-                        Пожаловаться
-                      </span>
-                      </Link>
+                      <ComplaintModalTrigger
+                        psychologistName={psychologist.fullName}
+                        psychologistSlug={psychologist.slug}
+                      />
                     </div>
                   </div>
                 </div>

@@ -20,6 +20,7 @@ const inter = Inter({
 const displayFont = Plus_Jakarta_Sans({
   variable: "--font-display",
   weight: ["600", "700", "800"],
+  subsets: ["latin", "cyrillic-ext"],
 });
 
 export const viewport: Viewport = {

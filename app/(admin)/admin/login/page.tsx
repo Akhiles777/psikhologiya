@@ -6,6 +6,8 @@ import {
   COOKIE_NAME,
 } from "@/lib/auth-admin";
 
+import Link from "next/link";
+
 /**
  * Страница входа в админку.
  * Логин и пароль задаются в .env: ADMIN_LOGIN, ADMIN_PASSWORD.
@@ -22,12 +24,18 @@ export default async function AdminLoginPage({
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F5F5F7] px-4">
       <div className="w-full max-w-md rounded-2xl border border-neutral-200 bg-white p-8 shadow-lg">
+
+
+
+
         <h1 className="font-display text-2xl font-bold text-foreground">
           Вход в админ-панель
         </h1>
         <p className="mt-2 text-sm text-neutral-dark">
           Логин и пароль задаются в .env (ADMIN_LOGIN, ADMIN_PASSWORD).
         </p>
+
+
         <form action={loginAction} className="mt-8 space-y-6">
           {error && (
             <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
@@ -62,6 +70,17 @@ export default async function AdminLoginPage({
             Войти
           </button>
         </form>
+
+<div className="mt-2 text-center">
+  <Link 
+    href="/auth/login" 
+    className="text-sm text-[#5858E2] hover:underline"
+  >
+    Перейти к главной странице авторизации →
+  </Link>
+</div>
+
+
         <p className="mt-6 text-xs text-neutral-dark">
           Чтобы сменить логин или пароль — отредактируйте .env и перезапустите сервер. Восстановление доступа — только через изменение .env.
         </p>
