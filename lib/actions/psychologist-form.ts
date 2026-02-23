@@ -18,6 +18,10 @@ function toText(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function toRawText(value: FormDataEntryValue | null): string {
+  return typeof value === "string" ? value : "";
+}
+
 function normalizeSlug(value: string): string {
   return value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-_]/g, "");
 }
@@ -236,7 +240,7 @@ export async function buildPsychologistPayload(
       shortBio: toText(formData.get("shortBio")).slice(0, 400),
       longBio: toText(formData.get("longBio")),
       price,
-      contactInfo: toText(formData.get("contactInfo")),
+      contactInfo: toRawText(formData.get("contactInfo")),
       isPublished,
       images,
       education: parseEducation(toText(formData.get("education"))),

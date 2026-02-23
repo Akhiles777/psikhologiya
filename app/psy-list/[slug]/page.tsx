@@ -29,57 +29,6 @@ type EducationItem = {
   isDiploma?: boolean;
 };
 
-type ContactLine = {
-  label?: string;
-  value: string;
-};
-
-const CONTACT_LABEL_PATTERN =
-  /^(телефон|phone|email|e-mail|почта|telegram|whatsapp|ватсап|сайт|website|instagram|инстаграм|вконтакте|vk|вк)$/i;
-
-function looksLikeHtml(value: string): boolean {
-  return /<\s*[a-z][^>]*>/i.test(value);
-}
-
-function parseContactLines(raw: string): ContactLine[] {
-  const value = raw.replace(/\r\n/g, "\n").trim();
-  if (!value) return [];
-
-  let chunks: string[] = [];
-  if (value.includes("\n")) {
-    chunks = value.split(/\n+/);
-  } else {
-    const byKnownLabels = value.split(
-      /\s+(?=(?:Телефон|Phone|Email|E-mail|Почта|Telegram|WhatsApp|Ватсап|Сайт|Website|Instagram|Инстаграм|ВКонтакте|VK|ВК)\s*:)/gi
-    );
-    if (byKnownLabels.length > 1) {
-      chunks = byKnownLabels;
-    } else {
-      const bySemicolon = value.split(/\s*;\s*/);
-      chunks = bySemicolon.length > 1 ? bySemicolon : [value];
-    }
-  }
-
-  return chunks
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const match = line.match(/^([^:]{2,40}):\s*(.+)$/);
-      if (!match) return { value: line };
-
-      const label = match[1].trim();
-      const labelNormalized = label.replace(/\.$/, "").trim();
-      if (!CONTACT_LABEL_PATTERN.test(labelNormalized)) {
-        return { value: line };
-      }
-
-      return {
-        label: labelNormalized,
-        value: match[2].trim(),
-      };
-    });
-}
-
 // Функция для расчета опыта работы
 function calculateExperience(firstDiplomaDate: Date | null): string | null {
   if (!firstDiplomaDate) return null;
@@ -142,6 +91,10 @@ function getMonthWord(months: number): string {
   return "месяцев";
 }
 
+function looksLikeHtml(value: string): boolean {
+  return /<\s*[a-z][^>]*>/i.test(value);
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   if (!prisma) return buildMetadata({ title: "Психолог", path: `/psy-list/${slug}` });
@@ -194,9 +147,9 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
 
   const education = (psychologist.education as EducationItem[] | null) ?? [];
   const mainParadigm = (psychologist.mainParadigm ?? []) as string[];
-  const contactInfoRaw = (psychologist.contactInfo ?? "").trim();
+  const contactInfoRaw = psychologist.contactInfo ?? "";
+  const hasContactInfo = contactInfoRaw.trim().length > 0;
   const contactInfoIsHtml = looksLikeHtml(contactInfoRaw);
-  const contactInfoLines = contactInfoIsHtml ? [] : parseContactLines(contactInfoRaw);
 
   // Рассчитываем опыт работы
   const experience = calculateExperience(psychologist.firstDiplomaDate);
@@ -358,7 +311,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                 </div>
 
                 {/* Запись на консультацию */}
-                {contactInfoRaw && (
+                {hasContactInfo && (
                     <div id="contact-booking" className="mt-4 pt-4 border-t border-gray-100">
                       <h2 className="mb-2 text-lg font-semibold text-gray-900">
                         Записаться на консультацию
@@ -366,23 +319,12 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                       <div className="rounded-lg border border-[#4CAF50]/35 bg-[#EEF8F0] p-3 shadow-sm sm:p-4">
                         {contactInfoIsHtml ? (
                           <div
-                            className="text-sm text-[#2f4d33] [&_a]:font-semibold [&_a]:text-[#2F8F46] [&_a]:underline"
-                            dangerouslySetInnerHTML={{ __html: contactInfoRaw }}
+                              className="text-sm text-[#2f4d33] [&_a]:font-semibold [&_a]:text-[#2F8F46] [&_a]:underline"
+                              dangerouslySetInnerHTML={{ __html: contactInfoRaw }}
                           />
                         ) : (
-                          <div className="space-y-1.5 text-sm text-[#2f4d33]">
-                            {contactInfoLines.map((line, index) => (
-                              <p key={`${line.label || "line"}-${index}`} className="leading-relaxed">
-                                {line.label ? (
-                                  <>
-                                    <strong className="font-semibold text-[#1a3650]">{line.label}:</strong>{" "}
-                                    <span>{line.value}</span>
-                                  </>
-                                ) : (
-                                  <span>{line.value}</span>
-                                )}
-                              </p>
-                            ))}
+                          <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#2f4d33]">
+                            {contactInfoRaw}
                           </div>
                         )}
                       </div>

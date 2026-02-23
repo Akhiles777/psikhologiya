@@ -1,51 +1,33 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getArticleBySlug } from "@/lib/articles";
-import { Badge } from "@/components/ui/Badge";
+import { getArticleBySlug } from "@/app/actions/articles";
+import { Button } from "@/components/ui";
+import { Badge } from "@/components/ui";
 import { buildMetadata } from "@/lib/seo";
-import { ArticleAuthorBadge } from "@/components/articles/ArticleAuthorBadge";
-import type { Metadata } from "next";
-
-export const revalidate = 60;
+import { normalizeImageSrc, isExternalImageSrc } from "@/lib/image-src";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params; // Добавьте await здесь
-  
-  try {
-    const article = await getArticleBySlug(slug);
-    
-    if (!article) {
-      return buildMetadata({ 
-        title: "Статья не найдена", 
-        path: `/lib/articles/${slug}` 
-      });
-    }
-    
-    return buildMetadata({
-      title: article.title,
-      description: article.shortText || article.content?.slice(0, 160).replace(/<[^>]+>/g, "") || "",
-      path: `/lib/articles/${slug}`,
-    });
-  } catch (error) {
-    console.error("[generateMetadata] Error:", error);
-    return buildMetadata({ 
-      title: "Ошибка загрузки статьи", 
-      path: `/lib/articles/${slug}` 
-    });
-  }
+export async function generateMetadata({ params }: PageProps) {
+  const { slug } = await params;
+  const article = await getArticleBySlug(slug);
+  if (!article)
+    return buildMetadata({ title: "Статья", path: `/lib/articles/${slug}` });
+  return buildMetadata({
+    title: article.title,
+    description: article.content.slice(0, 160).replace(/<[^>]+>/g, ""),
+    path: `/lib/articles/${slug}`,
+  });
 }
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
-
-  if (!article) {
-    notFound();
-  }
+  if (!article) notFound();
 
   const author = article.author;
+  const mainImage = author?.images?.[0];
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
@@ -57,12 +39,12 @@ export default async function ArticlePage({ params }: PageProps) {
       </Link>
 
       <article className="mt-6">
-        <h1 className="font-display text-3xl  font-bold tracking-normal text-foreground md:text-4xl">
+        <h1 className="font-display text-3xl font-bold tracking-tighter text-foreground md:text-4xl">
           {article.title}
         </h1>
-        {article.tags && article.tags.length > 0 && (
+        {article.tags.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
-            {article.tags.map((t: string) => (
+            {article.tags.map((t) => (
               <Badge key={t} variant="primary">
                 {t}
               </Badge>
@@ -84,7 +66,45 @@ export default async function ArticlePage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: article.content }}
         />
 
-        {author && <ArticleAuthorBadge author={author} />}
+        {author && (
+          <aside className="mt-12 rounded-2xl border border-neutral-light/80 bg-white/70 p-6">
+            <h2 className="font-display text-lg font-semibold text-foreground">
+              Автор статьи
+            </h2>
+            <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+              {mainImage && mainImage !== "" ? (
+                <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl">
+                  <Image
+                    src={normalizeImageSrc(mainImage)}
+                    alt={author.fullName}
+                    fill
+                    className="object-cover"
+                    sizes="128px"
+                    unoptimized={isExternalImageSrc(mainImage)}
+                  />
+                </div>
+              ) : (
+                <div className="flex h-32 w-32 shrink-0 items-center justify-center rounded-2xl bg-neutral-light/50 text-neutral-dark">
+                  Нет фото
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="font-display font-semibold text-foreground">
+                  {author.fullName}
+                </p>
+                <p className="mt-1 text-sm text-[#5858E2]">
+                  Уровень сертификации: {author.certificationLevel}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-dark line-clamp-3">
+                  {author.shortBio}
+                </p>
+                <Link href={`/psy-list/${author.slug}`} className="mt-4 inline-block">
+                  <Button variant="primary">На страницу психолога</Button>
+                </Link>
+              </div>
+            </div>
+          </aside>
+        )}
       </article>
     </div>
   );
