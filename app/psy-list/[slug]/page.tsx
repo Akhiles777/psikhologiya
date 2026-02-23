@@ -195,6 +195,9 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                       <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
                         {psychologist.fullName}
                       </h1>
+                      <p className="mt-2 inline-flex w-fit items-center rounded-full bg-[#A7FF5A] px-3 py-1 text-xs font-bold text-[#111a33] sm:text-sm">
+                        Уровень квалификации: {psychologist.certificationLevel}
+                      </p>
                     </div>
 
                     <div className="space-y-1 mb-3">
@@ -213,7 +216,6 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                     {/* Бейджи и опыт работы */}
                     <div className="mb-3 space-y-2">
                       <div className="flex flex-wrap gap-1">
-                        <Badge variant="level" level={psychologist.certificationLevel as 1 | 2 | 3} />
                         {/* Отображаем все парадигмы */}
                         {mainParadigm.length > 0 ? (
                             mainParadigm.map((p, index) => (
@@ -265,6 +267,20 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                         month: "long",
                       })}
                       </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <a
+                          href="#contact-booking"
+                          className="inline-flex items-center justify-center rounded-lg bg-[#5858E2] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#4d4dd0]"
+                        >
+                          Записаться
+                        </a>
+                        <ComplaintModalTrigger
+                          psychologistName={psychologist.fullName}
+                          psychologistSlug={psychologist.slug}
+                          triggerLabel="Пожаловаться"
+                          triggerClassName="inline-flex items-center justify-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -286,6 +302,21 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                     )}
                   </div>
                 </div>
+
+                {/* Запись на консультацию */}
+                {psychologist.contactInfo && (
+                    <div id="contact-booking" className="mt-4 pt-4 border-t border-gray-100">
+                      <h2 className="mb-2 text-lg font-semibold text-gray-900">
+                        Записаться на консультацию
+                      </h2>
+                      <div className="rounded-lg border border-[#4CAF50]/35 bg-[#EEF8F0] p-3 shadow-sm sm:p-4">
+                        <div
+                            className="text-sm text-[#2f4d33] [&_a]:font-semibold [&_a]:text-[#2F8F46] [&_a]:underline"
+                            dangerouslySetInnerHTML={{ __html: psychologist.contactInfo }}
+                        />
+                      </div>
+                    </div>
+                )}
 
                 {/* Образование */}
                 {education.length > 0 && (
@@ -355,19 +386,6 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                                 </div>
                             ))}
                       </div>
-                    </div>
-                )}
-
-                {/* Контакты */}
-                {psychologist.contactInfo && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <h2 className="mb-2 text-lg font-semibold text-gray-900">
-                        Контакты
-                      </h2>
-                      <div
-                          className="text-sm text-gray-700 [&_a]:text-[#5858E2] [&_a]:underline"
-                          dangerouslySetInnerHTML={{ __html: psychologist.contactInfo }}
-                      />
                     </div>
                 )}
 

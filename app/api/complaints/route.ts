@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 
-const RECEIVER_EMAIL = "gasanalunkachev@gmail.com";
+const RECEIVER_EMAIL = "manager@dvmeste.ru";
 const MIN_TEXT_LENGTH = 10;
 const MAX_TEXT_LENGTH = 6000;
 

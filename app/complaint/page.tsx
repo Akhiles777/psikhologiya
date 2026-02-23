@@ -16,7 +16,7 @@ export default function ComplaintPage() {
       </h1>
       <p className="mt-4 leading-relaxed text-neutral-dark">
         Если вы столкнулись с некорректным поведением специалиста или нарушением правил сервиса, отправьте жалобу через форму ниже.
-        После отправки письмо будет отправлено через сайт на gasanalunkachev@gmail.com.
+        После заполнения откроется письмо на manager@dvmeste.ru с уже подставленными данными жалобы.
       </p>
       <div className="mt-6">
         <ComplaintModalTrigger triggerLabel="Открыть форму жалобы" />

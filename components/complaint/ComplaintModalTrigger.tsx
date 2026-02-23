@@ -1,18 +1,21 @@
 "use client";
 
 import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type ComplaintModalTriggerProps = {
   psychologistName?: string;
   psychologistSlug?: string;
   triggerLabel?: string;
   listenToComplaintLinks?: boolean;
+  triggerClassName?: string;
 };
 
 const COMPLAINT_PLACEHOLDER = "Опишите, что именно произошло, когда и при каких обстоятельствах.";
 const CONTACTS_LABEL =
   "Укажите ваши контакты для обратной связи. Возможно, у нас будут вопросы по вашей жалобе и нам потребуется уточнять детали. Оставьте лучший способ связи с вами.";
 const CONTACTS_PLACEHOLDER = "Телефон, email, Telegram или другой удобный способ связи.";
+const COMPLAINT_RECEIVER = "manager@dvmeste.ru";
 
 function isComplaintHref(rawHref: string): boolean {
   try {
@@ -28,6 +31,7 @@ export function ComplaintModalTrigger({
   psychologistSlug,
   triggerLabel = "Пожаловаться",
   listenToComplaintLinks = false,
+  triggerClassName,
 }: ComplaintModalTriggerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [targetPsychologistName, setTargetPsychologistName] = useState((psychologistName || "").trim());
@@ -74,10 +78,31 @@ export function ComplaintModalTrigger({
     return () => document.removeEventListener("click", handleDocumentClick);
   }, [listenToComplaintLinks]);
 
-  const effectivePsychologistName = (targetPsychologistName || manualPsychologistName || "").trim();
+  const effectivePsychologistName = (manualPsychologistName || targetPsychologistName || "").trim();
   const dialogTitle = useMemo(() => {
-    return effectivePsychologistName ? `Жалоба на ${effectivePsychologistName}.` : "Жалоба на психолога.";
+    return effectivePsychologistName ? `Жалоба на ${effectivePsychologistName}` : "Жалоба на психолога";
   }, [effectivePsychologistName]);
+
+  const buildComplaintMailto = (psychologist: string, complaint: string, contacts: string) => {
+    const sourceUrl = typeof window !== "undefined" ? window.location.href : "";
+    const createdAt = new Date().toLocaleString("ru-RU");
+    const lines = [
+      `Жалоба на: ${psychologist}`,
+      targetPsychologistSlug ? `URL-адрес психолога: ${targetPsychologistSlug}` : "",
+      sourceUrl ? `Страница: ${sourceUrl}` : "",
+      `Дата: ${createdAt}`,
+      "",
+      "Суть жалобы:",
+      complaint,
+      "",
+      "Контакты для обратной связи:",
+      contacts,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const subject = `Жалоба на ${psychologist}`;
+    return `mailto:${COMPLAINT_RECEIVER}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines)}`;
+  };
 
   const resetAndClose = () => {
     if (isSubmitting) return;
@@ -109,7 +134,7 @@ export function ComplaintModalTrigger({
     event.preventDefault();
     if (isSubmitting) return;
 
-    const psychologist = (targetPsychologistName || manualPsychologistName || "").trim();
+    const psychologist = (manualPsychologistName || targetPsychologistName || "").trim();
     const complaint = complaintText.trim();
     const contacts = contactsText.trim();
     if (!psychologist) {
@@ -130,24 +155,15 @@ export function ComplaintModalTrigger({
     setSuccessText(null);
 
     try {
-      const response = await fetch("/api/complaints", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          psychologistName: psychologist,
-          psychologistSlug: targetPsychologistSlug,
-          complaintText: complaint,
-          contactsText: contacts,
-          sourceUrl: typeof window !== "undefined" ? window.location.href : "",
-        }),
-      });
-
-      const data = (await response.json()) as { success?: boolean; error?: string };
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Не удалось отправить жалобу.");
+      if (typeof window === "undefined") {
+        throw new Error("Не удалось открыть почтовый клиент.");
       }
+      const mailtoLink = buildComplaintMailto(psychologist, complaint, contacts);
+      window.location.href = mailtoLink;
 
-      setSuccessText("Жалоба успешно отправлена.");
+      setSuccessText(
+        "Черновик письма открыт в вашем почтовом клиенте. Проверьте данные и нажмите «Отправить»."
+      );
       setComplaintText("");
       setContactsText("");
     } catch (error) {
@@ -163,7 +179,10 @@ export function ComplaintModalTrigger({
         <button
           type="button"
           onClick={openModal}
-          className="text-xs text-gray-600 hover:text-[#5858E2] sm:text-sm"
+          className={cn(
+            "text-xs text-gray-600 hover:text-[#5858E2] sm:text-sm",
+            triggerClassName
+          )}
         >
           {triggerLabel}
         </button>
@@ -186,23 +205,21 @@ export function ComplaintModalTrigger({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 px-5 py-5">
-              {!targetPsychologistName && (
-                <div>
-                  <label htmlFor="psychologistName" className="mb-1 block text-sm font-medium text-gray-800">
-                    Укажите ФИО психолога
-                  </label>
-                  <input
-                    id="psychologistName"
-                    name="psychologistName"
-                    type="text"
-                    value={manualPsychologistName}
-                    onChange={(event) => setManualPsychologistName(event.target.value)}
-                    required
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none ring-[#5858E2]/30 transition focus:border-[#5858E2] focus:ring-2"
-                    placeholder="ФИО психолога"
-                  />
-                </div>
-              )}
+              <div>
+                <label htmlFor="psychologistName" className="mb-1 block text-sm font-medium text-gray-800">
+                  ФИО психолога
+                </label>
+                <input
+                  id="psychologistName"
+                  name="psychologistName"
+                  type="text"
+                  value={manualPsychologistName}
+                  onChange={(event) => setManualPsychologistName(event.target.value)}
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none ring-[#5858E2]/30 transition focus:border-[#5858E2] focus:ring-2"
+                  placeholder="ФИО психолога"
+                />
+              </div>
 
               <div>
                 <label htmlFor="complaintText" className="mb-1 block text-sm font-medium text-gray-800">
