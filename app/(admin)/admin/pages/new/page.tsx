@@ -58,7 +58,7 @@ export default async function NewPageForm({
 
           <div>
             <label className="block text-sm font-medium text-foreground">
-              Slug * (адрес)
+              URL-адрес
               <span className="ml-2 text-xs text-amber-600">только латиница, цифры, дефис, нижнее подчеркивание</span>
             </label>
 
