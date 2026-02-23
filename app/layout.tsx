@@ -68,7 +68,7 @@ export default function RootLayout({
   const organizationSchema = organizationJsonLd();
 
   return (
-    <html lang="ru">
+    <html className="scroll-smooth" lang="ru">
       <head>
         <script
           type="application/ld+json"
