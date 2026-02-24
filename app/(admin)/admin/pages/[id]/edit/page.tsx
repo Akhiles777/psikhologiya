@@ -67,6 +67,8 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
                 <input type="hidden" name="slug" value={systemPage.slug} />
                 <input type="hidden" name="template" value="empty" />
                 <input type="hidden" name="isPublished" value="on" />
+                <input type="hidden" name="showHeader" value={page.showHeader ? "on" : "off"} />
+                <input type="hidden" name="showFooter" value={page.showFooter ? "on" : "off"} />
 
                 <div className="rounded-xl border border-[#5858E2]/20 bg-[#5858E2]/5 p-4">
                   <p className="text-sm font-semibold text-foreground">Системная страница</p>
@@ -125,6 +127,35 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
                     <option value="text">Текст</option>
                     <option value="empty">Пустой (HTML)</option>
                   </select>
+                </div>
+
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                  <p className="text-sm font-medium text-foreground">Элементы шаблона</p>
+                  <p className="mt-1 text-xs text-neutral-dark">Для страниц `/s/[slug]` можно отдельно включить шапку и футер сайта.</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input type="hidden" name="showHeader" value="off" />
+                      <input
+                        type="checkbox"
+                        name="showHeader"
+                        value="on"
+                        defaultChecked={page.showHeader}
+                        className="h-4 w-4 rounded border-gray-300 text-[#5858E2] focus:ring-[#5858E2]"
+                      />
+                      Добавить хедер
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input type="hidden" name="showFooter" value="off" />
+                      <input
+                        type="checkbox"
+                        name="showFooter"
+                        value="on"
+                        defaultChecked={page.showFooter}
+                        className="h-4 w-4 rounded border-gray-300 text-[#5858E2] focus:ring-[#5858E2]"
+                      />
+                      Добавить футер
+                    </label>
+                  </div>
                 </div>
               </>
           )}

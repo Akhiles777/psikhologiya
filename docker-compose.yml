@@ -18,13 +18,16 @@ services:
     build: .
     container_name: psychologist-app
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     environment:
       NODE_ENV: production
-      DATABASE_URL: ${DATABASE_URL:-postgresql://psychologist:psychologist_password@postgres:5432/psychologist_db}
+      DATABASE_URL: ${DATABASE_URL_DOCKER:-postgresql://psychologist:psychologist_password@postgres:5432/psychologist_db}
       UPLOAD_DIR: /app/uploads
     volumes:
       - uploads_volume:/app/uploads
+      - public_uploads_volume:/app/public/uploads
+      - articles_files_volume:/app/public/articles/files
+      - pages_files_volume:/app/public/pages/files
     depends_on:
       - postgres
     restart: unless-stopped
@@ -32,3 +35,6 @@ services:
 volumes:
   postgres_data:
   uploads_volume:
+  public_uploads_volume:
+  articles_files_volume:
+  pages_files_volume:

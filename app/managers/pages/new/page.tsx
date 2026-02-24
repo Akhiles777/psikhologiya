@@ -215,6 +215,33 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
                   </div>
                 </div>
 
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-sm font-medium text-gray-900">Элементы шаблона</p>
+                  <p className="mt-1 text-xs text-gray-500">Для страниц `/s/[slug]` можно отдельно включить шапку и футер сайта.</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <label className="flex items-center gap-2 text-sm text-gray-800">
+                      <input type="hidden" name="showHeader" value="off" />
+                      <input
+                        type="checkbox"
+                        name="showHeader"
+                        value="on"
+                        className="h-4 w-4 rounded border-gray-300 text-[#4CAF50] focus:ring-[#4CAF50]"
+                      />
+                      Добавить хедер
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-gray-800">
+                      <input type="hidden" name="showFooter" value="off" />
+                      <input
+                        type="checkbox"
+                        name="showFooter"
+                        value="on"
+                        className="h-4 w-4 rounded border-gray-300 text-[#4CAF50] focus:ring-[#4CAF50]"
+                      />
+                      Добавить футер
+                    </label>
+                  </div>
+                </div>
+
                 <div className="mt-4">
                   <h3 className="text-sm font-medium text-gray-700 mb-2">Добавить файлы для страницы</h3>
                   <div className="w-full">

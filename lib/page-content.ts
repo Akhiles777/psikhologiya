@@ -11,7 +11,7 @@ export async function getPageBySlug(slug: string) {
   try {
     const page = await prisma.page.findUnique({
       where: { slug, isPublished: true },
-      select: { title: true, template: true, content: true },
+      select: { title: true, template: true, content: true, showHeader: true, showFooter: true },
     });
     return page;
   } catch {

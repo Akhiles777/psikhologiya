@@ -15,6 +15,8 @@ interface EditPageClientProps {
     content: string;
     images?: string[];
     isPublished: boolean;
+    showHeader: boolean;
+    showFooter: boolean;
   };
   pageId: string;
   updatePage: (id: string, formData: FormData) => Promise<void>;
@@ -25,6 +27,8 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
       page.template === "empty" ? "empty" : "text"
   );
   const [isPublished, setIsPublished] = useState(page.isPublished);
+  const [showHeader, setShowHeader] = useState(page.showHeader);
+  const [showFooter, setShowFooter] = useState(page.showFooter);
   const [slug, setSlug] = useState(page.slug || "");
   const [slugError, setSlugError] = useState<string | null>(null);
   const systemPage = getSystemPageBySlug(page.slug);
@@ -81,6 +85,8 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
                   <input type="hidden" name="slug" value={systemPage.slug} />
                   <input type="hidden" name="template" value="empty" />
                   <input type="hidden" name="isPublished" value="on" />
+                  <input type="hidden" name="showHeader" value={showHeader ? "on" : "off"} />
+                  <input type="hidden" name="showFooter" value={showFooter ? "on" : "off"} />
 
                   <div className="rounded-xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-4">
                     <p className="text-sm font-semibold text-gray-900">Системная страница</p>
@@ -229,6 +235,41 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
                     </p>
                   </div>
                 </div>
+            )}
+
+            {!isSystemPage && (
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-sm font-medium text-gray-900">Элементы шаблона</p>
+                <p className="mt-1 text-xs text-gray-500">Для страниц `/s/[slug]` можно отдельно включить шапку и футер сайта.</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="flex items-center gap-2 text-sm text-gray-800">
+                    <input type="hidden" name="showHeader" value={showHeader ? "on" : "off"} />
+                    <button
+                      type="button"
+                      onClick={() => setShowHeader((prev) => !prev)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full ${showHeader ? "bg-[#4CAF50]" : "bg-gray-300"}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${showHeader ? "translate-x-6" : "translate-x-1"}`}
+                      />
+                    </button>
+                    Добавить хедер
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-800">
+                    <input type="hidden" name="showFooter" value={showFooter ? "on" : "off"} />
+                    <button
+                      type="button"
+                      onClick={() => setShowFooter((prev) => !prev)}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full ${showFooter ? "bg-[#4CAF50]" : "bg-gray-300"}`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${showFooter ? "translate-x-6" : "translate-x-1"}`}
+                      />
+                    </button>
+                    Добавить футер
+                  </label>
+                </div>
+              </div>
             )}
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">

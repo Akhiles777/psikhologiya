@@ -79,6 +79,8 @@ model Page {
   template    String
   content     String
   images      String[] // Пути к изображениям
+  showHeader  Boolean  @default(false)
+  showFooter  Boolean  @default(false)
   isPublished Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

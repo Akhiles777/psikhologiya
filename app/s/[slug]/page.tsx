@@ -28,13 +28,14 @@ export default async function PageBySlugRoute({ params }: PageProps) {
   const { slug } = await params;
   const page = await getPageBySlug(slug);
   if (!page) notFound();
+
+  const cssRules: string[] = [];
+  if (!page.showHeader) cssRules.push("#site-header { display: none !important; }");
+  if (!page.showFooter) cssRules.push("#site-footer { display: none !important; }");
+
   return (
     <>
-      <style>{`
-        #site-header, #site-footer {
-          display: none !important;
-        }
-      `}</style>
+      {cssRules.length > 0 && <style>{cssRules.join("\n")}</style>}
       <PageContent title={page.title} template={page.template} content={page.content} />
     </>
   );

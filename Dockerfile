@@ -1,12 +1,11 @@
 # Dockerfile
-FROM node:20-alpine AS base
+FROM node:20 AS base
 
 # Устанавливаем зависимости только для production
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Сборка приложения
 FROM base AS builder
@@ -39,11 +38,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Создаем папку для загрузок
-RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
+# Создаем папки для загрузок и выдаем права приложению
+RUN mkdir -p /app/uploads /app/public/uploads /app/public/articles/files /app/public/pages/files \
+  && chown -R nextjs:nodejs /app/uploads /app/public/uploads /app/public/articles /app/public/pages
 
-# Указываем папку для загрузок как volume
-VOLUME /app/uploads
+# Указываем постоянные директории как volume
+VOLUME ["/app/uploads", "/app/public/uploads", "/app/public/articles/files", "/app/public/pages/files"]
 
 USER nextjs
 
