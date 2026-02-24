@@ -180,6 +180,14 @@ export default async function EditPageForm({ params, searchParams }: PageProps) 
               Сохранить
             </button>
             <Link
+                href={currentPublicPath}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-[#5858E2] px-6 py-2 font-medium text-[#5858E2] hover:bg-[#5858E2]/5 transition-colors"
+            >
+              Посмотреть
+            </Link>
+            <Link
                 href="/admin/pages"
                 className="rounded-xl border border-neutral-300 px-6 py-2 font-medium text-foreground hover:bg-[#F5F5F7] transition-colors"
             >

@@ -33,23 +33,9 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
   const [certificationLevels, setCertificationLevels] = useState<string[]>([]);
   const [referencesLoading, setReferencesLoading] = useState(true);
   const [slug, setSlug] = useState("");
-  const [slugError, setSlugError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [selectedParadigms, setSelectedParadigms] = useState<string[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
-
-  // Валидация slug
-  const validateSlug = (value: string): string | null => {
-    if (!value) return null;
-
-    const allowedPattern = /^[a-z0-9\-]+$/;
-
-    if (!allowedPattern.test(value)) {
-      return "Slug может содержать только латинские буквы, цифры и дефисы (-)";
-    }
-
-    return null;
-  };
 
   // Обработчик изменения slug
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,8 +43,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     value = value.replace(/[^a-zA-Z0-9\-]/g, '');
     value = value.toLowerCase();
     setSlug(value);
-    const error = validateSlug(value);
-    setSlugError(error);
   };
 
   // Загружаем справочники
@@ -170,11 +154,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
-
-    if (slug && validateSlug(slug)) {
-      setSlugError(validateSlug(slug));
-      return;
-    }
 
     const formData = new FormData(formRef.current!);
 
@@ -291,7 +270,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                     </label>
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">/psy-list/</span>
-                      <input
+                    <input
                           type="text"
                           name="slug"
                           value={slug}
@@ -299,19 +278,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                           placeholder="ivanov-ivan (оставьте пустым для автогенерации)"
                           className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#4CAF50] focus:ring-2 focus:ring-[#4CAF50]/20"
                       />
-                    </div>
-
-                    {slugError && (
-                        <p className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                          <span>⚠️</span> {slugError}
-                        </p>
-                    )}
-
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      <span className="text-gray-500">✅ пример:</span>
-                      <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">ivan-ivanov</span>
-                      <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">psycholog-123</span>
-                      <span className="text-gray-500 ml-1">❌ нельзя: пробелы, кириллица, спецсимволы</span>
                     </div>
 
                     <p className="mt-1 text-xs text-gray-500">
@@ -658,7 +624,6 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                 <button
                     type="submit"
                     className="rounded-xl bg-[#4CAF50] px-8 py-3 font-medium text-white hover:bg-[#43A047] shadow-md hover:shadow-lg transition-all"
-                    disabled={!!slugError}
                 >
                   Создать психолога
                 </button>

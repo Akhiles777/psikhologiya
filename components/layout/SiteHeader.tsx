@@ -23,7 +23,7 @@ export async function SiteHeader() {
   const menu = await getSiteMenuItems();
 
   return (
-      <header className="sticky top-0 z-50 border-b border-gray-200/50 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
+      <header id="site-header" className="sticky top-0 z-50 border-b border-gray-200/50 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <div className="flex items-center justify-between">
             {/* Логотип */}

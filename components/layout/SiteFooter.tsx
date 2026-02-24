@@ -6,7 +6,7 @@ export async function SiteFooter() {
   const html = applyFooterTokens(managedFooter?.content || FOOTER_DEFAULT_CONTENT);
 
   return (
-    <footer className="border-t border-neutral-200/50 bg-white">
+    <footer id="site-footer" className="border-t border-neutral-200/50 bg-white">
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </footer>
   );

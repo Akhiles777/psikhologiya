@@ -29,7 +29,6 @@ function NewPsychologistFormContent() {
   const [workFormats, setWorkFormats] = useState<string[]>([]);
   const [certificationLevels, setCertificationLevels] = useState<string[]>([]);
   const [referencesLoading, setReferencesLoading] = useState(true);
-  const [slugError, setSlugError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const submittingRef = useRef(false);
@@ -143,20 +142,6 @@ function NewPsychologistFormContent() {
     setNewUrl("");
   };
 
-  // Валидация slug
-  const validateSlug = (value: string): string | null => {
-    if (!value) return null; // Пустой slug разрешен (автогенерация)
-
-    // Разрешаем только латиницу, цифры, дефисы
-    const allowedPattern = /^[a-z0-9\-]+$/;
-
-    if (!allowedPattern.test(value)) {
-      return "Slug может содержать только латинские буквы, цифры и дефисы. Без пробелов!";
-    }
-
-    return null;
-  };
-
   // Обработчик изменения slug - теперь напрямую фильтрует ввод
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -169,10 +154,6 @@ function NewPsychologistFormContent() {
 
     // Обновляем значение в поле
     e.target.value = value;
-
-    // Проверяем на ошибки (для сообщения)
-    const error = validateSlug(value);
-    setSlugError(error);
   };
 
   // Отправка формы
@@ -180,16 +161,6 @@ function NewPsychologistFormContent() {
     e.preventDefault();
     if (submittingRef.current) return;
     setSubmitError(null);
-
-    // Проверяем slug перед отправкой
-    const slugInput = formRef.current?.querySelector('[name="slug"]') as HTMLInputElement;
-    if (slugInput && slugInput.value) {
-      const error = validateSlug(slugInput.value);
-      if (error) {
-        setSlugError(error);
-        return;
-      }
-    }
 
     const formData = new FormData(formRef.current!);
 
@@ -310,21 +281,6 @@ function NewPsychologistFormContent() {
                           placeholder="ivanov-ivan (оставьте пустым для автогенерации)"
                           className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20"
                       />
-                    </div>
-
-                    {/* Предупреждение о недопустимых символах */}
-                    {slugError && (
-                        <p className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                          <span>⚠️</span> {slugError}
-                        </p>
-                    )}
-
-                    {/* Подсказка по формату */}
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      <span className="text-gray-500">✅ пример:</span>
-                      <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">ivan-ivanov</span>
-                      <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">psycholog-123</span>
-                      <span className="text-gray-500 ml-1">❌ нельзя: пробелы, кириллица, спецсимволы</span>
                     </div>
 
                     <p className="mt-1 text-xs text-gray-500">

@@ -45,7 +45,7 @@ export function PageContent({ title, template, content }: Props) {
   if (template === "empty") {
     return (
       <div
-        className="w-full [&_iframe]:max-w-full [&_img]:h-auto [&_img]:max-w-full [&_video]:max-w-full"
+        suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: safeContent }}
       />
     );

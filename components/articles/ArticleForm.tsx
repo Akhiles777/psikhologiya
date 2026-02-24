@@ -31,6 +31,36 @@ interface ArticleFormProps {
   psychologists?: any[];
 }
 
+const CYRILLIC_MAP: Record<string, string> = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z",
+  и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r",
+  с: "s", т: "t", у: "u", ф: "f", х: "h", ц: "ts", ч: "ch", ш: "sh", щ: "sch",
+  ъ: "", ы: "y", ь: "", э: "e", ю: "yu", я: "ya",
+};
+
+function generateRandomArticleSlug(): string {
+  return `article-${Math.random().toString(36).slice(2, 8)}${Date.now().toString(36).slice(-4)}`;
+}
+
+function slugFromArticleTitle(value: string): string {
+  let out = "";
+  for (const char of value.toLowerCase().trim()) {
+    if (CYRILLIC_MAP[char] !== undefined) {
+      out += CYRILLIC_MAP[char];
+      continue;
+    }
+    if (/[a-z0-9]/.test(char)) {
+      out += char;
+      continue;
+    }
+    if (/[\s\-_]/.test(char) && out && !out.endsWith("-")) {
+      out += "-";
+    }
+  }
+
+  return out.replace(/-+/g, "-").replace(/^-|-$/g, "");
+}
+
 export default function ArticleForm({
                                       initialData = {},
                                       onSubmit,
@@ -40,7 +70,8 @@ export default function ArticleForm({
   const articleId = typeof initialData.id === "string" ? initialData.id : "";
   const [draftFilesKey] = useState(() => `article-draft-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
   const [title, setTitle] = useState(initialData.title || "");
-  const [slug, setSlug] = useState(initialData.slug || "");
+  const [slug, setSlug] = useState(() => initialData.slug || generateRandomArticleSlug());
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(initialData.slug));
   const [shortText, setShortText] = useState(initialData.shortText || "");
   const [content, setContent] = useState(initialData.content || "");
   const [tags, setTags] = useState<string[]>(initialData.tags || []);
@@ -154,12 +185,24 @@ export default function ArticleForm({
 
   // Обработчик изменения slug
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newSlug = e.target.value.replace(/\s/g, "").toLowerCase();
+    const newSlug = e.target.value.replace(/[^a-zA-Z0-9\-_]/g, "").toLowerCase();
+    setIsSlugManuallyEdited(true);
     setSlug(newSlug);
 
     // Проверяем на допустимые символы
     const warning = validateSlug(newSlug);
     setSlugWarning(warning);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextTitle = e.target.value;
+    setTitle(nextTitle);
+
+    if (!isSlugManuallyEdited) {
+      const generatedSlug = slugFromArticleTitle(nextTitle);
+      setSlug(generatedSlug || generateRandomArticleSlug());
+      setSlugWarning(null);
+    }
   };
 
   const hasMeaningfulContent = (value: string): boolean => {
@@ -328,7 +371,7 @@ export default function ArticleForm({
             <FormInput
                 label="Заголовок *"
                 value={title}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+                onChange={handleTitleChange}
                 required
                 disabled={isSubmitting}
             />

@@ -28,5 +28,14 @@ export default async function PageBySlugRoute({ params }: PageProps) {
   const { slug } = await params;
   const page = await getPageBySlug(slug);
   if (!page) notFound();
-  return <PageContent title={page.title} template={page.template} content={page.content} />;
+  return (
+    <>
+      <style>{`
+        #site-header, #site-footer {
+          display: none !important;
+        }
+      `}</style>
+      <PageContent title={page.title} template={page.template} content={page.content} />
+    </>
+  );
 }

@@ -31,27 +31,12 @@ export default function EditPsychologistForm({
   );
   const [newUrl, setNewUrl] = useState("");
   const [slug, setSlug] = useState(psychologist.slug || "");
-  const [slugError, setSlugError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const [educationData, setEducationData] = useState<any[]>(parseEducationFromDB(psychologist.education ?? []));
   const [workFormats] = useState<string[]>(initialWorkFormats);
   const [certificationLevels] = useState<string[]>(initialCertificationLevels);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Валидация slug
-  const validateSlug = (value: string): string | null => {
-    if (!value) return "Slug обязателен для заполнения";
-
-    // Разрешаем только латиницу, цифры, дефисы
-    const allowedPattern = /^[a-z0-9\-]+$/;
-
-    if (!allowedPattern.test(value)) {
-      return "Slug может содержать только латинские буквы, цифры и дефисы (-)";
-    }
-
-    return null;
-  };
 
   // Обработчик изменения slug
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,10 +47,6 @@ export default function EditPsychologistForm({
     value = value.toLowerCase();
 
     setSlug(value);
-
-    // Проверяем на допустимые символы
-    const error = validateSlug(value);
-    setSlugError(error);
   };
 
   // Обработка выбора файлов
@@ -142,10 +123,8 @@ export default function EditPsychologistForm({
 
     if (!psychologist || !psychologistId) return;
 
-    // Проверяем slug перед отправкой
-    const slugValidation = validateSlug(slug);
-    if (slugValidation) {
-      setSlugError(slugValidation);
+    if (!slug.trim()) {
+      setErrorMessage("Slug обязателен для заполнения.");
       return;
     }
 
@@ -261,7 +240,7 @@ export default function EditPsychologistForm({
                     </label>
                     <div className="flex items-center gap-2">
                       <span className="text-gray-500">/psy-list/</span>
-                      <input
+                    <input
                           type="text"
                           name="slug"
                           value={slug}
@@ -271,20 +250,6 @@ export default function EditPsychologistForm({
                       />
                     </div>
 
-                    {/* Предупреждение о недопустимых символах */}
-                    {slugError && (
-                        <p className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                          <span>⚠️</span> {slugError}
-                        </p>
-                    )}
-
-                    {/* Подсказка по формату */}
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                      <span className="text-gray-500">✅ пример:</span>
-                      <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">ivan-ivanov</span>
-                      <span className="bg-blue-50 px-2 py-0.5 rounded text-blue-700">psycholog-123</span>
-                      <span className="text-gray-500 ml-1">❌ нельзя: пробелы, кириллица, спецсимволы</span>
-                    </div>
                   </div>
                 </div>
 
@@ -616,7 +581,7 @@ export default function EditPsychologistForm({
               <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
                 <button
                     type="submit"
-                    disabled={isSubmitting || !!slugError}
+                    disabled={isSubmitting}
                     className="rounded-xl bg-[#4CAF50] px-8 py-3 font-medium text-white hover:bg-[#43A047] shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (

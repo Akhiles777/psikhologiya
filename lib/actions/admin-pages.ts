@@ -378,7 +378,7 @@ export async function updatePage(id: string, formData: FormData) {
     redirect(`/admin/pages/${id}/edit?error=update_failed`);
   }
 
-  redirect("/admin/pages");
+  redirect(`/admin/pages/${id}/edit?saved=1`);
 }
 
 /** Обновить верхний и нижний HTML-блоки страницы каталога (/psy-list). */

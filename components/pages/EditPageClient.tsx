@@ -31,6 +31,7 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
   const isSystemPage = Boolean(systemPage);
   const directPathSlugs = ["courses", "lib", "connect", "contacts"];
   const currentPublicPath = slug === "home" ? "/" : directPathSlugs.includes(slug) ? `/${slug}` : `/s/${slug}`;
+  const savedPublicPath = page.slug === "home" ? "/" : directPathSlugs.includes(page.slug) ? `/${page.slug}` : `/s/${page.slug}`;
 
   // Валидация slug
   const validateSlug = (value: string): string | null => {
@@ -238,6 +239,15 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
               >
                 Сохранить изменения
               </button>
+
+              <Link
+                  href={savedPublicPath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-[#4CAF50] bg-white px-4 py-3 text-sm font-medium text-[#2f7f35] hover:bg-[#4CAF50]/5 transition-colors flex-1 text-center"
+              >
+                Посмотреть
+              </Link>
 
               {!isSystemPage && (
                   <div className="flex-1">
