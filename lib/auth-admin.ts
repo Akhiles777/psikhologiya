@@ -5,8 +5,8 @@
 
 const COOKIE_NAME = "admin_session";
 
-export const DEFAULT_ADMIN_LOGIN = "Gasan123";
-export const DEFAULT_ADMIN_PASSWORD = "1111";
+export const DEFAULT_ADMIN_LOGIN = "Sergey_adm";
+export const DEFAULT_ADMIN_PASSWORD = "a!d!m!i!n";
 
 export function getAdminLogin(): string {
   return process.env.ADMIN_LOGIN ?? DEFAULT_ADMIN_LOGIN;

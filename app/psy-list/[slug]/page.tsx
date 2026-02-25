@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui";
 import { prisma } from "@/lib/db";
 import { buildMetadata, canonicalUrl, personJsonLd } from "@/lib/seo";
 import { ComplaintModalTrigger } from "@/components/complaint/ComplaintModalTrigger";
+import { normalizeEmbeddedLocalAssetUrls } from "@/lib/html-local-assets";
 
 export const revalidate = 60;
 
@@ -150,6 +151,8 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
   const contactInfoRaw = psychologist.contactInfo ?? "";
   const hasContactInfo = contactInfoRaw.trim().length > 0;
   const contactInfoIsHtml = looksLikeHtml(contactInfoRaw);
+  const normalizedLongBio = normalizeEmbeddedLocalAssetUrls(psychologist.longBio || "");
+  const normalizedContactInfoHtml = normalizeEmbeddedLocalAssetUrls(contactInfoRaw);
 
   // Рассчитываем опыт работы
   const experience = calculateExperience(psychologist.firstDiplomaDate);
@@ -304,7 +307,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                     {psychologist.longBio && (
                         <div
                             className="text-sm text-gray-700 [&_a]:text-[#5858E2] [&_a]:underline"
-                            dangerouslySetInnerHTML={{ __html: psychologist.longBio }}
+                            dangerouslySetInnerHTML={{ __html: normalizedLongBio }}
                         />
                     )}
                   </div>
@@ -320,7 +323,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                         {contactInfoIsHtml ? (
                           <div
                               className="text-sm text-[#2f4d33] [&_a]:font-semibold [&_a]:text-[#2F8F46] [&_a]:underline"
-                              dangerouslySetInnerHTML={{ __html: contactInfoRaw }}
+                              dangerouslySetInnerHTML={{ __html: normalizedContactInfoHtml }}
                           />
                         ) : (
                           <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#2f4d33]">

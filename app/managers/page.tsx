@@ -20,12 +20,13 @@ export default function ManagersPage() {
           return;
         }
 
-        if (!['ADMIN', 'MANAGER'].includes(data.user.role)) {
+        const normalizedRole = String(data.user.role || '').toUpperCase();
+        if (!['ADMIN', 'MANAGER'].includes(normalizedRole)) {
           router.push('/auth/login?error=Доступ+только+для+менеджеров');
           return;
         }
 
-        setUser(data.user);
+        setUser({ ...data.user, role: normalizedRole });
         setIsLoading(false);
       } catch (error) {
         router.push('/auth/login');

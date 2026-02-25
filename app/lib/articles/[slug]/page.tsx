@@ -6,6 +6,7 @@ import { Button } from "@/components/ui";
 import { Badge } from "@/components/ui";
 import { buildMetadata } from "@/lib/seo";
 import { normalizeImageSrc, isExternalImageSrc } from "@/lib/image-src";
+import { normalizeEmbeddedLocalAssetUrls } from "@/lib/html-local-assets";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -25,6 +26,7 @@ export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
   if (!article) notFound();
+  const articleContent = normalizeEmbeddedLocalAssetUrls(article.content || "");
 
   const author = article.author;
   const mainImage = author?.images?.[0];
@@ -63,7 +65,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
         <div
           className="mt-8 prose prose-neutral max-w-none text-foreground [&_a]:text-[#5858E2] [&_a]:underline [&_ul]:list-disc [&_ol]:list-decimal"
-          dangerouslySetInnerHTML={{ __html: article.content }}
+          dangerouslySetInnerHTML={{ __html: articleContent }}
         />
 
         {author && (

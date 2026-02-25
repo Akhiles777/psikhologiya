@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+function normalizeRole(role: unknown): 'ADMIN' | 'MANAGER' {
+  return String(role || 'MANAGER').toUpperCase() === 'ADMIN' ? 'ADMIN' : 'MANAGER';
+}
+
 export async function POST(request: NextRequest) {
   try {
     const sessionCookie = request.cookies.get('auth-session');
@@ -18,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Обновляем cookie с актуальными правами и ролью
     const newSessionData = {
       ...sessionData,
-      role: manager.role,
+      role: normalizeRole(manager.role),
       permissions: manager.permissions || {},
       isActive: manager.isActive,
     };

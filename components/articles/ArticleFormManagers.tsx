@@ -67,11 +67,19 @@ export default function ArticleForm({
                                       loading: externalLoading,
                                       psychologists = []
                                     }: ArticleFormProps) {
+  const initialTitle = typeof initialData.title === "string" ? initialData.title : "";
+  const initialSlug = typeof initialData.slug === "string" ? initialData.slug : "";
+  const autoSlugFromInitialTitle = slugFromArticleTitle(initialTitle);
+  const initialSlugLooksManual =
+    Boolean(initialSlug) &&
+    Boolean(autoSlugFromInitialTitle) &&
+    initialSlug !== autoSlugFromInitialTitle;
+
   const articleId = typeof initialData.id === "string" ? initialData.id : "";
   const [draftFilesKey] = useState(() => `article-draft-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
-  const [title, setTitle] = useState(initialData.title || "");
-  const [slug, setSlug] = useState(() => initialData.slug || generateRandomArticleSlug());
-  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(Boolean(initialData.slug));
+  const [title, setTitle] = useState(initialTitle);
+  const [slug, setSlug] = useState(() => initialSlug || generateRandomArticleSlug());
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(initialSlugLooksManual);
   const [shortText, setShortText] = useState(initialData.shortText || "");
   const [content, setContent] = useState(initialData.content || "");
   const [tags, setTags] = useState<string[]>(initialData.tags || []);

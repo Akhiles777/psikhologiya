@@ -5,10 +5,39 @@ import bcrypt from 'bcryptjs';
 // Дефолтные креды для админа из .env
 const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'Gasan123';
 const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || '1111';
+const IS_PROD = process.env.NODE_ENV === 'production';
+
+function normalizeRole(role: unknown): 'ADMIN' | 'MANAGER' {
+  return String(role || 'MANAGER').toUpperCase() === 'ADMIN' ? 'ADMIN' : 'MANAGER';
+}
+
+function setSessionCookie(
+  response: NextResponse,
+  name: string,
+  value: string,
+  maxAgeSeconds: number
+) {
+  response.cookies.set(name, value, {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: 'lax',
+    maxAge: maxAgeSeconds,
+    path: '/',
+  });
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const email = String(body?.email ?? body?.login ?? '').trim();
+    const password = String(body?.password ?? '').trim();
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: 'Укажите email/логин и пароль' },
+        { status: 400 }
+      );
+    }
 
     // Сначала проверяем дефолтного админа
     if (email === DEFAULT_ADMIN_EMAIL && password === DEFAULT_ADMIN_PASSWORD) {
@@ -41,13 +70,7 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      response.cookies.set('auth-session', JSON.stringify(sessionData), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24, // 24 часа
-        path: '/',
-      });
+      setSessionCookie(response, 'auth-session', JSON.stringify(sessionData), 60 * 60 * 24);
 
       return response;
     }
@@ -81,12 +104,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedRole = normalizeRole(manager.role);
+
     // Создаем сессию
     const sessionData = {
       id: manager.id,
       email: manager.email,
       name: manager.name,
-      role: manager.role,
+      role: normalizedRole,
       permissions: manager.permissions || {},
       isActive: manager.isActive,
       createdAt: new Date().toISOString(),
@@ -98,19 +123,19 @@ export async function POST(request: NextRequest) {
         id: manager.id,
         email: manager.email,
         name: manager.name,
-        role: manager.role,
+        role: normalizedRole,
         permissions: manager.permissions || {},
         isActive: manager.isActive,
       }
     });
 
-    response.cookies.set('auth-session', JSON.stringify(sessionData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 часа
-      path: '/',
-    });
+    setSessionCookie(response, 'auth-session', JSON.stringify(sessionData), 60 * 60 * 24);
+    setSessionCookie(
+      response,
+      'manager_session',
+      Buffer.from(`${manager.id}:${Date.now()}`).toString('base64'),
+      60 * 60 * 24
+    );
 
     return response;
 

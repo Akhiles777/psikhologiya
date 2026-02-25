@@ -1,3 +1,5 @@
+import { normalizeEmbeddedLocalAssetUrls } from "@/lib/html-local-assets";
+
 /**
  * Отображение контента страницы из БД (шаблон «текст» или «пустой»).
  * Используется в /s/[slug], /courses, /lib, /connect, /contacts.
@@ -40,7 +42,7 @@ function extractRenderableContent(raw: string): string {
 }
 
 export function PageContent({ title, template, content }: Props) {
-  const safeContent = extractRenderableContent(content);
+  const safeContent = normalizeEmbeddedLocalAssetUrls(extractRenderableContent(content));
 
   if (template === "empty") {
     return (

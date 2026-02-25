@@ -55,9 +55,8 @@ export function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </li>
 
       </ul>
-      <p className="mt-4 border-t border-neutral-200 pt-3 text-xs text-neutral-dark">
-        Курсы, Библиотека, Для психологов, Контакты — создайте страницу со slug: courses, lib, connect, contacts и включите «Опубликовать».
-      </p>
+     
+
     </nav>
   );
 

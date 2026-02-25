@@ -8,6 +8,7 @@ import { CatalogSidebar } from "@/components/catalog/CatalogSidebar";
 import { getPageBySlug } from "@/lib/page-content";
 import { CATALOG_PAGE_SLUG, parseCatalogPageSections } from "@/lib/catalog-page-config";
 import { Filter } from "lucide-react";
+import { normalizeEmbeddedLocalAssetUrls } from "@/lib/html-local-assets";
 
 export const revalidate = 60;
 
@@ -34,15 +35,17 @@ export default async function PsyListPage({ searchParams }: PageProps) {
     getPageBySlug(CATALOG_PAGE_SLUG),
   ]);
   const { topHtml, bottomHtml } = parseCatalogPageSections(catalogPage?.content);
-  const hasTopHtml = Boolean(topHtml);
-  const hasBottomHtml = Boolean(bottomHtml);
+  const normalizedTopHtml = normalizeEmbeddedLocalAssetUrls(topHtml || "");
+  const normalizedBottomHtml = normalizeEmbeddedLocalAssetUrls(bottomHtml || "");
+  const hasTopHtml = Boolean(normalizedTopHtml);
+  const hasBottomHtml = Boolean(normalizedBottomHtml);
 
   return (
     <div className="min-h-screen bg-white">
       {hasTopHtml ? (
         <div
           className="w-full [&_iframe]:max-w-full [&_img]:h-auto [&_img]:max-w-full [&_video]:max-w-full"
-          dangerouslySetInnerHTML={{ __html: topHtml }}
+          dangerouslySetInnerHTML={{ __html: normalizedTopHtml }}
         />
       ) : (
         <section className="border-b border-neutral-200 bg-[#f5f5f7]">
@@ -133,7 +136,7 @@ export default async function PsyListPage({ searchParams }: PageProps) {
           {hasBottomHtml && (
             <div
               className="mt-12 w-full [&_iframe]:max-w-full [&_img]:h-auto [&_img]:max-w-full [&_video]:max-w-full"
-              dangerouslySetInnerHTML={{ __html: bottomHtml }}
+              dangerouslySetInnerHTML={{ __html: normalizedBottomHtml }}
             />
           )}
         </div>

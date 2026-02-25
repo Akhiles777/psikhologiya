@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function ManagerLoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const redirect = searchParams.get('redirect') || '/managers';
@@ -43,12 +42,14 @@ export default function ManagerLoginPage() {
       }
 
       // Проверяем что это действительно менеджер
-      if (data.user.role !== 'MANAGER' && data.user.role !== 'ADMIN') {
+      const normalizedRole = String(data?.user?.role || '').toUpperCase();
+      if (normalizedRole !== 'MANAGER' && normalizedRole !== 'ADMIN') {
         throw new Error('Доступ только для менеджеров и администраторов');
       }
 
       // Редирект в менеджерскую зону
-      window.location.href = '/managers';
+      const safeRedirect = redirect.startsWith('/') ? redirect : '/managers';
+      window.location.assign(safeRedirect);
       
     } catch (error: any) {
       setLoginError(error.message || 'Неверный email или пароль');
