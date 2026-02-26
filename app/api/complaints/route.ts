@@ -4,12 +4,7 @@ export const runtime = "nodejs";
 
 const MIN_TEXT_LENGTH = 10;
 const MAX_TEXT_LENGTH = 6000;
-const DEFAULT_UNISENDER_API_URLS = [
-  "https://go1.unisender.ru/ru/transactional/api/v1",
-  "https://go2.unisender.ru/ru/transactional/api/v1",
-];
-const DEFAULT_UNISENDER_CLASSIC_API_BASE = "https://api.unisender.com";
-const DEFAULT_UNISENDER_CLASSIC_LANG = "ru";
+const UNISENDER_SEND_EMAIL_ENDPOINT = "https://api.unisender.com/ru/api/sendEmail";
 const DEFAULT_UNISENDER_PLATFORM = "dvmeste";
 
 type ComplaintPayload = {
@@ -22,6 +17,15 @@ type ComplaintPayload = {
 
 function normalizeText(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function unquote(value: string): string {
+  return value.trim().replace(/^['"]+|['"]+$/g, "");
+}
+
+function normalizePlatform(value: string): string {
+  const normalized = value.trim().replace(/[^a-zA-Z0-9_]/g, "");
+  return normalized || DEFAULT_UNISENDER_PLATFORM;
 }
 
 function escapeHtml(value: string): string {
@@ -46,44 +50,8 @@ function validatePayload(payload: ComplaintPayload): string | null {
   return null;
 }
 
-function normalizeApiUrl(value: string): string {
-  return value.trim().replace(/\/+$/, "");
-}
-
-function unquote(value: string): string {
-  return value.trim().replace(/^['"]+|['"]+$/g, "");
-}
-
-function normalizeLang(value: string): "ru" | "en" {
-  return value.toLowerCase() === "en" ? "en" : "ru";
-}
-
-function normalizePlatform(value: string): string {
-  const normalized = value.trim().replace(/[^a-zA-Z0-9_]/g, "");
-  return normalized || DEFAULT_UNISENDER_PLATFORM;
-}
-
-function buildClassicEndpoint(base: string, lang: "ru" | "en"): string {
-  try {
-    const parsed = new URL(base);
-    parsed.pathname = `/${lang}/api/sendEmail`;
-    parsed.search = "";
-    parsed.hash = "";
-    return parsed.toString();
-  } catch {
-    return `${DEFAULT_UNISENDER_CLASSIC_API_BASE}/${lang}/api/sendEmail`;
-  }
-}
-
 function getUnisenderConfig() {
   const apiKey = unquote(process.env.UNISENDER_API_KEY?.trim() || "");
-  const baseUrlEnv = process.env.UNISENDER_API_URL?.trim() || "";
-  const classicApiBase = unquote(
-    normalizeApiUrl(process.env.UNISENDER_CLASSIC_API_BASE?.trim() || DEFAULT_UNISENDER_CLASSIC_API_BASE)
-  );
-  const classicLang = normalizeLang(
-    unquote(process.env.UNISENDER_CLASSIC_LANG?.trim() || DEFAULT_UNISENDER_CLASSIC_LANG)
-  );
   const fromEmail = unquote(process.env.UNISENDER_FROM_EMAIL?.trim() || "");
   const fromName = unquote(process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе");
   const receiverEmail = unquote(process.env.COMPLAINT_RECEIVER_EMAIL?.trim() || "manager@dvmeste.ru");
@@ -95,46 +63,7 @@ function getUnisenderConfig() {
     return null;
   }
 
-  const apiUrls = Array.from(
-    new Set([
-      ...(baseUrlEnv ? [normalizeApiUrl(baseUrlEnv)] : []),
-      ...DEFAULT_UNISENDER_API_URLS,
-    ])
-  );
-
-  return {
-    apiKey,
-    apiUrls,
-    classicApiBase,
-    classicLang,
-    fromEmail,
-    fromName,
-    receiverEmail,
-    platform,
-  };
-}
-
-type UnisenderApiError = {
-  status?: string;
-  code?: number;
-  message?: string;
-};
-
-function parseUnisenderError(rawText: string): UnisenderApiError {
-  try {
-    return JSON.parse(rawText) as UnisenderApiError;
-  } catch {
-    return {};
-  }
-}
-
-function isWrongDatacenterError(status: number, rawText: string): boolean {
-  const parsed = parseUnisenderError(rawText);
-  const message = String(parsed.message || "");
-  return (
-    (status === 401 || status === 404) &&
-    (parsed.code === 114 || /User with id .* not found/i.test(message))
-  );
+  return { apiKey, fromEmail, fromName, receiverEmail, platform };
 }
 
 function buildComplaintMessage(payload: ComplaintPayload, request: NextRequest) {
@@ -143,22 +72,6 @@ function buildComplaintMessage(payload: ComplaintPayload, request: NextRequest) 
   const sourceUrl = payload.sourceUrl || "не указан";
 
   const subject = `Жалоба на ${payload.psychologistName}`;
-  const text = [
-    `Жалоба на ${payload.psychologistName}`,
-    payload.psychologistSlug ? `Slug психолога: ${payload.psychologistSlug}` : "",
-    `Страница: ${sourceUrl}`,
-    `IP: ${ip}`,
-    `User-Agent: ${userAgent}`,
-    "",
-    "Суть жалобы:",
-    payload.complaintText,
-    "",
-    "Контакты для обратной связи:",
-    payload.contactsText,
-  ]
-    .filter(Boolean)
-    .join("\n");
-
   const html = `
     <h2>Жалоба на ${escapeHtml(payload.psychologistName)}</h2>
     <p><b>Slug психолога:</b> ${escapeHtml(payload.psychologistSlug || "не указан")}</p>
@@ -172,15 +85,19 @@ function buildComplaintMessage(payload: ComplaintPayload, request: NextRequest) 
     <p>${escapeHtml(payload.contactsText).replaceAll("\n", "<br />")}</p>
   `;
 
-  return { subject, text, html };
+  return { subject, html };
 }
 
-async function sendComplaintViaClassicApi(
-  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
-  subject: string,
-  html: string
-) {
-  const endpoint = buildClassicEndpoint(unisender.classicApiBase, unisender.classicLang);
+async function sendComplaintEmail(payload: ComplaintPayload, request: NextRequest) {
+  const unisender = getUnisenderConfig();
+  if (!unisender) {
+    throw new Error(
+      "Почта не настроена. Укажите UNISENDER_API_KEY, UNISENDER_FROM_EMAIL и COMPLAINT_RECEIVER_EMAIL."
+    );
+  }
+
+  const { subject, html } = buildComplaintMessage(payload, request);
+
   const body = new URLSearchParams({
     format: "json",
     api_key: unisender.apiKey,
@@ -192,7 +109,7 @@ async function sendComplaintViaClassicApi(
     body: html,
   });
 
-  const response = await fetch(endpoint, {
+  const response = await fetch(UNISENDER_SEND_EMAIL_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -214,92 +131,8 @@ async function sendComplaintViaClassicApi(
   }
 
   if (parsed.error || parsed.code) {
-    throw new Error(
-      `UniSender classic error (${parsed.code || "unknown"}): ${parsed.error || "unknown"}`
-    );
+    throw new Error(`UniSender classic error (${parsed.code || "unknown"}): ${parsed.error || "unknown"}`);
   }
-}
-
-async function sendComplaintViaTransactionalApi(
-  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
-  subject: string,
-  text: string,
-  html: string
-) {
-
-  const requestBody = JSON.stringify({
-    message: {
-      recipients: [{ email: unisender.receiverEmail }],
-      subject,
-      body: {
-        html,
-        plaintext: text,
-      },
-      from_email: unisender.fromEmail,
-      from_name: unisender.fromName,
-      reply_to: unisender.fromEmail,
-      reply_to_name: unisender.fromName,
-      track_links: 0,
-      track_read: 0,
-    },
-  });
-
-  let lastErrorMessage = "unknown";
-
-  for (let index = 0; index < unisender.apiUrls.length; index += 1) {
-    const apiUrl = unisender.apiUrls[index];
-    const response = await fetch(`${apiUrl}/email/send.json`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "X-API-KEY": unisender.apiKey,
-      },
-      body: requestBody,
-    });
-
-    if (response.ok) {
-      return;
-    }
-
-    const raw = await response.text().catch(() => "");
-    lastErrorMessage = `UniSender error (${response.status}): ${raw || "unknown"}`;
-
-    const shouldTryNext = isWrongDatacenterError(response.status, raw) && index < unisender.apiUrls.length - 1;
-    if (shouldTryNext) {
-      continue;
-    }
-
-    throw new Error(lastErrorMessage);
-  }
-
-  throw new Error(
-    `${lastErrorMessage}. Проверьте UNISENDER_API_URL (go1/go2) и ключ в кабинете UniSender.`
-  );
-}
-
-async function sendComplaintEmail(payload: ComplaintPayload, request: NextRequest) {
-  const unisender = getUnisenderConfig();
-  if (!unisender) {
-    throw new Error(
-      "Почта не настроена. Укажите UNISENDER_API_KEY, UNISENDER_FROM_EMAIL и COMPLAINT_RECEIVER_EMAIL."
-    );
-  }
-
-  const { subject, text, html } = buildComplaintMessage(payload, request);
-  const mode = (process.env.UNISENDER_MODE?.trim() || "classic").toLowerCase();
-
-  if (mode === "classic" || mode === "auto") {
-    await sendComplaintViaClassicApi(unisender, subject, html);
-    return;
-  }
-
-  if (mode === "transactional") {
-    await sendComplaintViaTransactionalApi(unisender, subject, text, html);
-    return;
-  }
-
-  throw new Error('UNISENDER_MODE должен быть "classic" или "transactional".');
 }
 
 export async function POST(request: NextRequest) {
@@ -326,3 +159,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
+
