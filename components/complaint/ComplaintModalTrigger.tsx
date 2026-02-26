@@ -14,6 +14,8 @@ type ComplaintModalTriggerProps = {
 const COMPLAINT_PLACEHOLDER = "Опишите, что именно произошло, когда и при каких обстоятельствах.";
 const CONTACTS_LABEL =
   "Укажите ваши контакты для обратной связи. Возможно, у нас будут вопросы по вашей жалобе и нам потребуется уточнять детали. Оставьте лучший способ связи с вами.";
+
+  const a = 'a'
 const CONTACTS_PLACEHOLDER = "Телефон, email, Telegram или другой удобный способ связи.";
 
 function isComplaintHref(rawHref: string): boolean {

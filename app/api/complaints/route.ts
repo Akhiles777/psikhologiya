@@ -6,6 +6,7 @@ const MIN_TEXT_LENGTH = 10;
 const MAX_TEXT_LENGTH = 6000;
 const UNISENDER_SEND_EMAIL_ENDPOINT = "https://api.unisender.com/ru/api/sendEmail";
 const DEFAULT_UNISENDER_PLATFORM = "dvmeste";
+const DEFAULT_UNISENDER_COMPLAINT_LIST_TITLE = "Жалобы сайта";
 
 type ComplaintPayload = {
   psychologistName: string;
@@ -58,12 +59,15 @@ function getUnisenderConfig() {
   const platform = normalizePlatform(
     unquote(process.env.UNISENDER_PLATFORM?.trim() || DEFAULT_UNISENDER_PLATFORM)
   );
+  const complaintListId = unquote(process.env.UNISENDER_COMPLAINT_LIST_ID?.trim() || "");
+  const complaintListTitle =
+    unquote(process.env.UNISENDER_COMPLAINT_LIST_TITLE?.trim() || "") || DEFAULT_UNISENDER_COMPLAINT_LIST_TITLE;
 
   if (!apiKey || !fromEmail || !receiverEmail) {
     return null;
   }
 
-  return { apiKey, fromEmail, fromName, receiverEmail, platform };
+  return { apiKey, fromEmail, fromName, receiverEmail, platform, complaintListId, complaintListTitle };
 }
 
 function buildComplaintMessage(payload: ComplaintPayload, request: NextRequest) {
@@ -97,42 +101,157 @@ async function sendComplaintEmail(payload: ComplaintPayload, request: NextReques
   }
 
   const { subject, html } = buildComplaintMessage(payload, request);
+  const listId = await resolveComplaintListId(unisender);
+  await ensureReceiverSubscribed(unisender, listId);
 
-  const body = new URLSearchParams({
-    format: "json",
-    api_key: unisender.apiKey,
-    platform: unisender.platform,
-    email: unisender.receiverEmail,
-    sender_name: unisender.fromName,
-    sender_email: unisender.fromEmail,
-    subject,
-    body: html,
-  });
+  const messageId = await createComplaintEmailMessage(unisender, listId, subject, html);
+  await createComplaintCampaign(unisender, messageId);
+}
 
-  const response = await fetch(UNISENDER_SEND_EMAIL_ENDPOINT, {
+type ClassicApiResponse<T = unknown> = {
+  result?: T;
+  error?: string;
+  code?: string;
+};
+
+type ListItem = {
+  id?: string | number;
+  title?: string;
+};
+
+function buildClassicMethodEndpoint(method: string): string {
+  return UNISENDER_SEND_EMAIL_ENDPOINT.replace(/\/sendEmail$/i, `/${method}`);
+}
+
+async function callUnisenderClassic<T>(
+  method: string,
+  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
+  params: URLSearchParams
+): Promise<T> {
+  params.set("format", "json");
+  params.set("api_key", unisender.apiKey);
+  params.set("platform", unisender.platform);
+
+  const endpoint = buildClassicMethodEndpoint(method);
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       Accept: "application/json",
     },
-    body: body.toString(),
+    body: params.toString(),
   });
 
   const raw = await response.text().catch(() => "");
   if (!response.ok) {
-    throw new Error(`UniSender classic error (${response.status}): ${raw || "unknown"}`);
+    throw new Error(`UniSender ${method} error (${response.status}): ${raw || "unknown"}`);
   }
 
-  let parsed: { result?: unknown; error?: string; code?: string } = {};
+  let parsed: ClassicApiResponse<T>;
   try {
-    parsed = JSON.parse(raw) as { result?: unknown; error?: string; code?: string };
+    parsed = JSON.parse(raw) as ClassicApiResponse<T>;
   } catch {
-    throw new Error(`UniSender classic invalid response: ${raw || "empty response"}`);
+    throw new Error(`UniSender ${method} invalid response: ${raw || "empty response"}`);
   }
 
   if (parsed.error || parsed.code) {
-    throw new Error(`UniSender classic error (${parsed.code || "unknown"}): ${parsed.error || "unknown"}`);
+    throw new Error(`UniSender ${method} error (${parsed.code || "unknown"}): ${parsed.error || "unknown"}`);
   }
+
+  return parsed.result as T;
+}
+
+function normalizeListId(value: unknown): string | null {
+  const v = String(value ?? "").trim();
+  return /^[0-9]+$/.test(v) ? v : null;
+}
+
+async function resolveComplaintListId(
+  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>
+): Promise<string> {
+  const fromEnv = normalizeListId(unisender.complaintListId);
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  const lists = await callUnisenderClassic<ListItem[]>("getLists", unisender, new URLSearchParams());
+  const matched = Array.isArray(lists)
+    ? lists.find((list) => String(list?.title || "").trim() === unisender.complaintListTitle)
+    : undefined;
+
+  const existingId = normalizeListId(matched?.id);
+  if (existingId) {
+    return existingId;
+  }
+
+  const created = await callUnisenderClassic<{ id?: string | number }>(
+    "createList",
+    unisender,
+    new URLSearchParams({
+      title: unisender.complaintListTitle,
+    })
+  );
+
+  const createdId = normalizeListId(created?.id);
+  if (!createdId) {
+    throw new Error("UniSender createList вернул некорректный id списка.");
+  }
+
+  return createdId;
+}
+
+async function ensureReceiverSubscribed(
+  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
+  listId: string
+) {
+  const params = new URLSearchParams({
+    list_ids: listId,
+    double_optin: "0",
+    overwrite: "2",
+  });
+  params.set("fields[email]", unisender.receiverEmail);
+  await callUnisenderClassic("subscribe", unisender, params);
+}
+
+async function createComplaintEmailMessage(
+  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
+  listId: string,
+  subject: string,
+  html: string
+): Promise<string> {
+  const result = await callUnisenderClassic<{ message_id?: string | number; id?: string | number }>(
+    "createEmailMessage",
+    unisender,
+    new URLSearchParams({
+      sender_name: unisender.fromName,
+      sender_email: unisender.fromEmail,
+      subject,
+      body: html,
+      list_id: listId,
+    })
+  );
+
+  const messageId = normalizeListId(result?.message_id ?? result?.id);
+  if (!messageId) {
+    throw new Error("UniSender createEmailMessage вернул некорректный message_id.");
+  }
+
+  return messageId;
+}
+
+async function createComplaintCampaign(
+  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
+  messageId: string
+) {
+  await callUnisenderClassic(
+    "createCampaign",
+    unisender,
+    new URLSearchParams({
+      message_id: messageId,
+      track_read: "1",
+      track_links: "1",
+    })
+  );
 }
 
 export async function POST(request: NextRequest) {
@@ -159,4 +278,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
-
