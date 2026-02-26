@@ -10,6 +10,7 @@ const DEFAULT_UNISENDER_API_URLS = [
 ];
 const DEFAULT_UNISENDER_CLASSIC_API_BASE = "https://api.unisender.com";
 const DEFAULT_UNISENDER_CLASSIC_LANG = "ru";
+const DEFAULT_UNISENDER_PLATFORM = "dvmeste";
 
 type ComplaintPayload = {
   psychologistName: string;
@@ -57,6 +58,11 @@ function normalizeLang(value: string): "ru" | "en" {
   return value.toLowerCase() === "en" ? "en" : "ru";
 }
 
+function normalizePlatform(value: string): string {
+  const normalized = value.trim().replace(/[^a-zA-Z0-9_]/g, "");
+  return normalized || DEFAULT_UNISENDER_PLATFORM;
+}
+
 function buildClassicEndpoint(base: string, lang: "ru" | "en"): string {
   try {
     const parsed = new URL(base);
@@ -81,6 +87,9 @@ function getUnisenderConfig() {
   const fromEmail = unquote(process.env.UNISENDER_FROM_EMAIL?.trim() || "");
   const fromName = unquote(process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе");
   const receiverEmail = unquote(process.env.COMPLAINT_RECEIVER_EMAIL?.trim() || "manager@dvmeste.ru");
+  const platform = normalizePlatform(
+    unquote(process.env.UNISENDER_PLATFORM?.trim() || DEFAULT_UNISENDER_PLATFORM)
+  );
 
   if (!apiKey || !fromEmail || !receiverEmail) {
     return null;
@@ -93,7 +102,16 @@ function getUnisenderConfig() {
     ])
   );
 
-  return { apiKey, apiUrls, classicApiBase, classicLang, fromEmail, fromName, receiverEmail };
+  return {
+    apiKey,
+    apiUrls,
+    classicApiBase,
+    classicLang,
+    fromEmail,
+    fromName,
+    receiverEmail,
+    platform,
+  };
 }
 
 type UnisenderApiError = {
@@ -166,6 +184,7 @@ async function sendComplaintViaClassicApi(
   const body = new URLSearchParams({
     format: "json",
     api_key: unisender.apiKey,
+    platform: unisender.platform,
     email: unisender.receiverEmail,
     sender_name: unisender.fromName,
     sender_email: unisender.fromEmail,
