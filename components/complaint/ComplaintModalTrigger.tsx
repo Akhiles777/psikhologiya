@@ -18,7 +18,9 @@ const CONTACTS_PLACEHOLDER = "Телефон, email, Telegram или друго�
 
 function isComplaintHref(rawHref: string): boolean {
   try {
-    const url = new URL(rawHref, typeof window !== "undefined" ? window.location.origin : "http://localhost");
+    const baseOrigin =
+      typeof window !== "undefined" ? window.location.origin : "https://dvmeste.ru";
+    const url = new URL(rawHref, baseOrigin);
     return url.pathname === "/complaint";
   } catch {
     return false;
