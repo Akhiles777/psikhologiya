@@ -6,7 +6,7 @@ const MIN_TEXT_LENGTH = 10;
 const MAX_TEXT_LENGTH = 6000;
 const UNISENDER_SEND_EMAIL_ENDPOINT = "https://api.unisender.com/ru/api/sendEmail";
 const DEFAULT_UNISENDER_PLATFORM = "dvmeste";
-const DEFAULT_UNISENDER_COMPLAINT_LIST_TITLE = "Жалобы сайта";
+const DEFAULT_COMPLAINT_RECEIVER_EMAIL = "info@dvmeste.ru";
 
 type ComplaintPayload = {
   psychologistName: string;
@@ -55,20 +55,19 @@ function getUnisenderConfig() {
   const apiKey = unquote(process.env.UNISENDER_API_KEY?.trim() || "");
   const fromEmail = unquote(process.env.UNISENDER_FROM_EMAIL?.trim() || "");
   const fromName = unquote(process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе");
-  const receiverEmail = unquote(process.env.COMPLAINT_RECEIVER_EMAIL?.trim() || "manager@dvmeste.ru");
+  const receiverEmail = DEFAULT_COMPLAINT_RECEIVER_EMAIL;
   const platform = normalizePlatform(
     unquote(process.env.UNISENDER_PLATFORM?.trim() || DEFAULT_UNISENDER_PLATFORM)
   );
-  const complaintListId = unquote(process.env.UNISENDER_COMPLAINT_LIST_ID?.trim() || "");
-  const defaultListTitle = `${DEFAULT_UNISENDER_COMPLAINT_LIST_TITLE} (${receiverEmail})`;
-  const complaintListTitle =
-    unquote(process.env.UNISENDER_COMPLAINT_LIST_TITLE?.trim() || "") || defaultListTitle;
+  const complaintListId = normalizeListId(
+    unquote(process.env.UNISENDER_COMPLAINT_LIST_ID?.trim() || "")
+  );
 
-  if (!apiKey || !fromEmail || !receiverEmail) {
+  if (!apiKey || !fromEmail || !receiverEmail || !complaintListId) {
     return null;
   }
 
-  return { apiKey, fromEmail, fromName, receiverEmail, platform, complaintListId, complaintListTitle };
+  return { apiKey, fromEmail, fromName, receiverEmail, platform, complaintListId };
 }
 
 function buildComplaintMessage(payload: ComplaintPayload, request: NextRequest) {
@@ -97,37 +96,22 @@ async function sendComplaintEmail(payload: ComplaintPayload, request: NextReques
   const unisender = getUnisenderConfig();
   if (!unisender) {
     throw new Error(
-      "Почта не настроена. Укажите UNISENDER_API_KEY, UNISENDER_FROM_EMAIL и COMPLAINT_RECEIVER_EMAIL."
+      "Почта не настроена. Укажите UNISENDER_API_KEY, UNISENDER_FROM_EMAIL и UNISENDER_COMPLAINT_LIST_ID."
     );
   }
 
   const { subject, html } = buildComplaintMessage(payload, request);
-  const listId = await resolveComplaintListId(unisender);
+  const listId = unisender.complaintListId;
   await ensureReceiverSubscribed(unisender, listId);
 
   const messageId = await createComplaintEmailMessage(unisender, listId, subject, html);
-  try {
-    await createComplaintCampaign(unisender, messageId);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "";
-    if (!isEmptyOrUnavailableListError(message)) {
-      throw error;
-    }
-
-    // Fallback: если список пуст или контакты недоступны, отправляем жалобу напрямую.
-    await sendComplaintDirect(unisender, subject, html);
-  }
+  await createComplaintCampaign(unisender, messageId);
 }
 
 type ClassicApiResponse<T = unknown> = {
   result?: T;
   error?: string;
   code?: string;
-};
-
-type ListItem = {
-  id?: string | number;
-  title?: string;
 };
 
 function buildClassicMethodEndpoint(method: string): string {
@@ -139,9 +123,11 @@ async function callUnisenderClassic<T>(
   unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
   params: URLSearchParams
 ): Promise<T> {
-  params.set("format", "json");
-  params.set("api_key", unisender.apiKey);
-  params.set("platform", unisender.platform);
+  // Клонируем параметры, чтобы не протекали значения между вызовами разных методов.
+  const safeParams = new URLSearchParams(params.toString());
+  safeParams.set("format", "json");
+  safeParams.set("api_key", unisender.apiKey);
+  safeParams.set("platform", unisender.platform);
 
   const endpoint = buildClassicMethodEndpoint(method);
   const response = await fetch(endpoint, {
@@ -150,7 +136,7 @@ async function callUnisenderClassic<T>(
       "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       Accept: "application/json",
     },
-    body: params.toString(),
+    body: safeParams.toString(),
   });
 
   const raw = await response.text().catch(() => "");
@@ -175,49 +161,6 @@ async function callUnisenderClassic<T>(
 function normalizeListId(value: unknown): string | null {
   const v = String(value ?? "").trim();
   return /^[0-9]+$/.test(v) ? v : null;
-}
-
-function isEmptyOrUnavailableListError(message: string): boolean {
-  const m = message.toLowerCase();
-  return (
-    m.includes("the contact list is empty") ||
-    m.includes("probably they are unavailable") ||
-    m.includes("список") && m.includes("пуст")
-  );
-}
-
-async function resolveComplaintListId(
-  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>
-): Promise<string> {
-  const fromEnv = normalizeListId(unisender.complaintListId);
-  if (fromEnv) {
-    return fromEnv;
-  }
-
-  const lists = await callUnisenderClassic<ListItem[]>("getLists", unisender, new URLSearchParams());
-  const matched = Array.isArray(lists)
-    ? lists.find((list) => String(list?.title || "").trim() === unisender.complaintListTitle)
-    : undefined;
-
-  const existingId = normalizeListId(matched?.id);
-  if (existingId) {
-    return existingId;
-  }
-
-  const created = await callUnisenderClassic<{ id?: string | number }>(
-    "createList",
-    unisender,
-    new URLSearchParams({
-      title: unisender.complaintListTitle,
-    })
-  );
-
-  const createdId = normalizeListId(created?.id);
-  if (!createdId) {
-    throw new Error("UniSender createList вернул некорректный id списка.");
-  }
-
-  return createdId;
 }
 
 async function ensureReceiverSubscribed(
@@ -270,24 +213,6 @@ async function createComplaintCampaign(
       message_id: messageId,
       track_read: "1",
       track_links: "1",
-    })
-  );
-}
-
-async function sendComplaintDirect(
-  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
-  subject: string,
-  html: string
-) {
-  await callUnisenderClassic(
-    "sendEmail",
-    unisender,
-    new URLSearchParams({
-      email: unisender.receiverEmail,
-      sender_name: unisender.fromName,
-      sender_email: unisender.fromEmail,
-      subject,
-      body: html,
     })
   );
 }
