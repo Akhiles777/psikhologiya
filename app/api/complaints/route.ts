@@ -106,7 +106,17 @@ async function sendComplaintEmail(payload: ComplaintPayload, request: NextReques
   await ensureReceiverSubscribed(unisender, listId);
 
   const messageId = await createComplaintEmailMessage(unisender, listId, subject, html);
-  await createComplaintCampaign(unisender, messageId);
+  try {
+    await createComplaintCampaign(unisender, messageId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!isEmptyOrUnavailableListError(message)) {
+      throw error;
+    }
+
+    // Fallback: если список пуст или контакты недоступны, отправляем жалобу напрямую.
+    await sendComplaintDirect(unisender, subject, html);
+  }
 }
 
 type ClassicApiResponse<T = unknown> = {
@@ -165,6 +175,15 @@ async function callUnisenderClassic<T>(
 function normalizeListId(value: unknown): string | null {
   const v = String(value ?? "").trim();
   return /^[0-9]+$/.test(v) ? v : null;
+}
+
+function isEmptyOrUnavailableListError(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("the contact list is empty") ||
+    m.includes("probably they are unavailable") ||
+    m.includes("список") && m.includes("пуст")
+  );
 }
 
 async function resolveComplaintListId(
@@ -251,6 +270,24 @@ async function createComplaintCampaign(
       message_id: messageId,
       track_read: "1",
       track_links: "1",
+    })
+  );
+}
+
+async function sendComplaintDirect(
+  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
+  subject: string,
+  html: string
+) {
+  await callUnisenderClassic(
+    "sendEmail",
+    unisender,
+    new URLSearchParams({
+      email: unisender.receiverEmail,
+      sender_name: unisender.fromName,
+      sender_email: unisender.fromEmail,
+      subject,
+      body: html,
     })
   );
 }
