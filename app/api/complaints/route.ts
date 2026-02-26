@@ -4,6 +4,10 @@ export const runtime = "nodejs";
 
 const MIN_TEXT_LENGTH = 10;
 const MAX_TEXT_LENGTH = 6000;
+const DEFAULT_UNISENDER_API_URLS = [
+  "https://go1.unisender.ru/ru/transactional/api/v1",
+  "https://go2.unisender.ru/ru/transactional/api/v1",
+];
 
 type ComplaintPayload = {
   psychologistName: string;
@@ -39,9 +43,13 @@ function validatePayload(payload: ComplaintPayload): string | null {
   return null;
 }
 
+function normalizeApiUrl(value: string): string {
+  return value.trim().replace(/\/+$/, "");
+}
+
 function getUnisenderConfig() {
   const apiKey = process.env.UNISENDER_API_KEY?.trim() || "";
-  const baseUrl = (process.env.UNISENDER_API_URL?.trim() || "https://goapi.unisender.ru/ru/transactional/api/v1").replace(/\/+$/, "");
+  const baseUrlEnv = process.env.UNISENDER_API_URL?.trim() || "";
   const fromEmail = process.env.UNISENDER_FROM_EMAIL?.trim() || "";
   const fromName = process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе";
   const receiverEmail = process.env.COMPLAINT_RECEIVER_EMAIL?.trim() || "manager@dvmeste.ru";
@@ -50,7 +58,37 @@ function getUnisenderConfig() {
     return null;
   }
 
-  return { apiKey, baseUrl, fromEmail, fromName, receiverEmail };
+  const apiUrls = Array.from(
+    new Set([
+      ...(baseUrlEnv ? [normalizeApiUrl(baseUrlEnv)] : []),
+      ...DEFAULT_UNISENDER_API_URLS,
+    ])
+  );
+
+  return { apiKey, apiUrls, fromEmail, fromName, receiverEmail };
+}
+
+type UnisenderApiError = {
+  status?: string;
+  code?: number;
+  message?: string;
+};
+
+function parseUnisenderError(rawText: string): UnisenderApiError {
+  try {
+    return JSON.parse(rawText) as UnisenderApiError;
+  } catch {
+    return {};
+  }
+}
+
+function isWrongDatacenterError(status: number, rawText: string): boolean {
+  const parsed = parseUnisenderError(rawText);
+  const message = String(parsed.message || "");
+  return (
+    (status === 401 || status === 404) &&
+    (parsed.code === 114 || /User with id .* not found/i.test(message))
+  );
 }
 
 async function sendComplaintEmail(payload: ComplaintPayload, request: NextRequest) {
@@ -95,35 +133,55 @@ async function sendComplaintEmail(payload: ComplaintPayload, request: NextReques
     <p>${escapeHtml(payload.contactsText).replaceAll("\n", "<br />")}</p>
   `;
 
-  const response = await fetch(`${unisender.baseUrl}/email/send.json`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "X-API-KEY": unisender.apiKey,
-    },
-    body: JSON.stringify({
-      message: {
-        recipients: [{ email: unisender.receiverEmail }],
-        subject,
-        body: {
-          html,
-          plaintext: text,
-        },
-        from_email: unisender.fromEmail,
-        from_name: unisender.fromName,
-        reply_to: unisender.fromEmail,
-        reply_to_name: unisender.fromName,
-        track_links: 0,
-        track_read: 0,
+  const requestBody = JSON.stringify({
+    message: {
+      recipients: [{ email: unisender.receiverEmail }],
+      subject,
+      body: {
+        html,
+        plaintext: text,
       },
-    }),
+      from_email: unisender.fromEmail,
+      from_name: unisender.fromName,
+      reply_to: unisender.fromEmail,
+      reply_to_name: unisender.fromName,
+      track_links: 0,
+      track_read: 0,
+    },
   });
 
-  if (!response.ok) {
+  let lastErrorMessage = "unknown";
+
+  for (let index = 0; index < unisender.apiUrls.length; index += 1) {
+    const apiUrl = unisender.apiUrls[index];
+    const response = await fetch(`${apiUrl}/email/send.json`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "X-API-KEY": unisender.apiKey,
+      },
+      body: requestBody,
+    });
+
+    if (response.ok) {
+      return;
+    }
+
     const raw = await response.text().catch(() => "");
-    throw new Error(`UniSender error (${response.status}): ${raw || "unknown"}`);
+    lastErrorMessage = `UniSender error (${response.status}): ${raw || "unknown"}`;
+
+    const shouldTryNext = isWrongDatacenterError(response.status, raw) && index < unisender.apiUrls.length - 1;
+    if (shouldTryNext) {
+      continue;
+    }
+
+    throw new Error(lastErrorMessage);
   }
+
+  throw new Error(
+    `${lastErrorMessage}. Проверьте UNISENDER_API_URL (go1/go2) и ключ в кабинете UniSender.`
+  );
 }
 
 export async function POST(request: NextRequest) {
