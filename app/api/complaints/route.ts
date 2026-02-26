@@ -60,8 +60,9 @@ function getUnisenderConfig() {
     unquote(process.env.UNISENDER_PLATFORM?.trim() || DEFAULT_UNISENDER_PLATFORM)
   );
   const complaintListId = unquote(process.env.UNISENDER_COMPLAINT_LIST_ID?.trim() || "");
+  const defaultListTitle = `${DEFAULT_UNISENDER_COMPLAINT_LIST_TITLE} (${receiverEmail})`;
   const complaintListTitle =
-    unquote(process.env.UNISENDER_COMPLAINT_LIST_TITLE?.trim() || "") || DEFAULT_UNISENDER_COMPLAINT_LIST_TITLE;
+    unquote(process.env.UNISENDER_COMPLAINT_LIST_TITLE?.trim() || "") || defaultListTitle;
 
   if (!apiKey || !fromEmail || !receiverEmail) {
     return null;
