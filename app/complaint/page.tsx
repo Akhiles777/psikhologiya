@@ -16,7 +16,7 @@ export default function ComplaintPage() {
       </h1>
       <p className="mt-4 leading-relaxed text-neutral-dark">
         Если вы столкнулись с некорректным поведением специалиста или нарушением правил сервиса, отправьте жалобу через форму ниже.
-        После заполнения откроется письмо на manager@dvmeste.ru с уже подставленными данными жалобы.
+        После заполнения форма отправит жалобу напрямую через сайт.
       </p>
       <div className="mt-6">
         <ComplaintModalTrigger triggerLabel="Открыть форму жалобы" />

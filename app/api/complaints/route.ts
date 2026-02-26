@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 
-const RECEIVER_EMAIL = "manager@dvmeste.ru";
 const MIN_TEXT_LENGTH = 10;
 const MAX_TEXT_LENGTH = 6000;
 
@@ -41,66 +39,27 @@ function validatePayload(payload: ComplaintPayload): string | null {
   return null;
 }
 
-function getSmtpConfig() {
-  const provider = (process.env.SMTP_PROVIDER?.trim() || "").toLowerCase();
-  let host = process.env.SMTP_HOST?.trim() || "";
-  const portRaw = process.env.SMTP_PORT?.trim() || "";
-  const user = process.env.SMTP_USER?.trim() || "";
-  const pass = process.env.SMTP_PASS?.trim() || "";
-  const from = process.env.SMTP_FROM?.trim() || user;
+function getUnisenderConfig() {
+  const apiKey = process.env.UNISENDER_API_KEY?.trim() || "";
+  const baseUrl = (process.env.UNISENDER_API_URL?.trim() || "https://goapi.unisender.ru/ru/transactional/api/v1").replace(/\/+$/, "");
+  const fromEmail = process.env.UNISENDER_FROM_EMAIL?.trim() || "";
+  const fromName = process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе";
+  const receiverEmail = process.env.COMPLAINT_RECEIVER_EMAIL?.trim() || "manager@dvmeste.ru";
 
-  let secure = (process.env.SMTP_SECURE?.trim() || "") === "true";
-  let port = Number(portRaw);
-
-  // Brevo SMTP (бесплатный тариф): не требует API key
-  if (!host && provider === "brevo") {
-    host = "smtp-relay.brevo.com";
-    if (!port) port = 587;
-    secure = false;
-  }
-
-  // Упрощенный режим для Gmail: достаточно SMTP_USER/SMTP_PASS
-  if (!host && provider === "gmail") {
-    host = "smtp.gmail.com";
-    if (!port) port = 465;
-    secure = true;
-  }
-
-  // Упрощенный режим Gmail по домену, если SMTP_PROVIDER не задан
-  if (!host && !provider && user.toLowerCase().endsWith("@gmail.com")) {
-    host = "smtp.gmail.com";
-    if (!port) port = 465;
-    secure = true;
-  }
-
-  if (!port) {
-    port = secure ? 465 : 587;
-  }
-
-  if (!host || !port || !user || !pass || !from) {
+  if (!apiKey || !fromEmail || !receiverEmail) {
     return null;
   }
 
-  return { host, port, secure, user, pass, from };
+  return { apiKey, baseUrl, fromEmail, fromName, receiverEmail };
 }
 
 async function sendComplaintEmail(payload: ComplaintPayload, request: NextRequest) {
-  const smtp = getSmtpConfig();
-  if (!smtp) {
+  const unisender = getUnisenderConfig();
+  if (!unisender) {
     throw new Error(
-      "Почта не настроена. Укажите SMTP_PROVIDER, SMTP_USER, SMTP_PASS и SMTP_FROM в .env.local."
+      "Почта не настроена. Укажите UNISENDER_API_KEY, UNISENDER_FROM_EMAIL и COMPLAINT_RECEIVER_EMAIL."
     );
   }
-
-  const transporter = nodemailer.createTransport({
-    host: smtp.host,
-    port: smtp.port,
-    secure: smtp.secure,
-    auth: {
-      user: smtp.user,
-      pass: smtp.pass,
-    },
-  });
 
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const userAgent = request.headers.get("user-agent") || "unknown";
@@ -136,14 +95,35 @@ async function sendComplaintEmail(payload: ComplaintPayload, request: NextReques
     <p>${escapeHtml(payload.contactsText).replaceAll("\n", "<br />")}</p>
   `;
 
-  await transporter.sendMail({
-    from: smtp.from,
-    to: RECEIVER_EMAIL,
-    subject,
-    text,
-    html,
-    replyTo: smtp.from,
+  const response = await fetch(`${unisender.baseUrl}/email/send.json`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "X-API-KEY": unisender.apiKey,
+    },
+    body: JSON.stringify({
+      message: {
+        recipients: [{ email: unisender.receiverEmail }],
+        subject,
+        body: {
+          html,
+          plaintext: text,
+        },
+        from_email: unisender.fromEmail,
+        from_name: unisender.fromName,
+        reply_to: unisender.fromEmail,
+        reply_to_name: unisender.fromName,
+        track_links: 0,
+        track_read: 0,
+      },
+    }),
   });
+
+  if (!response.ok) {
+    const raw = await response.text().catch(() => "");
+    throw new Error(`UniSender error (${response.status}): ${raw || "unknown"}`);
+  }
 }
 
 export async function POST(request: NextRequest) {
