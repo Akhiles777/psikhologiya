@@ -149,7 +149,6 @@ async function sendComplaintViaClassicApi(
     sender_email: unisender.fromEmail,
     subject,
     body: html,
-    reply_to: unisender.fromEmail,
   });
 
   const response = await fetch(endpoint, {
