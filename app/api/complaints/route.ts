@@ -49,16 +49,38 @@ function normalizeApiUrl(value: string): string {
   return value.trim().replace(/\/+$/, "");
 }
 
+function unquote(value: string): string {
+  return value.trim().replace(/^['"]+|['"]+$/g, "");
+}
+
+function normalizeLang(value: string): "ru" | "en" {
+  return value.toLowerCase() === "en" ? "en" : "ru";
+}
+
+function buildClassicEndpoint(base: string, lang: "ru" | "en"): string {
+  try {
+    const parsed = new URL(base);
+    parsed.pathname = `/${lang}/api/sendEmail`;
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return `${DEFAULT_UNISENDER_CLASSIC_API_BASE}/${lang}/api/sendEmail`;
+  }
+}
+
 function getUnisenderConfig() {
-  const apiKey = process.env.UNISENDER_API_KEY?.trim() || "";
+  const apiKey = unquote(process.env.UNISENDER_API_KEY?.trim() || "");
   const baseUrlEnv = process.env.UNISENDER_API_URL?.trim() || "";
-  const classicApiBase = normalizeApiUrl(
-    process.env.UNISENDER_CLASSIC_API_BASE?.trim() || DEFAULT_UNISENDER_CLASSIC_API_BASE
+  const classicApiBase = unquote(
+    normalizeApiUrl(process.env.UNISENDER_CLASSIC_API_BASE?.trim() || DEFAULT_UNISENDER_CLASSIC_API_BASE)
   );
-  const classicLang = (process.env.UNISENDER_CLASSIC_LANG?.trim() || DEFAULT_UNISENDER_CLASSIC_LANG).toLowerCase();
-  const fromEmail = process.env.UNISENDER_FROM_EMAIL?.trim() || "";
-  const fromName = process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе";
-  const receiverEmail = process.env.COMPLAINT_RECEIVER_EMAIL?.trim() || "manager@dvmeste.ru";
+  const classicLang = normalizeLang(
+    unquote(process.env.UNISENDER_CLASSIC_LANG?.trim() || DEFAULT_UNISENDER_CLASSIC_LANG)
+  );
+  const fromEmail = unquote(process.env.UNISENDER_FROM_EMAIL?.trim() || "");
+  const fromName = unquote(process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе");
+  const receiverEmail = unquote(process.env.COMPLAINT_RECEIVER_EMAIL?.trim() || "manager@dvmeste.ru");
 
   if (!apiKey || !fromEmail || !receiverEmail) {
     return null;
@@ -140,7 +162,7 @@ async function sendComplaintViaClassicApi(
   subject: string,
   html: string
 ) {
-  const endpoint = `${unisender.classicApiBase}/${unisender.classicLang}/api/sendEmail`;
+  const endpoint = buildClassicEndpoint(unisender.classicApiBase, unisender.classicLang);
   const body = new URLSearchParams({
     format: "json",
     api_key: unisender.apiKey,
