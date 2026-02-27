@@ -217,7 +217,7 @@ function getUniSenderConfig(): UniSenderConfig | null {
   };
 }
 
-async function callUniSenderSendEmail(params: URLSearchParams, senderEmailOverride?: string) {
+async function callUniSenderSendEmail(params: URLSearchParams) {
   const config = getUniSenderConfig();
   if (!config) {
     throw new Error("Почта не настроена: укажите UNISENDER_API_KEY и UNISENDER_ADMIN_LIST_ID.");
@@ -227,10 +227,7 @@ async function callUniSenderSendEmail(params: URLSearchParams, senderEmailOverri
   safeParams.set("format", "json");
   safeParams.set("api_key", config.apiKey);
   safeParams.set("platform", config.platform);
-  const senderEmail = senderEmailOverride && isValidEmailAddress(senderEmailOverride)
-    ? senderEmailOverride
-    : config.fromEmail;
-  safeParams.set("sender_email", senderEmail);
+  safeParams.set("sender_email", config.fromEmail);
   safeParams.set("sender_name", config.fromName);
   safeParams.set("list_id", config.listId);
   safeParams.set("error_checking", "1");
@@ -282,7 +279,7 @@ async function callUniSenderSendEmail(params: URLSearchParams, senderEmailOverri
   }
 }
 
-async function sendResetCodeEmail(email: string, login: string, code: string, senderEmail?: string) {
+async function sendResetCodeEmail(email: string, login: string, code: string) {
   const subject = "Код восстановления доступа в админ-панель";
   const html = `
     <h2>Восстановление доступа в админ-панель</h2>
@@ -297,8 +294,7 @@ async function sendResetCodeEmail(email: string, login: string, code: string, se
       email,
       subject,
       body: html,
-    }),
-    senderEmail
+    })
   );
 }
 
@@ -327,7 +323,7 @@ async function createResetTicketForAdmin(admin: {
     select: { id: true },
   });
 
-  await sendResetCodeEmail(admin.email, admin.login, code, admin.email);
+  await sendResetCodeEmail(admin.email, admin.login, code);
 
   return signResetTicket({
     adminId: admin.id,

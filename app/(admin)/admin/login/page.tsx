@@ -17,6 +17,7 @@ export default async function AdminLoginPage({
   const error = params.error === "1";
 
   const one = '1'
+  const two = '2'
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F5F5F7] px-4">
