@@ -298,7 +298,7 @@ async function sendResetCodeEmail(email: string, login: string, code: string) {
   );
 }
 
-async function createResetTicketForAdmin(admin: {
+async function createResetCodeForAdmin(admin: {
   id: string;
   login: string;
   email: string;
@@ -314,22 +314,15 @@ async function createResetTicketForAdmin(admin: {
     },
   });
 
-  const resetRow = await prisma.adminPasswordResetCode.create({
+  await prisma.adminPasswordResetCode.create({
     data: {
       adminId: admin.id,
       codeHash,
       expiresAt,
     },
-    select: { id: true },
   });
 
   await sendResetCodeEmail(admin.email, admin.login, code);
-
-  return signResetTicket({
-    adminId: admin.id,
-    resetCodeId: resetRow.id,
-    exp: Date.now() + RESET_TICKET_TTL_MINUTES * 60 * 1000,
-  });
 }
 
 function toPublicProfile(account: {
@@ -528,7 +521,7 @@ export async function requestSuperAdminPasswordReset(identifier: string) {
     return { delivered: true as const };
   }
 
-  await createResetTicketForAdmin(admin);
+  await createResetCodeForAdmin(admin);
 
   return { delivered: true as const };
 }
@@ -542,10 +535,9 @@ export async function requestSuperAdminPasswordResetByEmail(email: string) {
     throw new Error("Укажите email, который сохранен в профиле супер-админа.");
   }
 
-  const ticket = await createResetTicketForAdmin(admin);
+  await createResetCodeForAdmin(admin);
   return {
     delivered: true as const,
-    ticket,
   };
 }
 

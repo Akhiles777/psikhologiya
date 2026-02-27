@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import {
   resetSuperAdminPasswordByTicket,
   requestSuperAdminPasswordResetByEmail,
+  verifySuperAdminPasswordResetCode,
 } from "@/lib/super-admin";
 
 type SearchParams = {
@@ -13,9 +14,12 @@ type SearchParams = {
 };
 
 const ADMIN_RESET_TICKET_COOKIE = "admin-reset-ticket";
+const ADMIN_RESET_PENDING_EMAIL_COOKIE = "admin-reset-pending-email";
 
 function resolveStatusMessage(status: string | undefined, reason?: string) {
-  if (status === "sent") return { type: "success" as const, text: "Код отправлен на email супер-админа." };
+  if (status === "sent") return { type: "success" as const, text: "Код отправлен на email супер-админа. Введите его ниже." };
+  if (status === "verified") return { type: "success" as const, text: "Код подтвержден. Установите новый пароль." };
+  if (status === "code") return { type: "error" as const, text: "Неверный или просроченный код." };
   if (status === "done") return { type: "success" as const, text: "Пароль обновлен. Можно войти в админку." };
   if (status === "mismatch") return { type: "error" as const, text: "Новый пароль и подтверждение не совпадают." };
   if (status === "input") return { type: "error" as const, text: "Заполните все поля." };
@@ -37,6 +41,8 @@ export default async function AdminForgotPasswordPage({
   const message = resolveStatusMessage(params.status, params.reason);
   const cookieStore = await cookies();
   const hasResetTicket = Boolean(cookieStore.get(ADMIN_RESET_TICKET_COOKIE)?.value);
+  const hasPendingEmail = Boolean(cookieStore.get(ADMIN_RESET_PENDING_EMAIL_COOKIE)?.value);
+  const isCodeStep = params.step === "code" && hasPendingEmail;
   const isResetStep = params.step === "reset" && hasResetTicket;
 
   return (
@@ -62,7 +68,7 @@ export default async function AdminForgotPasswordPage({
 
         {isResetStep ? (
           <form action={applyNewPasswordAction} className="mt-6 space-y-3 rounded-xl border border-neutral-200 bg-[#F8F9FF] p-4">
-            <h2 className="text-sm font-semibold text-foreground">2. Новый пароль</h2>
+            <h2 className="text-sm font-semibold text-foreground">3. Новый пароль</h2>
             <input
               type="password"
               name="newPassword"
@@ -84,6 +90,24 @@ export default async function AdminForgotPasswordPage({
               className="w-full rounded-lg border border-[#5858E2]/25 bg-white px-3 py-2 text-sm font-medium text-[#5858E2] hover:bg-[#5858E2]/5"
             >
               Сохранить новый пароль
+            </button>
+          </form>
+        ) : isCodeStep ? (
+          <form action={verifyCodeAction} className="mt-6 space-y-3 rounded-xl border border-neutral-200 bg-[#F8F9FF] p-4">
+            <h2 className="text-sm font-semibold text-foreground">2. Подтвердите код из письма</h2>
+            <input
+              type="text"
+              name="code"
+              required
+              maxLength={6}
+              placeholder="6-значный код"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-foreground"
+            />
+            <button
+              type="submit"
+              className="w-full rounded-lg border border-[#5858E2]/25 bg-white px-3 py-2 text-sm font-medium text-[#5858E2] hover:bg-[#5858E2]/5"
+            >
+              Проверить код
             </button>
           </form>
         ) : (
@@ -123,18 +147,25 @@ async function requestResetAction(formData: FormData) {
     redirect("/admin/forgot-password?status=input");
   }
 
-  let redirectTo = "/admin/forgot-password?step=reset&status=sent";
+  let redirectTo = "/admin/forgot-password?step=code&status=sent";
+  let pendingEmail = "";
 
   try {
-    const result = await requestSuperAdminPasswordResetByEmail(email);
+    await requestSuperAdminPasswordResetByEmail(email);
+    pendingEmail = email.trim().toLowerCase();
     const cookieStore = await cookies();
-    cookieStore.set(ADMIN_RESET_TICKET_COOKIE, result.ticket, {
+    cookieStore.set(ADMIN_RESET_PENDING_EMAIL_COOKIE, pendingEmail, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 15,
       path: "/admin/forgot-password",
     });
+    cookieStore.set(ADMIN_RESET_TICKET_COOKIE, "", {
+      path: "/admin/forgot-password",
+      maxAge: 0,
+    });
+    redirectTo = "/admin/forgot-password?step=code&status=sent";
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (message.includes("профиле супер-админа") || message.includes("корректный email")) {
@@ -143,6 +174,45 @@ async function requestResetAction(formData: FormData) {
       console.error("admin.reset.request failed", error);
       redirectTo = `/admin/forgot-password?status=mail&reason=${encodeURIComponent(message || "unknown")}`;
     }
+  }
+
+  redirect(redirectTo);
+}
+
+async function verifyCodeAction(formData: FormData) {
+  "use server";
+
+  const code = (formData.get("code") as string)?.trim() ?? "";
+  if (!code) {
+    redirect("/admin/forgot-password?step=code&status=input");
+  }
+
+  const cookieStore = await cookies();
+  const pendingEmail = (cookieStore.get(ADMIN_RESET_PENDING_EMAIL_COOKIE)?.value ?? "").trim().toLowerCase();
+  if (!pendingEmail) {
+    redirect("/admin/forgot-password?status=invalid");
+  }
+
+  let redirectTo = "/admin/forgot-password?step=reset&status=verified";
+  try {
+    const ticket = await verifySuperAdminPasswordResetCode({
+      identifier: pendingEmail,
+      code,
+    });
+    cookieStore.set(ADMIN_RESET_TICKET_COOKIE, ticket, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 15,
+      path: "/admin/forgot-password",
+    });
+    cookieStore.set(ADMIN_RESET_PENDING_EMAIL_COOKIE, "", {
+      path: "/admin/forgot-password",
+      maxAge: 0,
+    });
+  } catch (error) {
+    console.error("admin.reset.verify-code failed", error);
+    redirectTo = "/admin/forgot-password?step=code&status=code";
   }
 
   redirect(redirectTo);
@@ -178,9 +248,17 @@ async function applyNewPasswordAction(formData: FormData) {
       path: "/admin/forgot-password",
       maxAge: 0,
     });
+    cookieStore.set(ADMIN_RESET_PENDING_EMAIL_COOKIE, "", {
+      path: "/admin/forgot-password",
+      maxAge: 0,
+    });
   } catch (error) {
     console.error("admin.reset.apply failed", error);
     cookieStore.set(ADMIN_RESET_TICKET_COOKIE, "", {
+      path: "/admin/forgot-password",
+      maxAge: 0,
+    });
+    cookieStore.set(ADMIN_RESET_PENDING_EMAIL_COOKIE, "", {
       path: "/admin/forgot-password",
       maxAge: 0,
     });
