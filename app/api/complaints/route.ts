@@ -6,6 +6,7 @@ const MIN_TEXT_LENGTH = 10;
 const MAX_TEXT_LENGTH = 6000;
 const UNISENDER_SEND_EMAIL_ENDPOINT = "https://api.unisender.com/ru/api/sendEmail";
 const DEFAULT_UNISENDER_PLATFORM = "dvmeste";
+const DEFAULT_COMPLAINT_FROM_EMAIL = "info@dvmeste.ru";
 const DEFAULT_COMPLAINT_RECEIVER_EMAIL = "info@dvmeste.ru";
 
 type ComplaintPayload = {
@@ -53,7 +54,7 @@ function validatePayload(payload: ComplaintPayload): string | null {
 
 function getUnisenderConfig() {
   const apiKey = unquote(process.env.UNISENDER_API_KEY?.trim() || "");
-  const fromEmail = unquote(process.env.UNISENDER_FROM_EMAIL?.trim() || "");
+  const fromEmail = DEFAULT_COMPLAINT_FROM_EMAIL;
   const fromName = unquote(process.env.UNISENDER_FROM_NAME?.trim() || "Давай вместе");
   const receiverEmail = DEFAULT_COMPLAINT_RECEIVER_EMAIL;
   const platform = normalizePlatform(
@@ -96,16 +97,13 @@ async function sendComplaintEmail(payload: ComplaintPayload, request: NextReques
   const unisender = getUnisenderConfig();
   if (!unisender) {
     throw new Error(
-      "Почта не настроена. Укажите UNISENDER_API_KEY, UNISENDER_FROM_EMAIL и UNISENDER_COMPLAINT_LIST_ID."
+      "Почта не настроена. Укажите UNISENDER_API_KEY и UNISENDER_COMPLAINT_LIST_ID."
     );
   }
 
   const { subject, html } = buildComplaintMessage(payload, request);
   const listId = unisender.complaintListId;
-  await ensureReceiverSubscribed(unisender, listId);
-
-  const messageId = await createComplaintEmailMessage(unisender, listId, subject, html);
-  await createComplaintCampaign(unisender, messageId);
+  await sendComplaintDirect(unisender, listId, subject, html);
 }
 
 type ClassicApiResponse<T = unknown> = {
@@ -163,58 +161,47 @@ function normalizeListId(value: unknown): string | null {
   return /^[0-9]+$/.test(v) ? v : null;
 }
 
-async function ensureReceiverSubscribed(
-  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
-  listId: string
-) {
-  const params = new URLSearchParams({
-    list_ids: listId,
-    double_optin: "0",
-    overwrite: "2",
-  });
-  params.set("fields[email]", unisender.receiverEmail);
-  await callUnisenderClassic("subscribe", unisender, params);
-}
-
-async function createComplaintEmailMessage(
+async function sendComplaintDirect(
   unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
   listId: string,
   subject: string,
   html: string
-): Promise<string> {
-  const result = await callUnisenderClassic<{ message_id?: string | number; id?: string | number }>(
-    "createEmailMessage",
+) {
+  type SendEmailItem = {
+    index?: number;
+    email?: string;
+    id?: string;
+    errors?: Array<{ code?: string; message?: string }>;
+  };
+
+  const result = await callUnisenderClassic<SendEmailItem[] | { email_id?: string | number }>(
+    "sendEmail",
     unisender,
     new URLSearchParams({
+      email: unisender.receiverEmail,
       sender_name: unisender.fromName,
       sender_email: unisender.fromEmail,
       subject,
       body: html,
       list_id: listId,
+      error_checking: "1",
+      track_read: "0",
+      track_links: "0",
+      lang: "ru",
     })
   );
 
-  const messageId = normalizeListId(result?.message_id ?? result?.id);
-  if (!messageId) {
-    throw new Error("UniSender createEmailMessage вернул некорректный message_id.");
+  if (Array.isArray(result)) {
+    const firstError = result
+      .flatMap((item) => item.errors ?? [])
+      .find((error) => (error.code || error.message) && !error.code?.startsWith("retry"));
+
+    if (firstError) {
+      throw new Error(
+        `UniSender sendEmail error (${firstError.code || "unknown"}): ${firstError.message || "unknown"}`
+      );
+    }
   }
-
-  return messageId;
-}
-
-async function createComplaintCampaign(
-  unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
-  messageId: string
-) {
-  await callUnisenderClassic(
-    "createCampaign",
-    unisender,
-    new URLSearchParams({
-      message_id: messageId,
-      track_read: "1",
-      track_links: "1",
-    })
-  );
 }
 
 export async function POST(request: NextRequest) {
