@@ -123,6 +123,8 @@ async function requestResetAction(formData: FormData) {
     redirect("/admin/forgot-password?status=input");
   }
 
+  let redirectTo = "/admin/forgot-password?step=reset&status=sent";
+
   try {
     const result = await requestSuperAdminPasswordResetByEmail(email);
     const cookieStore = await cookies();
@@ -133,15 +135,17 @@ async function requestResetAction(formData: FormData) {
       maxAge: 60 * 15,
       path: "/admin/forgot-password",
     });
-    redirect("/admin/forgot-password?step=reset&status=sent");
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (message.includes("профиле супер-админа") || message.includes("корректный email")) {
-      redirect("/admin/forgot-password?status=email");
+      redirectTo = "/admin/forgot-password?status=email";
+    } else {
+      console.error("admin.reset.request failed", error);
+      redirectTo = `/admin/forgot-password?status=mail&reason=${encodeURIComponent(message || "unknown")}`;
     }
-    console.error("admin.reset.request failed", error);
-    redirect(`/admin/forgot-password?status=mail&reason=${encodeURIComponent(message || "unknown")}`);
   }
+
+  redirect(redirectTo);
 }
 
 async function applyNewPasswordAction(formData: FormData) {
@@ -163,6 +167,8 @@ async function applyNewPasswordAction(formData: FormData) {
     redirect("/admin/forgot-password?status=invalid");
   }
 
+  let redirectTo = "/admin/forgot-password?status=done";
+
   try {
     await resetSuperAdminPasswordByTicket({
       ticket,
@@ -172,13 +178,14 @@ async function applyNewPasswordAction(formData: FormData) {
       path: "/admin/forgot-password",
       maxAge: 0,
     });
-    redirect("/admin/forgot-password?status=done");
   } catch (error) {
     console.error("admin.reset.apply failed", error);
     cookieStore.set(ADMIN_RESET_TICKET_COOKIE, "", {
       path: "/admin/forgot-password",
       maxAge: 0,
     });
-    redirect("/admin/forgot-password?status=invalid");
+    redirectTo = "/admin/forgot-password?status=invalid";
   }
+
+  redirect(redirectTo);
 }
