@@ -12,8 +12,6 @@ const RESET_TICKET_TTL_MINUTES = 15;
 const UNISENDER_SEND_EMAIL_ENDPOINT = "https://api.unisender.com/ru/api/sendEmail";
 const DEFAULT_UNISENDER_PLATFORM = "dvmeste";
 const DEFAULT_FROM_EMAIL = "info@dvmeste.ru";
-const a = 'a'
-const b = 'b'
 
 let superAdminSchemaEnsured = false;
 
@@ -182,8 +180,16 @@ type UniSenderConfig = {
   platform: string;
 };
 
+function isValidEmailAddress(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 function getUniSenderConfig(): UniSenderConfig | null {
   const apiKey = (process.env.UNISENDER_API_KEY || "").trim().replace(/^['"]+|['"]+$/g, "");
+  const fromEmailRaw = (process.env.UNISENDER_FROM_EMAIL || DEFAULT_FROM_EMAIL).trim().replace(
+    /^['"]+|['"]+$/g,
+    ""
+  );
   const fromName = ((process.env.UNISENDER_FROM_NAME || "Давай вместе").trim()).replace(
     /^['"]+|['"]+$/g,
     ""
@@ -200,17 +206,18 @@ function getUniSenderConfig(): UniSenderConfig | null {
   );
 
   if (!apiKey || !/^\d+$/.test(listId)) return null;
+  const fromEmail = isValidEmailAddress(fromEmailRaw) ? fromEmailRaw : DEFAULT_FROM_EMAIL;
 
   return {
     apiKey,
-    fromEmail: DEFAULT_FROM_EMAIL,
+    fromEmail,
     fromName,
     listId,
     platform,
   };
 }
 
-async function callUniSenderSendEmail(params: URLSearchParams) {
+async function callUniSenderSendEmail(params: URLSearchParams, senderEmailOverride?: string) {
   const config = getUniSenderConfig();
   if (!config) {
     throw new Error("Почта не настроена: укажите UNISENDER_API_KEY и UNISENDER_ADMIN_LIST_ID.");
@@ -220,7 +227,10 @@ async function callUniSenderSendEmail(params: URLSearchParams) {
   safeParams.set("format", "json");
   safeParams.set("api_key", config.apiKey);
   safeParams.set("platform", config.platform);
-  safeParams.set("sender_email", config.fromEmail);
+  const senderEmail = senderEmailOverride && isValidEmailAddress(senderEmailOverride)
+    ? senderEmailOverride
+    : config.fromEmail;
+  safeParams.set("sender_email", senderEmail);
   safeParams.set("sender_name", config.fromName);
   safeParams.set("list_id", config.listId);
   safeParams.set("error_checking", "1");
@@ -272,7 +282,7 @@ async function callUniSenderSendEmail(params: URLSearchParams) {
   }
 }
 
-async function sendResetCodeEmail(email: string, login: string, code: string) {
+async function sendResetCodeEmail(email: string, login: string, code: string, senderEmail?: string) {
   const subject = "Код восстановления доступа в админ-панель";
   const html = `
     <h2>Восстановление доступа в админ-панель</h2>
@@ -287,7 +297,8 @@ async function sendResetCodeEmail(email: string, login: string, code: string) {
       email,
       subject,
       body: html,
-    })
+    }),
+    senderEmail
   );
 }
 
@@ -316,7 +327,7 @@ async function createResetTicketForAdmin(admin: {
     select: { id: true },
   });
 
-  await sendResetCodeEmail(admin.email, admin.login, code);
+  await sendResetCodeEmail(admin.email, admin.login, code, admin.email);
 
   return signResetTicket({
     adminId: admin.id,

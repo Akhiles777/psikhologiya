@@ -9,18 +9,22 @@ import {
 type SearchParams = {
   status?: string;
   step?: string;
+  reason?: string;
 };
 
 const ADMIN_RESET_TICKET_COOKIE = "admin-reset-ticket";
 
-function resolveStatusMessage(status: string | undefined) {
+function resolveStatusMessage(status: string | undefined, reason?: string) {
   if (status === "sent") return { type: "success" as const, text: "Код отправлен на email супер-админа." };
   if (status === "done") return { type: "success" as const, text: "Пароль обновлен. Можно войти в админку." };
   if (status === "mismatch") return { type: "error" as const, text: "Новый пароль и подтверждение не совпадают." };
   if (status === "input") return { type: "error" as const, text: "Заполните все поля." };
   if (status === "email") return { type: "error" as const, text: "Укажите email из профиля супер-админа." };
   if (status === "invalid") return { type: "error" as const, text: "Сессия восстановления недействительна. Начните заново." };
-  if (status === "mail") return { type: "error" as const, text: "Не удалось отправить письмо. Проверьте UniSender." };
+  if (status === "mail") {
+    const details = reason ? ` Причина: ${decodeURIComponent(reason)}` : "";
+    return { type: "error" as const, text: `Не удалось отправить письмо через UniSender.${details}` };
+  }
   return null;
 }
 
@@ -30,7 +34,7 @@ export default async function AdminForgotPasswordPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const message = resolveStatusMessage(params.status);
+  const message = resolveStatusMessage(params.status, params.reason);
   const cookieStore = await cookies();
   const hasResetTicket = Boolean(cookieStore.get(ADMIN_RESET_TICKET_COOKIE)?.value);
   const isResetStep = params.step === "reset" && hasResetTicket;
@@ -136,7 +140,7 @@ async function requestResetAction(formData: FormData) {
       redirect("/admin/forgot-password?status=email");
     }
     console.error("admin.reset.request failed", error);
-    redirect("/admin/forgot-password?status=mail");
+    redirect(`/admin/forgot-password?status=mail&reason=${encodeURIComponent(message || "unknown")}`);
   }
 }
 
