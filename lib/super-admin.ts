@@ -12,6 +12,9 @@ const RESET_TICKET_TTL_MINUTES = 15;
 const UNISENDER_SEND_EMAIL_ENDPOINT = "https://api.unisender.com/ru/api/sendEmail";
 const DEFAULT_UNISENDER_PLATFORM = "dvmeste";
 const DEFAULT_FROM_EMAIL = "info@dvmeste.ru";
+const a = 'a'
+const b = 'b'
+
 let superAdminSchemaEnsured = false;
 
 export type SuperAdminPublicProfile = {
