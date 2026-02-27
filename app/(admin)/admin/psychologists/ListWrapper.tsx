@@ -1,4 +1,4 @@
-// app/(admin)/admin/psychologists/ListWrapper.tsx
+                                                  
 import { getPsychologistsList } from "@/lib/actions/admin-psychologists";
 import PsychologistsListPage from "./PsychologistsListPage";
 

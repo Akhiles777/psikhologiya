@@ -99,11 +99,11 @@ export function middleware(request: NextRequest) {
   const hasManagersAccess =
     hasAdminAccess || isManagerAuthSession(authSession) || isManagerSessionTokenValid(managerSessionValue);
 
-  // Пути, которые доступны без авторизации
   const publicPaths = [
     '/auth/login',
     '/managers/login',
     '/admin/login',
+    '/admin/forgot-password',
     '/api/auth/login',
     '/api/admin/login',
   ];

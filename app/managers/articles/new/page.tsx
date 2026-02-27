@@ -3,7 +3,7 @@ import ArticleFormManagers from "@/components/articles/ArticleFormManagers";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 
 export default async function AdminArticleNewPage() {
-  // Загружаем психологов на сервере
+                                    
   const psychologists = await getPsychologistsList();
 
   return (

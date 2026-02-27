@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/** Блок «Как это работает». */
+                               
 export function HowBlock() {
   const steps = [
     { num: 1, title: "Задайте фильтры", text: "Парадигма, цена, город, уровень сертификации. Сортировка по цене или уровню." },

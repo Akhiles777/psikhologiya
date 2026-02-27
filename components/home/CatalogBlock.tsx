@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** Блок про подбор психолога. Красочный акцент + изображение. */
+                                                                 
 export function CatalogBlock() {
   const filters = [
     "Стоимость сессии (от и до)",

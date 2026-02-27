@@ -4,13 +4,13 @@ import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 const ARTICLE_TAGS_SLUG = "article-tags";
 
-// Проверка существования модели
+                                
 function checkPrismaModel() {
   if (!prisma) {
     throw new Error("Prisma client is not initialized");
   }
 
-  // В Prisma модель называется article (с маленькой буквы)
+                                                           
   if (!prisma.article) {
     throw new Error("Model 'article' not found in Prisma schema");
   }
@@ -46,13 +46,13 @@ async function getAllowedArticleTags(model: ReturnType<typeof checkPrismaModel>)
     const fromDataList = normalizeTagList(Array.isArray(dataList?.items) ? dataList.items : []);
     if (fromDataList.length > 0) return fromDataList;
   } catch {
-    // fallback ниже
+                    
   }
 
   const rows = await model.findMany({ select: { tags: true } });
   const fromArticles = normalizeTagList(rows.flatMap((row) => row.tags ?? []));
 
-  // Заполняем data list автоматически для первого запуска функционала тегов.
+                                                                             
   if (fromArticles.length > 0 && prisma) {
     try {
       await prisma.dataList.upsert({
@@ -68,7 +68,7 @@ async function getAllowedArticleTags(model: ReturnType<typeof checkPrismaModel>)
         },
       });
     } catch {
-      // Не прерываем операцию статьи из-за фоновой синхронизации тэгов
+                                                                       
     }
   }
 
@@ -83,12 +83,12 @@ function validateAndNormalizeArticleTags(inputTags: unknown[], allowedTags: stri
   return { valid, invalid };
 }
 
-// Получить статью по slug (для клиентской части)
+                                                 
 export async function getArticleBySlug(slug: string) {
   return getArticleBySlugCached(slug);
 }
 
-// Получить список статей с фильтрами
+                                     
 export async function getArticles({ tag, authorId, catalogSlug, publishedOnly }: {
   tag?: string;
   authorId?: string;
@@ -103,7 +103,7 @@ export async function getArticles({ tag, authorId, catalogSlug, publishedOnly }:
   );
 }
 
-// Получить одну статью по id
+                             
 export async function getArticleById(id: string) {
   try {
     const model = checkPrismaModel();
@@ -134,11 +134,11 @@ export interface CreateArticleInput {
 function revalidateArticleViews(slugs: Array<string | null | undefined> = []) {
   revalidateTag("articles", "max");
 
-  // Публичные страницы библиотеки
+                                  
   revalidatePath("/lib/articles");
   revalidatePath("/lib/articles/[slug]", "page");
 
-  // Служебные списки в админке и менеджерке
+                                            
   revalidatePath("/admin/articles");
   revalidatePath("/managers/articles");
 
@@ -161,7 +161,7 @@ export async function createArticle(data: CreateArticleInput) {
     
     console.log("[createArticle] input:", data);
     
-    // Проверка уникальности slug
+                                 
     const exists = await model.findUnique({ where: { slug: data.slug } });
     if (exists) {
       throw new Error("Статья с таким slug уже существует");
@@ -173,7 +173,7 @@ export async function createArticle(data: CreateArticleInput) {
       throw new Error(`Недопустимые тэги: ${invalid.join(", ")}`);
     }
     
-    // Формируем объект для создания
+                                    
     const createData: Prisma.ArticleCreateInput = {
       title: data.title,
       slug: data.slug,
@@ -184,7 +184,7 @@ export async function createArticle(data: CreateArticleInput) {
       publishedAt: data.isPublished ? new Date() : null,
     };
     
-    // Обработка автора - используем connect
+                                            
     if (data.authorId) {
       createData.author = {
         connect: { id: data.authorId }
@@ -201,8 +201,8 @@ export async function createArticle(data: CreateArticleInput) {
   }
 }
 
-// Обновить статью
-// Обновить статью
+                  
+                  
 export async function updateArticle(id: string, data: {
   title?: string;
   slug?: string;
@@ -220,7 +220,7 @@ export async function updateArticle(id: string, data: {
       select: { slug: true },
     });
     
-    // Проверка уникальности slug (если меняется)
+                                                 
     if (data.slug) {
       const exists = await model.findUnique({ where: { slug: data.slug } });
       if (exists && exists.id !== id) {
@@ -228,7 +228,7 @@ export async function updateArticle(id: string, data: {
       }
     }
     
-    // Формируем данные для обновления
+                                      
     let normalizedTags: string[] | undefined;
     if (data.tags !== undefined) {
       const allowedTags = await getAllowedArticleTags(model);
@@ -248,12 +248,12 @@ export async function updateArticle(id: string, data: {
       ...(data.catalogSlug !== undefined ? { catalogSlug: data.catalogSlug } : {}),
     };
 
-    // Обработка publishedAt
+                            
     if (data.isPublished !== undefined) {
       updateData.publishedAt = data.isPublished ? new Date() : null;
     }
 
-    // Обработка автора - используем connect/disconnect
+                                                       
     if (data.authorId !== undefined) {
       if (data.authorId && data.authorId !== "") {
         updateData.author = {
@@ -278,7 +278,7 @@ export async function updateArticle(id: string, data: {
   }
 }
 
-// Удалить статью
+                 
 export async function deleteArticle(id: string) {
   try {
     const model = checkPrismaModel();
@@ -295,7 +295,7 @@ export async function deleteArticle(id: string) {
   }
 }
 
-// Получить все уникальные тэги
+                               
 export async function getAllArticleTags() {
   return getAllArticleTagsCached();
 }

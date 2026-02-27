@@ -22,7 +22,7 @@ export default function ReferencesPage() {
     'article-tags': 'Тэги статей',
   };
 
-  // Загружаем данные при смене вкладки
+                                       
   useEffect(() => {
     loadData();
   }, [activeTab]);
@@ -50,7 +50,7 @@ export default function ReferencesPage() {
       return;
     }
     
-    // Проверяем дубликаты
+                          
     if (items.includes(newItem.trim())) {
       setError('Это значение уже существует');
       return;
@@ -88,7 +88,7 @@ export default function ReferencesPage() {
       return;
     }
 
-    // Проверяем дубликаты (кроме текущего редактируемого)
+                                                          
     const duplicateIndex = items.findIndex((item, idx) => 
       item === editValue.trim() && idx !== editingIndex
     );
@@ -108,11 +108,11 @@ export default function ReferencesPage() {
     }
   };
 
-  // Drag and Drop функции
+                          
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedItem(index);
     e.dataTransfer.effectAllowed = 'move';
-    // Добавляем визуальную обратную связь
+                                          
     e.currentTarget.classList.add('opacity-50');
   };
 
@@ -185,7 +185,7 @@ export default function ReferencesPage() {
           </p>
         </div>
 
-        {/* Вкладки */}
+        {             }
         <div className="mb-6">
           <div className="flex space-x-2 border-b border-gray-200">
             {(Object.keys(tabNames) as Array<keyof typeof tabNames>).map((tab) => (
@@ -204,7 +204,7 @@ export default function ReferencesPage() {
           </div>
         </div>
 
-        {/* Контент вкладки */}
+        {                     }
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-2">
@@ -227,7 +227,7 @@ export default function ReferencesPage() {
             </div>
           ) : (
             <>
-              {/* Форма добавления */}
+              {                      }
               <div className="mb-6">
                 <div className="flex gap-2">
                   <input
@@ -255,7 +255,7 @@ export default function ReferencesPage() {
                 </div>
               </div>
 
-              {/* Список элементов */}
+              {                      }
               <div className="mb-6">
                 {items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
@@ -278,12 +278,12 @@ export default function ReferencesPage() {
                         }`}
                       >
                         <div className="flex items-center gap-3 flex-1">
-                          {/* Иконка для перетаскивания */}
+                          {                               }
                           <div className="text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
                             <GripVertical className="w-5 h-5" />
                           </div>
                           
-                          {/* Редактируемое поле или текст */}
+                          {                                  }
                           {editingIndex === index ? (
                             <div className="flex-1 flex gap-2">
                               <input
@@ -324,7 +324,7 @@ export default function ReferencesPage() {
                           )}
                         </div>
                         
-                        {/* Кнопки действий (если не в режиме редактирования) */}
+                        {                                                       }
                         {editingIndex !== index && (
                           <div className="flex gap-1">
                             <button
@@ -349,18 +349,18 @@ export default function ReferencesPage() {
                 )}
               </div>
 
-              {/* Информация о количестве */}
+              {                             }
               <div className="mb-4 text-sm text-gray-500">
                 Всего элементов: {items.length}
               </div>
 
-              {/* Инструкция по перетаскиванию */}
+              {                                  }
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
                 💡 <strong>Совет:</strong> Перетаскивайте элементы за значок <GripVertical className="w-3 h-3 inline mx-1" /> 
                 чтобы изменить их порядок в списке
               </div>
 
-              {/* Кнопка сохранения */}
+              {                       }
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-500">
                   {saving ? 'Сохранение...' : ''}
@@ -387,7 +387,7 @@ export default function ReferencesPage() {
           )}
         </div>
 
-        {/* Информация */}
+        {                }
         <div className="mt-4 text-sm text-gray-500">
           <p>
             После сохранения новые значения будут доступны в формах создания и редактирования психологов.

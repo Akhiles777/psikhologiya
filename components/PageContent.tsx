@@ -1,9 +1,9 @@
 import { normalizeEmbeddedLocalAssetUrls } from "@/lib/html-local-assets";
 
-/**
- * Отображение контента страницы из БД (шаблон «текст» или «пустой»).
- * Используется в /s/[slug], /courses, /lib, /connect, /contacts.
- */
+   
+                                                                     
+                                                                 
+   
 type Props = {
   title: string;
   template: string;

@@ -1,4 +1,4 @@
-/** Фильтры каталога психологов */
+                                  
 export interface CatalogFilters {
   priceMin?: number;
   priceMax?: number;
@@ -12,20 +12,20 @@ export interface CatalogFilters {
   sortOrder?: "asc" | "desc";
 }
 
-/** Пагинация: курсор + лимит */
+                                
 export interface CatalogPagination {
   limit: number;
   cursor?: string;
 }
 
-/** Результат запроса каталога */
+                                 
 export interface CatalogResult {
   items: PsychologistCatalogItem[];
   nextCursor: string | null;
   hasMore: boolean;
 }
 
-/** Карточка психолога в каталоге */
+                                    
 export interface PsychologistCatalogItem {
   id: string;
   slug: string;

@@ -17,7 +17,7 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
   const [slugError, setSlugError] = useState<string | null>(null);
   const directPathSlugs = ["courses", "lib", "connect", "contacts"];
 
-  // Используем useEffect для обработки Promise
+                                               
   useEffect(() => {
     let mounted = true;
     searchParams.then(params => {
@@ -26,11 +26,11 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
     return () => { mounted = false; };
   }, [searchParams]);
 
-  // Валидация slug
+                   
   const validateSlug = (value: string): string | null => {
     if (!value) return null;
 
-    // Разрешаем только латиницу, цифры, дефисы
+                                               
     const allowedPattern = /^[a-z0-9\-_]+$/;
 
     if (!allowedPattern.test(value)) {
@@ -40,17 +40,17 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
     return null;
   };
 
-  // Обработчик изменения slug
+                              
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
-    // Заменяем недопустимые символы (кириллица, пробелы, спецсимволы)
+                                                                      
     value = value.replace(/[^a-zA-Z0-9\-_]/g, '');
     value = value.toLowerCase();
 
     setSlug(value);
 
-    // Проверяем на допустимые символы
+                                      
     const error = validateSlug(value);
     setSlugError(error);
   };
@@ -119,14 +119,14 @@ export default function NewPagePage({ searchParams }: NewPagePageProps) {
                     />
                   </div>
 
-                  {/* Предупреждение о недопустимых символах */}
+                  {                                            }
                   {slugError && (
                       <p className="mt-1 text-sm text-amber-600 flex items-center gap-1">
                         <span>⚠️</span> {slugError}
                       </p>
                   )}
 
-                  {/* Предпросмотр URL */}
+                  {                      }
                   {slug && !slugError && (
                       <p className="mt-1 text-xs text-green-600">
                         ✓ Будет доступно по адресу: {previewPath}

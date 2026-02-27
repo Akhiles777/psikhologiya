@@ -16,14 +16,14 @@ type Props = {
   searchParams: Record<string, string | string[] | undefined>;
 };
 
-/**
- * Каталог: карточки психологов.
- * Клик по карточке сразу ведет на страницу психолога.
- */
+   
+                                
+                                                      
+   
 export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: Props) {
   const router = useRouter();
 
-  // Функция для перехода на страницу психолога
+                                               
   const goToPsychologist = useCallback((psychologist: PsychologistCatalogItem) => {
     router.push(`/psy-list/${psychologist.slug}`);
   }, [router]);
@@ -66,7 +66,7 @@ export function CatalogWithModal({ items, nextCursor, hasMore, searchParams }: P
   );
 }
 
-/** Карточка психолога в каталоге: клик ведет на страницу психолога */
+                                                                      
 function CardBlock({
   psychologist,
   onClick,

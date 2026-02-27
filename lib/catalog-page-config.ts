@@ -96,7 +96,7 @@ export function parseCatalogPageSections(rawContent?: string | null): CatalogPag
       }
     }
   } catch {
-    // Legacy format: plain HTML in content.
+                                            
   }
 
   return {

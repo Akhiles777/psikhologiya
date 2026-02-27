@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/** Призыв к действию и контакты. */
+                                    
 export function CtaBlock() {
   return (
     <section className="border-t-4 border-[#A7FF5A] bg-[#F5F5F7] px-4 py-10 sm:px-6 sm:py-14 md:px-8 lg:px-12">

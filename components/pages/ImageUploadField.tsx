@@ -20,7 +20,7 @@ export default function ImageUploadField({ onUploaded }: Props) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      // Определяем endpoint по текущему пути
+                                             
       const isAdmin = window.location.pathname.includes("/admin/");
       const endpoint = isAdmin
         ? "/api/admin/pages/upload"

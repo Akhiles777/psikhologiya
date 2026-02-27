@@ -1,4 +1,4 @@
-// components/admin/ParadigmSelector.tsx
+                                        
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -21,7 +21,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Загружаем все парадигмы из базы
+                                    
   useEffect(() => {
     const loadParadigms = async () => {
       try {
@@ -37,7 +37,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
     loadParadigms();
   }, []);
 
-  // Фильтрация при поиске
+                          
   useEffect(() => {
     if (search.trim() === '') {
       setFilteredParadigms(allParadigms.filter(p => !selectedParadigms.includes(p)));
@@ -50,7 +50,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
     }
   }, [search, allParadigms, selectedParadigms]);
 
-  // Клик вне компонента скрывает dropdown
+                                          
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -86,14 +86,14 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
       handleAddParadigm(filteredParadigms[0]);
     }
     if (e.key === 'Backspace' && !search && selectedParadigms.length > 0) {
-      // Удаляем последнюю парадигму при нажатии Backspace в пустом поле
+                                                                        
       setSelectedParadigms(prev => prev.slice(0, -1));
     }
   };
 
   return (
     <div ref={containerRef} className="space-y-3">
-      {/* Скрытые инпуты для каждой выбранной парадигмы */}
+      {                                                   }
       {selectedParadigms.map((paradigm, index) => (
         <input
           key={index}
@@ -103,7 +103,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
         />
       ))}
 
-      {/* Поле ввода */}
+      {                }
       <div className="relative">
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
@@ -131,7 +131,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
           </div>
         </div>
 
-        {/* Dropdown с вариантами */}
+        {                           }
         {isDropdownOpen && !loading && filteredParadigms.length > 0 && (
           <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
             {filteredParadigms.map((paradigm, index) => (
@@ -150,7 +150,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
           </div>
         )}
 
-        {/* Сообщение если ничего не найдено */}
+        {                                      }
         {isDropdownOpen && search && filteredParadigms.length === 0 && !loading && (
           <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg p-4">
             <p className="text-gray-500 text-center">
@@ -159,7 +159,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
           </div>
         )}
 
-        {/* Загрузка */}
+        {              }
         {isDropdownOpen && loading && (
           <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg p-4">
             <div className="flex items-center justify-center">
@@ -169,7 +169,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
         )}
       </div>
 
-      {/* Выбранные парадигмы */}
+      {                         }
       {selectedParadigms.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -206,7 +206,7 @@ export function ParadigmSelector({ defaultValue = [], name = "mainParadigm", onC
         </div>
       )}
 
-      {/* Инструкция */}
+      {                }
       <div className="text-sm text-gray-500">
         <p>• Введите название парадигмы и выберите из списка</p>
         <p>• Можно выбрать несколько парадигм</p>

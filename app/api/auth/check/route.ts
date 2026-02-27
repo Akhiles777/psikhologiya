@@ -1,24 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { isSessionValid } from '@/lib/auth-admin';
+import { getSuperAdminPublicProfile } from '@/lib/super-admin';
 
 function normalizeRole(role: unknown): 'ADMIN' | 'MANAGER' {
   return String(role || 'MANAGER').toUpperCase() === 'ADMIN' ? 'ADMIN' : 'MANAGER';
 }
 
-function defaultAdminUser(overrides?: { email?: string; name?: string; permissions?: unknown }) {
+async function buildSuperAdminUser() {
+  const profile = await getSuperAdminPublicProfile();
   return {
-    id: 'admin-default',
-    email: overrides?.email || '',
-    name: overrides?.name || 'Администратор',
+    id: profile.id,
+    email: profile.email,
+    name: profile.login,
     role: 'ADMIN' as const,
-    permissions: overrides?.permissions || {
+    permissions: {
       psychologists: { view: true, edit: true, delete: true },
       pages: { view: true, edit: true, delete: true },
       listdate: { view: true, edit: true, delete: true },
       managers: { view: true, edit: true, delete: true },
     },
     isActive: true,
+    isDefaultAdmin: true,
   };
 }
 
@@ -63,26 +66,22 @@ export async function GET(request: NextRequest) {
         sessionData = {};
       }
 
-      // Проверяем срок действия сессии
+                                       
       const expires = typeof sessionData.expires === 'string' ? sessionData.expires : '';
       if (expires && new Date(expires) < new Date()) {
         sessionData = {};
       }
 
-      // Дефолтный администратор (без записи в таблице managers)
+                                                                
       if (sessionData.isDefaultAdmin === true || sessionData.id === 'admin-default') {
         return NextResponse.json({
-          user: defaultAdminUser({
-            email: String(sessionData.email || ''),
-            name: String(sessionData.name || 'Администратор'),
-            permissions: sessionData.permissions,
-          }),
+          user: await buildSuperAdminUser(),
         });
       }
 
       const managerId = typeof sessionData.id === 'string' ? sessionData.id : '';
       if (managerId) {
-        // Получаем актуальные данные менеджера
+                                               
         const manager = await prisma.manager.findUnique({
           where: { id: managerId },
         });
@@ -117,7 +116,7 @@ export async function GET(request: NextRequest) {
 
     if (adminSessionCookie && isSessionValid(adminSessionCookie)) {
       return NextResponse.json({
-        user: defaultAdminUser({ name: 'Администратор' }),
+        user: await buildSuperAdminUser(),
       });
     }
 

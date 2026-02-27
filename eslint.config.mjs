@@ -13,9 +13,9 @@ const eslintConfig = defineConfig([
       "@next/next/no-assign-module-variable": "warn",
     },
   },
-  // Override default ignores of eslint-config-next.
+                                                    
   globalIgnores([
-    // Default ignores of eslint-config-next:
+                                             
     ".next/**",
     "out/**",
     "build/**",

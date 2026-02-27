@@ -1,4 +1,4 @@
-// app/admin/managers/types.ts
+                              
 export interface Manager {
   id: number;
   name: string;
@@ -57,7 +57,7 @@ export const rolePermissions: Record<'manager' | 'moderator' | 'supervisor', Man
   },
 };
 
-// Вспомогательные функции для работы с разрешениями
+                                                    
 export function setPermissionsByRole(role: Manager['role']): Manager['permissions'] {
   return rolePermissions[role];
 }
@@ -70,7 +70,7 @@ export function hasPermission(
   return permissions[module][action];
 }
 
-// Константы для UI
+                   
 export const ROLE_LABELS: Record<Manager['role'], string> = {
   manager: 'Менеджер',
   moderator: 'Модератор',
@@ -95,7 +95,7 @@ export const ACTION_LABELS: Record<'view' | 'edit' | 'delete', string> = {
   delete: 'Удаление',
 };
 
-// Опции для селектов
+                     
 export const roleOptions = [
   { value: 'manager', label: 'Менеджер' },
   { value: 'moderator', label: 'Модератор' },

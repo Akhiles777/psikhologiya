@@ -12,14 +12,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Нет сессии' }, { status: 401 });
     }
     const sessionData = JSON.parse(sessionCookie.value);
-    // Получаем актуальные данные менеджера
+                                           
     const manager = await prisma.manager.findUnique({
       where: { id: sessionData.id },
     });
     if (!manager) {
       return NextResponse.json({ error: 'Пользователь не найден' }, { status: 401 });
     }
-    // Обновляем cookie с актуальными правами и ролью
+                                                     
     const newSessionData = {
       ...sessionData,
       role: normalizeRole(manager.role),
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 часа
+      maxAge: 60 * 60 * 24,           
       path: '/',
     });
     return response;

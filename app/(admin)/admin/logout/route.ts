@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-/** Выход из админки: удаляем cookie и редирект на логин */
 export async function POST(request: NextRequest) {
   const forwardedHost = request.headers.get("x-forwarded-host");
   const host = (forwardedHost || request.headers.get("host") || "").split(",")[0]?.trim();

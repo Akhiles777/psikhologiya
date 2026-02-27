@@ -37,11 +37,11 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
   const currentPublicPath = slug === "home" ? "/" : directPathSlugs.includes(slug) ? `/${slug}` : `/s/${slug}`;
   const savedPublicPath = page.slug === "home" ? "/" : directPathSlugs.includes(page.slug) ? `/${page.slug}` : `/s/${page.slug}`;
 
-  // Валидация slug
+                   
   const validateSlug = (value: string): string | null => {
     if (!value) return "Slug обязателен для заполнения";
 
-    // Разрешаем только латиницу, цифры, дефисы
+                                               
     const allowedPattern = /^[a-z0-9\-_]+$/;
 
     if (!allowedPattern.test(value)) {
@@ -51,23 +51,23 @@ export default function EditPageClient({ page, pageId, updatePage }: EditPageCli
     return null;
   };
 
-  // Обработчик изменения slug
+                              
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
-    // Заменяем недопустимые символы (кириллица, пробелы, спецсимволы)
+                                                                      
     value = value.replace(/[^a-zA-Z0-9\-_]/g, '');
     value = value.toLowerCase();
 
     setSlug(value);
 
-    // Проверяем на допустимые символы
+                                      
     const error = validateSlug(value);
     setSlugError(error);
   };
 
   const handleSubmit = (formData: FormData) => {
-    // Проверяем slug перед отправкой
+                                     
     if (!isSystemPage && slugError) {
       alert(slugError);
       return;

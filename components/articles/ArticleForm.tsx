@@ -111,7 +111,7 @@ export default function ArticleForm({
   const inputRef = useRef<HTMLInputElement>(null);
   const contentEditorApiRef = useRef<ArticleContentEditorApi | null>(null);
 
-  // Загружаем тэги и каталоги
+                              
   useEffect(() => {
     Promise.all([
       fetch("/api/articles", { cache: "no-store" }).then((res) => res.json()),
@@ -129,13 +129,13 @@ export default function ArticleForm({
           setAllCatalogs(Array.from(catalogsSet));
         }
 
-        // Защита от старых/несуществующих тэгов в уже сохраненных статьях
+                                                                          
         setTags((prev) => prev.filter((tag) => normalizedTags.includes(tag)));
       })
       .catch((err) => console.error("Error loading data:", err));
   }, []);
 
-  // Закрываем дропдаун при клике вне
+                                     
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -146,7 +146,7 @@ export default function ArticleForm({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Устанавливаем имя автора при загрузке
+                                          
   useEffect(() => {
     if (initialData.author?.fullName) {
       setAuthorName(initialData.author.fullName);
@@ -154,14 +154,14 @@ export default function ArticleForm({
     }
   }, [initialData.author]);
 
-  // Фильтруем психологов по поиску
+                                   
   const filteredAuthors = authorSearch
       ? psychologists.filter((p: any) =>
           p.fullName?.toLowerCase().includes(authorSearch.toLowerCase())
       )
       : psychologists;
 
-  // Выбираем автора
+                    
   const selectAuthor = (author: any) => {
     setAuthorId(author.id);
     setAuthorName(author.fullName);
@@ -169,7 +169,7 @@ export default function ArticleForm({
     setShowDropdown(false);
   };
 
-  // Очищаем автора
+                   
   const clearAuthor = () => {
     setAuthorId("");
     setAuthorName("");
@@ -177,11 +177,11 @@ export default function ArticleForm({
     setShowDropdown(false);
   };
 
-  // Проверка slug на допустимые символы
+                                        
   const validateSlug = (value: string): string | null => {
     if (!value) return null;
 
-    // Разрешаем только латиницу, цифры, дефисы и нижние подчеркивания
+                                                                      
     const allowedPattern = /^[a-z0-9\-_]+$/;
 
     if (!allowedPattern.test(value)) {
@@ -191,13 +191,13 @@ export default function ArticleForm({
     return null;
   };
 
-  // Обработчик изменения slug
+                              
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newSlug = e.target.value.replace(/[^a-zA-Z0-9\-_]/g, "").toLowerCase();
     setIsSlugManuallyEdited(true);
     setSlug(newSlug);
 
-    // Проверяем на допустимые символы
+                                      
     const warning = validateSlug(newSlug);
     setSlugWarning(warning);
   };
@@ -268,7 +268,7 @@ export default function ArticleForm({
     if (!title.trim()) return "Заполните заголовок";
     if (!slug.trim()) return "Заполните slug";
 
-    // Проверяем slug перед отправкой
+                                     
     const slugWarning = validateSlug(slug);
     if (slugWarning) return slugWarning;
 
@@ -392,17 +392,17 @@ export default function ArticleForm({
                   placeholder="my-article"
                   disabled={isSubmitting}
               />
-              {/* Предупреждение о недопустимых символах */}
+              {                                            }
               {slugWarning && (
                   <p className="text-sm text-amber-600 mt-1 flex items-center gap-1">
                     <span>⚠️</span> {slugWarning}
                   </p>
               )}
-              {/* Подсказка по формату */}
+              {                          }
               <p className="text-xs text-gray-500 mt-1">
                 Только латинские буквы, цифры, дефисы (-) и нижние подчеркивания (_)
               </p>
-              {/* Предпросмотр URL */}
+              {                      }
               {slug && !slugWarning && (
                   <p className="text-xs text-green-600 mt-1">
                     ✓ URL: /lib/articles/{slug}
@@ -474,7 +474,7 @@ export default function ArticleForm({
               Автор <span className="text-xs text-gray-500">(начните вводить фамилию)</span>
             </label>
 
-            {/* Поле поиска */}
+            {                 }
             <input
                 ref={inputRef}
                 type="text"
@@ -500,7 +500,7 @@ export default function ArticleForm({
                 autoComplete="off"
             />
 
-            {/* Кнопка очистки */}
+            {                    }
             {authorId && (
                 <button
                     type="button"
@@ -511,7 +511,7 @@ export default function ArticleForm({
                 </button>
             )}
 
-            {/* Выпадающий список с результатами */}
+            {                                      }
             {showDropdown && (authorSearch || filteredAuthors.length > 0) && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                   {filteredAuthors.length > 0 ? (
@@ -540,7 +540,7 @@ export default function ArticleForm({
                 </div>
             )}
 
-            {/* Подсказка */}
+            {               }
             <p className="text-xs text-gray-500 mt-2">
               {psychologists.length} психологов доступно для выбора
             </p>

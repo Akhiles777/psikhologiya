@@ -161,7 +161,6 @@ export async function removeLocalImages(images: string[]): Promise<void> {
         await unlink(absPath);
       }
     } catch {
-      // Keep DB flow stable even if file cleanup fails.
     }
   }
 }

@@ -11,7 +11,7 @@ interface PsychologistItem {
   city: string | null;
   isPublished: boolean;
   price: number | null;
-  certificationLevel?: string | null; // Может быть undefined, null или string
+  certificationLevel?: string | null;                                         
 }
 
 interface Props {
@@ -19,16 +19,16 @@ interface Props {
   searchParams: Record<string, string | string[] | undefined>;
 }
 
-/**
- * Список психологов в админке с расширенными фильтрами.
- */
+   
+                                                        
+   
 export default function PsychologistsListPage({ initialList, searchParams }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showOnlyPublished, setShowOnlyPublished] = useState(false);
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [selectedCertification, setSelectedCertification] = useState<string>("all");
   
-  // Для отладки - выводим структуру данных
+                                           
   useEffect(() => {
     console.log("Initial list structure:", initialList.slice(0, 3).map(p => ({
       id: p.id,
@@ -41,7 +41,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
 
   const showDbSyncBanner = searchParams.error === "db_sync";
 
-  // Получаем уникальные города и уровни сертификации для фильтров
+                                                                  
   const availableCities = useMemo(() => {
     const cities = initialList
       .map(p => p.city)
@@ -54,7 +54,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
   const availableCertifications = useMemo(() => {
     console.log("Processing certifications...");
     
-    // Сначала соберем все значения для отладки
+                                               
     const allValues = initialList.map(p => ({
       id: p.id,
       value: p.certificationLevel,
@@ -63,7 +63,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
     
     console.log("All certification values:", allValues.slice(0, 5));
     
-    // Фильтруем и обрабатываем значения
+                                        
     const certifications = initialList
       .map(p => p.certificationLevel)
       .filter((level): level is string => {
@@ -81,41 +81,41 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
     return uniqueCertifications;
   }, [initialList]);
 
-  // Функция для фильтрации психологов
+                                      
   const filteredPsychologists = useMemo(() => {
     return initialList.filter((psychologist) => {
-      // Фильтр по публикации
+                             
       if (showOnlyPublished && !psychologist.isPublished) {
         return false;
       }
 
-      // Фильтр по городу
+                         
       if (selectedCity !== "all") {
         if (!psychologist.city || psychologist.city !== selectedCity) {
           return false;
         }
       }
 
-      // Фильтр по уровню сертификации
+                                      
       if (selectedCertification !== "all") {
         const level = psychologist.certificationLevel;
-        // Приводим оба значения к строке и сравниваем
+                                                      
         if (!level || level.toString().trim() !== selectedCertification) {
           return false;
         }
       }
 
-      // Поиск по ФИО (если есть запрос)
+                                        
       if (searchQuery.trim()) {
         const searchLower = searchQuery.toLowerCase().trim();
         const fullNameLower = psychologist.fullName.toLowerCase();
         
-        // 1. Проверяем точное вхождение
+                                        
         if (fullNameLower.includes(searchLower)) {
           return true;
         }
         
-        // 2. Разбиваем ФИО на части и ищем по каждой части
+                                                           
         const nameParts = psychologist.fullName.split(' ');
         const hasMatchInParts = nameParts.some(part => 
           part.toLowerCase().includes(searchLower)
@@ -125,7 +125,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
           return true;
         }
         
-        // 3. Ищем по инициалам
+                               
         const initials = nameParts.map(part => part.charAt(0).toLowerCase()).join('');
         if (initials.includes(searchLower)) {
           return true;
@@ -138,7 +138,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
     });
   }, [initialList, searchQuery, showOnlyPublished, selectedCity, selectedCertification]);
 
-  // Функция для подсветки найденного текста
+                                            
   const HighlightText = ({ text, highlight }: { text: string; highlight: string }) => {
     if (!highlight.trim()) return <>{text}</>;
 
@@ -160,12 +160,12 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
     );
   };
 
-  // Статистика
+               
   const totalCount = initialList.length;
   const filteredCount = filteredPsychologists.length;
   const unpublishedCount = initialList.filter(p => !p.isPublished).length;
   
-  // Счетчики для фильтров
+                          
   const cityFilterCount = selectedCity !== "all" ? 
     initialList.filter(p => p.city === selectedCity).length : 0;
   
@@ -175,7 +175,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
       return level && level.toString().trim() === selectedCertification;
     }).length : 0;
 
-  // Функция для сброса всех фильтров
+                                     
   const resetFilters = () => {
     setSearchQuery("");
     setShowOnlyPublished(false);
@@ -183,18 +183,18 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
     setSelectedCertification("all");
   };
 
-  // Проверяем, есть ли активные фильтры
+                                        
   const hasActiveFilters = 
     searchQuery.trim() !== "" || 
     showOnlyPublished || 
     selectedCity !== "all" || 
     selectedCertification !== "all";
 
-  // Получаем безопасное значение для отображения уровня сертификации
+                                                                     
   const getSafeCertificationLevel = (level: string | null | undefined): string | null => {
     if (level == null) return null;
     if (typeof level !== 'string') {
-      // Если это не строка, попробуем преобразовать
+                                                    
       try {
         const stringValue = String(level);
         return stringValue.trim() || null;
@@ -206,7 +206,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
     return trimmed || null;
   };
 
-  // Отладочная информация
+                          
   const psychologistsWithCertification = initialList.filter(p => {
     const level = getSafeCertificationLevel(p.certificationLevel);
     return level !== null;
@@ -245,9 +245,9 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
         </Link>
       </div>
 
-      {/* Поиск и фильтры */}
+      {                     }
       <div className="mb-6 space-y-4">
-        {/* Строка поиска */}
+        {                   }
         <div className="relative">
           <input
             type="text"
@@ -273,10 +273,10 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
           )}
         </div>
 
-        {/* Панель фильтров */}
+        {                     }
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-4">
-            {/* Фильтр по публикации */}
+            {                          }
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -290,7 +290,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
               </label>
             </div>
 
-            {/* Фильтр по городу */}
+            {                      }
             <div className="flex items-center gap-2">
               <label htmlFor="cityFilter" className="text-sm text-gray-700 whitespace-nowrap">
                 Город:
@@ -310,7 +310,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
               </select>
             </div>
 
-            {/* Фильтр по уровню сертификации - показываем только если есть варианты */}
+            {                                                                          }
             {availableCertifications.length > 0 && (
               <div className="flex items-center gap-2">
                 <label htmlFor="certificationFilter" className="text-sm text-gray-700 whitespace-nowrap">
@@ -339,7 +339,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
             )}
           </div>
 
-          {/* Сброс фильтров */}
+          {                    }
           {hasActiveFilters && (
             <button
               onClick={resetFilters}
@@ -353,7 +353,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
           )}
         </div>
 
-        {/* Информация о фильтрации */}
+        {                             }
         {(searchQuery || selectedCity !== "all" || selectedCertification !== "all") && (
           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
             <span className="font-medium">Фильтры:</span>
@@ -467,7 +467,7 @@ export default function PsychologistsListPage({ initialList, searchParams }: Pro
                         {p.city}
                       </span>
                     )}
-                    {/* Бейдж уровня сертификации */}
+                    {                               }
                     {certificationLevel && (
                       <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-800 whitespace-nowrap">
                         {certificationLevel}

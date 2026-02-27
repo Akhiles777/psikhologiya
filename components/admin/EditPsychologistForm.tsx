@@ -4,7 +4,7 @@ import { EducationFormEdit } from '@/components/admin/EducationFormEdit';
 
 type PageProps = { params: Promise<{ id: string }> };
 
-// Helper функция для безопасного преобразования данных об образовании
+                                                                      
 function safeParseEducation(data: unknown): Array<{
   year: string;
   type: string;
@@ -36,15 +36,15 @@ function safeParseEducation(data: unknown): Array<{
   return [];
 }
 
-/**
- * Форма редактирования психолога.
- */
+   
+                                  
+   
 export default async function EditPsychologistPage({ params }: PageProps) {
   const { id } = await params;
   const p = await getPsychologistById(id);
   if (!p) notFound();
 
-  // Безопасно преобразуем данные об образовании
+                                                
   const educationData = safeParseEducation(p.education);
 
   return (
@@ -59,7 +59,7 @@ export default async function EditPsychologistPage({ params }: PageProps) {
           </p>
 
           <form action={updatePsychologist.bind(null, id)} className="mt-8 space-y-8">
-            {/* Основная информация */}
+            {                         }
             <div className="space-y-6">
               <h2 className="text-xl font-semibold text-gray-800">Основная информация</h2>
               
@@ -94,9 +94,9 @@ export default async function EditPsychologistPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* ... остальные поля формы остаются как были ... */}
+              {                                                    }
 
-              {/* Образование */}
+              {                 }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Образование и сертификации</h2>
                 <div>
@@ -104,7 +104,7 @@ export default async function EditPsychologistPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* ... остальные поля и кнопки ... */}
+              {                                     }
             </div>
           </form>
         </div>

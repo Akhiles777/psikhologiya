@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
-// GET: Получить всех менеджеров
+                                
 export async function GET(request: NextRequest) {
   try {
     if (!prisma) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Создать нового менеджера
+                                 
 export async function POST(request: NextRequest) {
   try {
     if (!prisma) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
     
-    // Проверяем, существует ли уже менеджер с таким email
+                                                          
     const existingManager = await prisma.manager.findUnique({
       where: { email: data.email },
     });
@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Менеджер с таким email уже существует' }, { status: 400 });
     }
 
-    // Хешируем пароль
+                      
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    // Создаем менеджера
+                        
     const manager = await prisma.manager.create({
       data: {
         name: data.name,

@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-// Дефолтные креды для админа из .env
-const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'Gasan123';
-const DEFAULT_ADMIN_PASSWORD = process.env.DEFAULT_ADMIN_PASSWORD || '1111';
 const IS_PROD = process.env.NODE_ENV === 'production';
 
 function normalizeRole(role: unknown): 'ADMIN' | 'MANAGER' {
@@ -39,43 +36,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Сначала проверяем дефолтного админа
-    if (email === DEFAULT_ADMIN_EMAIL && password === DEFAULT_ADMIN_PASSWORD) {
-      // Создаем сессию для дефолтного админа
-      const sessionData = {
-        id: 'admin-default',
-        email: DEFAULT_ADMIN_EMAIL,
-        name: 'Администратор',
-        role: 'ADMIN',
-        isActive: true,
-        permissions: {
-          psychologists: { view: true, edit: true },
-          pages: { view: true, edit: true },
-          listdate: { view: true, edit: true },
-          managers: { view: true, edit: true },
-        },
-        isDefaultAdmin: true,
-        createdAt: new Date().toISOString(),
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 часа
-      };
-
-      const response = NextResponse.json({
-        user: {
-          id: 'admin-default',
-          email: DEFAULT_ADMIN_EMAIL,
-          name: 'Администратор',
-          role: 'ADMIN',
-          permissions: sessionData.permissions,
-          isDefaultAdmin: true,
-        }
-      });
-
-      setSessionCookie(response, 'auth-session', JSON.stringify(sessionData), 60 * 60 * 24);
-
-      return response;
-    }
-
-    // Если не дефолтный админ - ищем в базе менеджеров
     const manager = await prisma.manager.findUnique({
       where: { email },
     });
@@ -87,7 +47,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем пароль
     const isValidPassword = await bcrypt.compare(password, manager.password);
     if (!isValidPassword) {
       return NextResponse.json(
@@ -96,7 +55,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем что менеджер активен
     if (!manager.isActive) {
       return NextResponse.json(
         { error: 'Аккаунт деактивирован' },
@@ -106,7 +64,6 @@ export async function POST(request: NextRequest) {
 
     const normalizedRole = normalizeRole(manager.role);
 
-    // Создаем сессию
     const sessionData = {
       id: manager.id,
       email: manager.email,
@@ -115,7 +72,7 @@ export async function POST(request: NextRequest) {
       permissions: manager.permissions || {},
       isActive: manager.isActive,
       createdAt: new Date().toISOString(),
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 часа
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     };
 
     const response = NextResponse.json({

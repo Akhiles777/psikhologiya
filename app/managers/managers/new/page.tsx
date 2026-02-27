@@ -47,7 +47,7 @@ export default function NewManagerPage() {
     setError('');
     setIsLoading(true);
 
-    // Валидация
+                
     if (formData.password !== formData.confirmPassword) {
       setError('Пароли не совпадают');
       setIsLoading(false);
@@ -61,16 +61,16 @@ export default function NewManagerPage() {
     }
 
     try {
-      // Форматируем права доступа с учетом роли
+                                                
       const formattedPermissions: Record<string, { view: boolean; edit: boolean }> = {};
       
       Object.keys(formData.permissions).forEach(module => {
         const moduleKey = module as keyof Permissions;
-        // Для администратора все права включены
+                                                
         if (formData.role === 'ADMIN') {
           formattedPermissions[module] = { view: true, edit: true };
         } 
-        // Для менеджера
+                        
         else {
           formattedPermissions[module] = {
             view: formData.permissions[moduleKey].view,
@@ -94,7 +94,7 @@ export default function NewManagerPage() {
         throw new Error(data.error || 'Ошибка при создании менеджера');
       }
 
-      // Успешно создано - редирект на список менеджеров
+                                                        
       router.push('/managers/managers');
       router.refresh();
     } catch (error: any) {
@@ -116,7 +116,7 @@ export default function NewManagerPage() {
       }
     } else {
       if (name === 'role') {
-        // Если выбрана роль Администратор, автоматически включаем все права
+                                                                            
         if (value === 'ADMIN') {
           const allPermissions: Permissions = {
             psychologists: { view: true, edit: true },
@@ -132,7 +132,7 @@ export default function NewManagerPage() {
             permissions: allPermissions
           }));
         } else {
-          // Для менеджера отключаем доступ к управлению менеджерами
+                                                                    
           setFormData(prev => ({ 
             ...prev, 
             role: value,
@@ -149,10 +149,10 @@ export default function NewManagerPage() {
   };
 
   const handlePermissionChange = (module: keyof Permissions, value: boolean) => {
-    // Для администратора права нельзя менять вручную
+                                                     
     if (formData.role === 'ADMIN') return;
     
-    // Для менеджера нельзя включать раздел "Менеджеры"
+                                                       
     if (module === 'managers' && formData.role === 'MANAGER') {
       return;
     }
@@ -163,7 +163,7 @@ export default function NewManagerPage() {
         ...prev.permissions,
         [module]: {
           view: value,
-          edit: value // edit такой же как view (как во втором примере)
+          edit: value                                                  
         }
       }
     }));
@@ -216,7 +216,7 @@ export default function NewManagerPage() {
 
         <div className="max-w-3xl mx-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Основная информация */}
+            {                         }
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Основная информация</h2>
               
@@ -337,7 +337,7 @@ export default function NewManagerPage() {
               </div>
             </div>
 
-            {/* Права доступа - в стиле второго примера */}
+            {                                             }
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Права доступа</h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -381,7 +381,7 @@ export default function NewManagerPage() {
                             type="checkbox"
                             checked={isChecked}
                             onChange={(e) => {
-                              // Для менеджера нельзя включать раздел "Менеджеры"
+                                                                                 
                               if (module === 'managers' && !isAdmin) {
                                 return;
                               }
@@ -424,7 +424,7 @@ export default function NewManagerPage() {
                 })}
               </div>
 
-              {/* Примечания */}
+              {                }
               <div className="mt-4 space-y-2">
                 {isAdmin ? (
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -452,7 +452,7 @@ export default function NewManagerPage() {
               </div>
             </div>
 
-            {/* Кнопки действий */}
+            {                     }
             <div className="flex justify-end space-x-4 pt-6">
               <Link
                 href="/managers/managers"

@@ -41,13 +41,13 @@ export default function ManagerLoginPage() {
         throw new Error(data.error || 'Ошибка входа');
       }
 
-      // Проверяем что это действительно менеджер
+                                                 
       const normalizedRole = String(data?.user?.role || '').toUpperCase();
       if (normalizedRole !== 'MANAGER' && normalizedRole !== 'ADMIN') {
         throw new Error('Доступ только для менеджеров и администраторов');
       }
 
-      // Редирект в менеджерскую зону
+                                     
       const safeRedirect = redirect.startsWith('/') ? redirect : '/managers';
       window.location.assign(safeRedirect);
       

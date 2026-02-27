@@ -31,7 +31,7 @@ export default function ManagersPage() {
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [isProcessing, setIsProcessing] = useState<string | null>(null);
 
-  // Загрузка менеджеров
+                        
   const loadManagers = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -58,11 +58,11 @@ export default function ManagersPage() {
     loadManagers();
   }, [loadManagers]);
 
-  // Фильтрация и сортировка
+                            
   useEffect(() => {
     let result = [...managers];
 
-    // Поиск
+            
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(manager =>
@@ -71,19 +71,19 @@ export default function ManagersPage() {
       );
     }
 
-    // Фильтр по статусу
+                        
     if (statusFilter !== 'all') {
       result = result.filter(manager => 
         statusFilter === 'active' ? manager.isActive : !manager.isActive
       );
     }
 
-    // Фильтр по роли
+                     
     if (roleFilter !== 'all') {
       result = result.filter(manager => manager.role === roleFilter);
     }
 
-    // Сортировка
+                 
     result.sort((a, b) => {
       if (sortField === 'status') {
         const aValue = a.isActive;
@@ -113,7 +113,7 @@ export default function ManagersPage() {
     setFilteredManagers(result);
   }, [managers, searchTerm, statusFilter, roleFilter, sortField, sortDirection]);
 
-  // Изменение статуса менеджера
+                                
   const handleToggleStatus = async (id: string, currentStatus: boolean, name: string) => {
     if (!confirm(`Вы уверены, что хотите ${currentStatus ? 'деактивировать' : 'активировать'} менеджера ${name}?`)) {
       return;
@@ -131,14 +131,14 @@ export default function ManagersPage() {
       });
 
       if (response.ok) {
-        // Обновляем локальное состояние
+                                        
         setManagers(prev => prev.map(manager => 
           manager.id === id 
             ? { ...manager, isActive: !currentStatus } 
             : manager
         ));
         
-        // Показываем подтверждение
+                                   
         alert(`Менеджер ${name} успешно ${!currentStatus ? 'активирован' : 'деактивирован'}`);
       } else {
         const data = await response.json();
@@ -153,7 +153,7 @@ export default function ManagersPage() {
     }
   };
 
-  // Обработчик сортировки
+                          
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -163,7 +163,7 @@ export default function ManagersPage() {
     }
   };
 
-  // Функция для отображения сортировки
+                                       
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return null;
     return (
@@ -173,7 +173,7 @@ export default function ManagersPage() {
     );
   };
 
-  // Статистика
+               
   const stats = {
     total: managers.length,
     active: managers.filter(m => m.isActive).length,
@@ -181,7 +181,7 @@ export default function ManagersPage() {
     managers: managers.filter(m => m.role === 'MANAGER').length,
   };
 
-  // Рендер загрузки
+                    
   if (isLoading && managers.length === 0) {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center">
@@ -193,7 +193,7 @@ export default function ManagersPage() {
 
   return (
     <div className="space-y-7 pr-2 sm:pr-3 lg:pr-5">
-      {/* Заголовок и кнопки */}
+      {                        }
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-[2rem] font-bold text-gray-900">Менеджеры</h1>
@@ -214,7 +214,7 @@ export default function ManagersPage() {
         </div>
       </div>
 
-      {/* Статистика */}
+      {                }
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
           <div className="text-sm font-medium text-gray-500">Всего менеджеров</div>
@@ -234,7 +234,7 @@ export default function ManagersPage() {
         </div>
       </div>
 
-      {/* Фильтры и поиск */}
+      {                     }
       <div className="bg-white p-5 sm:p-6 rounded-lg border border-gray-200 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex-1 max-w-lg">
@@ -289,7 +289,7 @@ export default function ManagersPage() {
         </div>
       </div>
 
-      {/* Ошибка */}
+      {            }
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex items-center">
@@ -301,7 +301,7 @@ export default function ManagersPage() {
         </div>
       )}
 
-      {/* Таблица или пустой список */}
+      {                               }
       {filteredManagers.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +324,7 @@ export default function ManagersPage() {
         </div>
       ) : (
         <div className="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-          {/* Desktop Table */}
+          {                   }
           <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -444,7 +444,7 @@ export default function ManagersPage() {
             </table>
           </div>
 
-          {/* Mobile Cards */}
+          {                  }
           <div className="md:hidden divide-y divide-gray-200">
             {filteredManagers.map((manager) => (
               <div key={manager.id} className="p-5 hover:bg-gray-50">
@@ -507,7 +507,7 @@ export default function ManagersPage() {
         </div>
       )}
 
-      {/* Информация */}
+      {                }
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">

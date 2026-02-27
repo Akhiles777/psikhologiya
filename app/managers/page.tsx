@@ -190,7 +190,7 @@ export default function ManagersPage() {
           )}
         </div>
 
-        {/* Quick Stats */}
+        {                 }
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white border border-gray-200 rounded-xl p-5">
             <div className="text-sm font-medium text-gray-500 mb-1">Роль</div>

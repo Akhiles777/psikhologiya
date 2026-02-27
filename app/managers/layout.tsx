@@ -9,7 +9,7 @@ export default function ManagersLayout({
 }) {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Навигация менеджера */}
+      {                         }
       <nav className="border-b border-gray-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center gap-4">

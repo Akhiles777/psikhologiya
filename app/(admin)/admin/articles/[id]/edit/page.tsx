@@ -32,7 +32,7 @@ export default function AdminArticleEditPage({ params }: { params: Promise<{ id:
   const [psychologists, setPsychologists] = useState<any[]>([]);
   const [loadingPsychologists, setLoadingPsychologists] = useState(true);
 
-  // Загружаем психологов через Server Action
+                                             
   useEffect(() => {
     getPsychologists()
         .then(data => {
@@ -42,7 +42,7 @@ export default function AdminArticleEditPage({ params }: { params: Promise<{ id:
         .finally(() => setLoadingPsychologists(false));
   }, []);
 
-  // Загружаем статью через API
+                               
   useEffect(() => {
     setLoading(true);
     fetch(`/api/articles/${id}`)

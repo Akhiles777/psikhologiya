@@ -23,7 +23,7 @@ type Props = {
   onInsertImage?: (file: ManagedFile) => void;
 };
 
-const CLIENT_MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const CLIENT_MAX_FILE_SIZE = 50 * 1024 * 1024;        
 const MAX_PARALLEL_UPLOADS = 3;
 
 function formatBytes(bytes: number): string {

@@ -37,7 +37,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
   const [selectedParadigms, setSelectedParadigms] = useState<string[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Обработчик изменения slug
+                              
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
     value = value.replace(/[^a-zA-Z0-9\-]/g, '');
@@ -45,7 +45,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     setSlug(value);
   };
 
-  // Загружаем справочники
+                          
   useEffect(() => {
     const loadReferences = async () => {
       try {
@@ -69,7 +69,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     loadReferences();
   }, [getDataListItems]);
 
-  // Обработка выбора файлов
+                            
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
@@ -98,7 +98,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     }
   };
 
-  // Удалить файл/URL
+                     
   const removeItem = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
     setUrls(prev => {
@@ -127,7 +127,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     });
   };
 
-  // Добавить URL
+                 
   const addUrl = () => {
     const trimmed = newUrl.trim();
     if (!trimmed || urls.length >= 5) return;
@@ -145,12 +145,12 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     setNewUrl("");
   };
 
-  // Обработчик изменения парадигм
+                                  
   const handleParadigmsChange = (paradigms: string[]) => {
     setSelectedParadigms(paradigms);
   };
 
-  // Отправка формы
+                   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
@@ -186,7 +186,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
       }
     }
 
-    // Добавляем выбранные парадигмы в formData
+                                               
     if (selectedParadigms.length > 0) {
       selectedParadigms.forEach(paradigm => {
         formData.append("mainParadigm", paradigm);
@@ -210,7 +210,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
     }
   };
 
-  // Очистка временных URL при размонтировании
+                                              
   useEffect(() => {
     return () => {
       urls.forEach(url => {
@@ -245,7 +245,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
             )}
 
             <form ref={formRef} onSubmit={handleSubmit} className="mt-8 space-y-8">
-              {/* Основная информация */}
+              {                         }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Основная информация</h2>
 
@@ -322,11 +322,11 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                 </div>
               </div>
 
-              {/* Профессиональная информация */}
+              {                                 }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Профессиональная информация</h2>
 
-                {/* Формат работы */}
+                {                   }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Формат работы</label>
                   {referencesLoading ? (
@@ -372,7 +372,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                   </div>
                 </div>
 
-                {/* Парадигмы с умным поиском */}
+                {                               }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Парадигмы
@@ -383,7 +383,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                   />
                 </div>
 
-                {/* Уровень сертификации */}
+                {                          }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Уровень сертификации
@@ -407,7 +407,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                 </div>
               </div>
 
-              {/* О себе */}
+              {            }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">О психологе</h2>
 
@@ -443,7 +443,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                 </div>
               </div>
 
-              {/* Контакты и цена */}
+              {                     }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Контакты и стоимость</h2>
 
@@ -479,7 +479,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                 </div>
               </div>
 
-              {/* Фотографии */}
+              {                }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Фотографии</h2>
                 <div>
@@ -599,13 +599,13 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                 </div>
               </div>
 
-              {/* Образование */}
+              {                 }
               <div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-6">Образование и квалификация</h2>
                 <EducationForm />
               </div>
 
-              {/* Публикация */}
+              {                }
               <div className="flex items-center">
                 <input
                     type="checkbox"
@@ -619,7 +619,7 @@ function NewPsychologistFormContent({ getDataListItems }: NewPsychologistFormPro
                 </label>
               </div>
 
-              {/* Кнопки действий */}
+              {                     }
               <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
                 <button
                     type="submit"

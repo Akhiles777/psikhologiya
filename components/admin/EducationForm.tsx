@@ -55,7 +55,7 @@ export function EducationForm() {
           </div>
 
           <div className="grid gap-3">
-            {/* Год */}
+            {         }
             <div>
               <label className="block text-xs text-neutral-600 mb-1">Год получения документа</label>
               <input
@@ -71,7 +71,7 @@ export function EducationForm() {
               />
             </div>
 
-            {/* Тип */}
+            {         }
             <div>
               <label className="block text-xs text-neutral-600 mb-1">Тип образования</label>
               <select
@@ -88,7 +88,7 @@ export function EducationForm() {
               </select>
             </div>
 
-            {/* Организация */}
+            {                 }
             <div>
               <label className="block text-xs text-neutral-600 mb-1">Название организации, выдавшей документ </label>
               <input
@@ -102,7 +102,7 @@ export function EducationForm() {
               />
             </div>
 
-            {/* Название */}
+            {              }
             <div>
               <label className="block text-xs text-neutral-600 mb-1">Название документа</label>
               <input
@@ -116,7 +116,7 @@ export function EducationForm() {
               />
             </div>
 
-            {/* Диплом */}
+            {            }
             <div>
               <label className="flex items-center gap-2">
                 <input

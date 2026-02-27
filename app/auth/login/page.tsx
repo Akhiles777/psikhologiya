@@ -1,4 +1,4 @@
-// app/auth/login/page.tsx
+                          
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -23,7 +23,7 @@ export default function LoginChoicePage() {
         </div>
 
         <div className="space-y-4">
-          {/* Карточка для администратора */}
+          {                                 }
           <div className="border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow">
             <div className="flex items-start">
               <div className="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -51,7 +51,7 @@ export default function LoginChoicePage() {
             </div>
           </div>
 
-          {/* Карточка для менеджера */}
+          {                            }
           <div className="border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow">
             <div className="flex items-start">
               <div className="flex-shrink-0 h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -80,7 +80,7 @@ export default function LoginChoicePage() {
           </div>
         </div>
 
-        {/* Информационный блок */}
+        {                         }
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex">
             <div className="flex-shrink-0">

@@ -56,14 +56,14 @@ export default function EditManagerPage({
     }
   });
 
-  // Разворачиваем params
+                         
   useEffect(() => {
     params.then((p) => {
       setId(p.id);
     });
   }, [params]);
 
-  // Загружаем данные менеджера
+                               
   useEffect(() => {
     async function loadManager() {
       if (!id) return;
@@ -78,7 +78,7 @@ export default function EditManagerPage({
 
         setManager(data);
         
-        // Нормализуем permissions (на случай, если каких-то разделов нет)
+                                                                          
         const normalizedPermissions: Permissions = {
           psychologists: data.permissions?.psychologists || { view: true, edit: true },
           pages: data.permissions?.pages || { view: true, edit: true },
@@ -90,7 +90,7 @@ export default function EditManagerPage({
         setFormData({
           name: data.name,
           email: data.email,
-          password: '', // Пароль не загружаем из соображений безопасности
+          password: '',                                                   
           role: data.role,
           isActive: data.isActive,
           permissions: normalizedPermissions
@@ -113,16 +113,16 @@ export default function EditManagerPage({
     setIsSaving(true);
 
     try {
-      // Форматируем права доступа с учетом роли
+                                                
       const formattedPermissions: Record<string, { view: boolean; edit: boolean }> = {};
       
       Object.keys(formData.permissions).forEach(module => {
         const moduleKey = module as keyof Permissions;
-        // Для администратора все права включены
+                                                
         if (formData.role === 'ADMIN') {
           formattedPermissions[module] = { view: true, edit: true };
         } 
-        // Для менеджера
+                        
         else {
           formattedPermissions[module] = {
             view: formData.permissions[moduleKey].view,
@@ -131,7 +131,7 @@ export default function EditManagerPage({
         }
       });
 
-      // Подготавливаем данные для отправки
+                                           
       const updateData: any = {
         name: formData.name,
         email: formData.email,
@@ -140,7 +140,7 @@ export default function EditManagerPage({
         permissions: formattedPermissions,
       };
 
-      // Добавляем пароль только если он указан
+                                               
       if (formData.password.trim()) {
         updateData.password = formData.password;
       }
@@ -157,7 +157,7 @@ export default function EditManagerPage({
         throw new Error(data.error || 'Ошибка при обновлении менеджера');
       }
 
-      // Успешно обновлено - редирект на список менеджеров
+                                                          
       router.push('/managers/managers');
       router.refresh();
     } catch (error: any) {
@@ -178,7 +178,7 @@ export default function EditManagerPage({
     } else {
       if (name === 'role') {
         if (value === 'ADMIN') {
-          // Для ADMIN выставляем все права true и запрещаем их менять вручную
+                                                                              
           setFormData(prev => ({
             ...prev,
             role: value,
@@ -191,7 +191,7 @@ export default function EditManagerPage({
             },
           }));
         } else {
-          // Для MANAGER сбрасываем права на менеджеров
+                                                       
           setFormData(prev => ({
             ...prev,
             role: value,
@@ -208,9 +208,9 @@ export default function EditManagerPage({
   };
 
   const handlePermissionChange = (module: keyof Permissions, value: boolean) => {
-    // Для ADMIN права нельзя менять вручную
+                                            
     if (formData.role === 'ADMIN') return;
-    // Для MANAGER нельзя включать раздел "Менеджеры"
+                                                     
     if (module === 'managers' && formData.role === 'MANAGER') return;
     setFormData(prev => ({
       ...prev,
@@ -225,7 +225,7 @@ export default function EditManagerPage({
   };
 
   const handleGeneratePassword = () => {
-    // Генерируем случайный пароль из 10 символов
+                                                 
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let newPassword = '';
     for (let i = 0; i < 10; i++) {
@@ -325,7 +325,7 @@ export default function EditManagerPage({
 
         <div className="max-w-3xl mx-auto">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Основная информация */}
+            {                         }
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Основная информация</h2>
               
@@ -412,7 +412,7 @@ export default function EditManagerPage({
               </div>
             </div>
 
-            {/* Смена пароля */}
+            {                  }
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Смена пароля</h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -458,7 +458,7 @@ export default function EditManagerPage({
               </div>
             </div>
 
-            {/* Права доступа - в том же стиле, что и страница создания */}
+            {                                                             }
             <div className="bg-white shadow rounded-lg p-6">
               <h2 className="text-lg font-medium text-gray-900 mb-4">Права доступа</h2>
               <p className="text-sm text-gray-600 mb-4">
@@ -543,7 +543,7 @@ export default function EditManagerPage({
                 })}
               </div>
 
-              {/* Примечания */}
+              {                }
               <div className="mt-4 space-y-2">
                 {isAdmin ? (
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -571,7 +571,7 @@ export default function EditManagerPage({
               </div>
             </div>
 
-            {/* Кнопки действий */}
+            {                     }
             <div className="flex flex-col sm:flex-row justify-between pt-6 gap-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
                 <button

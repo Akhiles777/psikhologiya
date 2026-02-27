@@ -35,7 +35,7 @@ export function TrustBlock() {
     <section className="bg-gradient-to-b from-white to-gray-50/30 py-12 md:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
-        {/* Заголовок с акцентом */}
+        {                          }
         <div className="mb-10 text-center md:mb-12">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#5858E2]/20 bg-white px-4 py-2">
             <span className="h-1.5 w-1.5 rounded-full bg-[#5858E2] animate-pulse"></span>
@@ -52,7 +52,7 @@ export function TrustBlock() {
 
         <div className="grid gap-8 lg:grid-cols-5 lg:gap-10">
           
-          {/* Левая часть: статистика */}
+          {                             }
           <div className="lg:col-span-2">
             <div className="rounded-2xl bg-gradient-to-br from-[#5858E2] to-[#5858E2]/90 p-6 text-white md:p-8">
               <h3 className="mb-6 text-lg font-semibold md:text-xl">Наши показатели</h3>
@@ -90,7 +90,7 @@ export function TrustBlock() {
             </div>
           </div>
 
-          {/* Центральная часть: преимущества */}
+          {                                     }
           <div className="lg:col-span-3">
             <div className="grid gap-6">
               {trustPoints.map((point, index) => (
@@ -111,7 +111,7 @@ export function TrustBlock() {
               ))}
             </div>
 
-            {/* Дополнительная информация */}
+            {                               }
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl bg-[#A7FF5A]/10 border border-[#A7FF5A]/30 p-4">
                 <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export function TrustBlock() {
               </div>
             </div>
 
-            {/* Призыв к действию */}
+            {                       }
             <div className="mt-6 rounded-xl bg-gradient-to-r from-gray-50 to-white p-5 border border-gray-200">
               <p className="text-center text-sm font-medium text-gray-900">
                 <span className="text-[#5858E2]">✓</span> Выбирайте проверенных специалистов с гарантией качества
@@ -148,12 +148,12 @@ export function TrustBlock() {
 
         </div>
 
-        {/* Изображение внизу - с ограничением ширины */}
+        {                                               }
     
 
 <div className="mt-10">
   <div className="relative overflow-hidden rounded-2xl mx-auto max-w-6xl">
-    <div className="aspect-[4/3] sm:aspect-[16/6.5] lg:aspect-[16/4.5]"> {/* Уменьшил знаменатель = выше */}
+    <div className="aspect-[4/3] sm:aspect-[16/6.5] lg:aspect-[16/4.5]"> {                                 }
       <Image
         src="/images/image-5.jpg"
         alt="Профессиональная психологическая консультация в доверительной обстановке"

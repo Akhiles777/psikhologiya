@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
-// GET: Получить менеджера по ID
+                                
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -38,7 +38,7 @@ export async function GET(
   }
 }
 
-// PUT: Обновить менеджера
+                          
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -51,7 +51,7 @@ export async function PUT(
     const { id } = await params;
     const data = await request.json();
 
-    // Проверяем, существует ли менеджер
+                                        
     const existingManager = await prisma.manager.findUnique({
       where: { id },
     });
@@ -60,7 +60,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Менеджер не найден' }, { status: 404 });
     }
 
-    // Если нужно обновить email, проверяем, что он не занят другим менеджером
+                                                                              
     if (data.email && data.email !== existingManager.email) {
       const emailExists = await prisma.manager.findFirst({
         where: {
@@ -74,7 +74,7 @@ export async function PUT(
       }
     }
 
-    // Подготавливаем данные для обновления
+                                           
     const updateData: any = {
       name: data.name,
       email: data.email,
@@ -83,12 +83,12 @@ export async function PUT(
       permissions: data.permissions,
     };
 
-    // Если передан пароль, хешируем его
+                                        
     if (data.password) {
       updateData.password = await bcrypt.hash(data.password, 10);
     }
 
-    // Обновляем менеджера
+                          
     const updatedManager = await prisma.manager.update({
       where: { id },
       data: updateData,
@@ -110,7 +110,7 @@ export async function PUT(
   }
 }
 
-// DELETE: Удалить менеджера
+                            
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -122,8 +122,8 @@ export async function DELETE(
 
     const { id } = await params;
 
-    // Нельзя удалить себя
-    // TODO: Добавить проверку текущего пользователя из сессии
+                          
+                                                              
 
     await prisma.manager.delete({
       where: { id },

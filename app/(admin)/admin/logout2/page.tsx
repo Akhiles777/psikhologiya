@@ -7,10 +7,10 @@ export default function LogoutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Удаляем сессионную куку
+                              
     document.cookie = 'manager-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     
-    // Редирект на страницу входа
+                                 
     setTimeout(() => {
       router.push("/auth/login");
     }, 100);

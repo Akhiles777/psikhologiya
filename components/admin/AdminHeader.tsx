@@ -7,7 +7,7 @@ export function AdminHeader() {
   const [manager, setManager] = useState<any>(null);
 
   useEffect(() => {
-    // Получаем данные менеджера из куки
+                                        
     const cookies = document.cookie.split('; ');
     const sessionCookie = cookies.find(row => row.startsWith('manager-session='));
     

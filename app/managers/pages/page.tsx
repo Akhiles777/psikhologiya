@@ -5,15 +5,15 @@ import { Plus, Edit, ExternalLink, FileText, Globe } from "lucide-react";
 import DeleteButton from "@/components/pages/DeleteButton";
 import AuthGuard from "@/components/AuthGuard";
 
-/**
- * Список страниц сайта в менеджерской панели.
- */
+   
+                                              
+   
 export default async function PagesListPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  // Ждем searchParams
+                      
   const params = await searchParams;
   const errorCode = typeof params.error === "string" ? params.error : "";
   const errorMessages: Record<string, string> = {

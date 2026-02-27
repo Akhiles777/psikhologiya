@@ -1,4 +1,4 @@
-// app/components/catalog/MobileFilters.tsx
+                                           
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -14,7 +14,7 @@ export function MobileFilters({ initialParams }: Props) {
   const formRef = useRef<HTMLFormElement>(null);
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
-  // Проверяем активные фильтры при изменении параметров
+                                                        
   useEffect(() => {
     const checkActiveFilters = () => {
       const params = [
@@ -36,18 +36,18 @@ export function MobileFilters({ initialParams }: Props) {
     checkActiveFilters();
   }, [initialParams]);
 
-  // Обработчик отправки формы
+                              
   const handleFormSubmit = () => {
     if (formRef.current) {
       formRef.current.requestSubmit();
     }
-    // Закрываем модалку после применения фильтров
+                                                  
     setTimeout(() => setIsOpen(false), 300);
   };
 
-  // Обработчик сброса фильтров
+                               
   const handleResetFilters = () => {
-    // Если в форме есть кнопка сброса, триггерим её
+                                                    
     const resetBtn = formRef.current?.querySelector('[type="reset"]');
     if (resetBtn instanceof HTMLButtonElement) {
       resetBtn.click();
@@ -56,7 +56,7 @@ export function MobileFilters({ initialParams }: Props) {
 
   return (
     <>
-      {/* Кнопка открытия фильтров на мобилках */}
+      {                                          }
       <div className="sm:hidden mb-4">
         <button
           onClick={() => setIsOpen(true)}
@@ -65,7 +65,7 @@ export function MobileFilters({ initialParams }: Props) {
           <Filter className="w-5 h-5" />
           <span>Фильтры и сортировка</span>
           
-          {/* Индикатор активных фильтров */}
+          {                                 }
           {hasActiveFilters && (
             <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
               !
@@ -73,7 +73,7 @@ export function MobileFilters({ initialParams }: Props) {
           )}
         </button>
         
-        {/* Быстрая индикация активных фильтров */}
+        {                                         }
         {hasActiveFilters && (
           <div className="mt-2 flex flex-wrap gap-1">
             {initialParams.priceMin && (
@@ -110,18 +110,18 @@ export function MobileFilters({ initialParams }: Props) {
         )}
       </div>
 
-      {/* Модальное окно фильтров */}
+      {                             }
       {isOpen && (
         <>
-          {/* Затемнение фона с анимацией */}
+          {                                 }
           <div 
             className="fixed inset-0 bg-black/50 z-50 transition-opacity duration-300"
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Панель фильтров с анимацией */}
+          {                                 }
           <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white z-[60] flex flex-col shadow-2xl animate-slide-in-right">
-            {/* Хедер панели */}
+            {                  }
             <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-[#5858E2] to-[#6B8E23] text-white">
               <div className="flex items-center gap-3">
                 <Filter className="w-5 h-5" />
@@ -140,7 +140,7 @@ export function MobileFilters({ initialParams }: Props) {
               </button>
             </div>
 
-            {/* Контент фильтров с прокруткой */}
+            {                                   }
             <div className="flex-1 overflow-y-auto">
               <div className="p-4">
                 <CatalogSidebar 
@@ -151,12 +151,12 @@ export function MobileFilters({ initialParams }: Props) {
               </div>
             </div>
 
-            {/* Футер с быстрыми действиями */}
+            {                                 }
             <div className="border-t border-gray-200 p-4 space-y-3">
-              {/* Кнопка сброса (только если есть активные фильтры) */}
+              {                                                       }
             
               
-              {/* Кнопка закрытия */}
+              {                     }
               <button
                 onClick={() => setIsOpen(false)}
                 className="w-full py-3 bg-gradient-to-r from-[#5858E2] to-[#6B8E23] text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all"
@@ -168,7 +168,7 @@ export function MobileFilters({ initialParams }: Props) {
         </>
       )}
 
-      {/* Стили для анимации */}
+      {                        }
       <style jsx>{`
         @keyframes slide-in-right {
           from {

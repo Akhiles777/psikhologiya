@@ -58,7 +58,7 @@ export default function EditManagerPage() {
     }
   });
 
-  // Загружаем данные менеджера
+                               
   useEffect(() => {
     async function loadManager() {
       try {
@@ -71,7 +71,7 @@ export default function EditManagerPage() {
 
         setManager(data);
         
-        // Преобразуем загруженные permissions в формат с одним полем view
+                                                                          
         const loadedPermissions = data.permissions || {
           psychologists: { view: true, edit: true },
           pages: { view: true, edit: true },
@@ -83,7 +83,7 @@ export default function EditManagerPage() {
         setFormData({
           name: data.name,
           email: data.email,
-          password: '', // Пароль не загружаем из соображений безопасности
+          password: '',                                                   
           role: data.role,
           isActive: data.isActive,
           permissions: {
@@ -110,10 +110,10 @@ export default function EditManagerPage() {
     setIsSaving(true);
 
     try {
-      // Преобразуем права доступа в формат с view и edit одинаковыми
+                                                                     
       const formattedPermissions: Record<string, { view: boolean; edit: boolean }> = {};
       Object.keys(formData.permissions).forEach(module => {
-        // Для администратора раздел "Менеджеры" всегда включен
+                                                               
         if (formData.role === 'ADMIN' && module === 'managers') {
           formattedPermissions[module] = {
             view: true,
@@ -122,12 +122,12 @@ export default function EditManagerPage() {
         } else {
           formattedPermissions[module] = {
             view: (formData.permissions as any)[module].view,
-            edit: (formData.permissions as any)[module].view // edit такой же как view
+            edit: (formData.permissions as any)[module].view                          
           };
         }
       });
 
-      // Подготавливаем данные для отправки
+                                           
       const updateData: any = {
         name: formData.name,
         email: formData.email,
@@ -136,7 +136,7 @@ export default function EditManagerPage() {
         permissions: formattedPermissions,
       };
 
-      // Добавляем пароль только если он указан
+                                               
       if (formData.password) {
         updateData.password = formData.password;
       }
@@ -153,7 +153,7 @@ export default function EditManagerPage() {
         throw new Error(data.error || 'Ошибка при обновлении менеджера');
       }
 
-      // Успешно обновлено - редирект на список менеджеров
+                                                          
       router.push('/admin/managers');
       router.refresh();
     } catch (error: any) {
@@ -169,7 +169,7 @@ export default function EditManagerPage() {
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
       setFormData(prev => {
-        // Если выбрана роль Администратор, выставляем все права
+                                                                
         if (name === 'role' && value === 'ADMIN') {
           return {
             ...prev,
@@ -187,7 +187,7 @@ export default function EditManagerPage() {
       });
     }
   };
-  // Удаление менеджера
+                       
   const handleDelete = async () => {
     if (!manager) return;
     if (!confirm(`Удалить менеджера ${manager.name}? Это действие необратимо.`)) return;
@@ -222,7 +222,7 @@ export default function EditManagerPage() {
   };
 
   const handleGeneratePassword = () => {
-    // Генерируем случайный пароль из 8 символов
+                                                
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let newPassword = '';
     for (let i = 0; i < 8; i++) {
@@ -307,7 +307,7 @@ export default function EditManagerPage() {
 
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Кнопка полного удаления менеджера */}
+          {                                       }
           <div className="flex justify-end">
             <button
               type="button"
@@ -318,7 +318,7 @@ export default function EditManagerPage() {
               Удалить менеджера
             </button>
           </div>
-          {/* Основная информация */}
+          {                         }
           <div className="bg-white shadow rounded-lg p-7">
             <h2 className="text-xl font-medium text-gray-900 mb-4">Основная информация</h2>
             
@@ -405,7 +405,7 @@ export default function EditManagerPage() {
             </div>
           </div>
 
-          {/* Смена пароля */}
+          {                  }
           <div className="bg-white shadow rounded-lg p-7">
             <h2 className="text-xl font-medium text-gray-900 mb-4">Смена пароля</h2>
             <p className="text-sm text-gray-600 mb-4">
@@ -451,7 +451,7 @@ export default function EditManagerPage() {
             </div>
           </div>
 
-          {/* Права доступа - с разделом менеджеров */}
+          {                                           }
           <div className="bg-white shadow rounded-lg p-7">
             <h2 className="text-xl font-medium text-gray-900 mb-4">Права доступа</h2>
             <p className="text-sm text-gray-600 mb-4">
@@ -488,25 +488,25 @@ export default function EditManagerPage() {
                       <input
                         type="checkbox"
                         checked={
-                          // Для администратора все разделы всегда включены
+                                                                           
                           formData.role === 'ADMIN' 
                             ? true 
-                            : // Для менеджера раздел "Менеджеры" всегда выключен
+                            :                                                    
                               module === 'managers' 
                                 ? false 
                                 : (formData.permissions as any)[module]?.view || false
                         }
                         onChange={(e) => {
-                          // Для менеджера нельзя включать раздел "Менеджеры"
+                                                                             
                           if (module === 'managers' && formData.role === 'MANAGER') {
                             return;
                           }
                           handlePermissionChange(module, e.target.checked);
                         }}
                         disabled={
-                          // Администратор - все включены
+                                                         
                           formData.role === 'ADMIN' ||
-                          // Менеджер - нельзя управлять разделом "Менеджеры"
+                                                                             
                           (module === 'managers' && formData.role === 'MANAGER')
                         }
                         className="sr-only"
@@ -544,7 +544,7 @@ export default function EditManagerPage() {
               ))}
             </div>
 
-            {/* Примечания */}
+            {                }
             <div className="mt-4 space-y-2">
               {formData.role === 'ADMIN' ? (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -572,7 +572,7 @@ export default function EditManagerPage() {
             </div>
           </div>
 
-          {/* Кнопки действий */}
+          {                     }
           <div className="flex justify-between pt-6">
             <button
               type="button"

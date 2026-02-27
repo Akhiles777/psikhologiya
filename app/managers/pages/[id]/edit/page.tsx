@@ -10,11 +10,11 @@ export default async function EditPagePage({
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  // Ждем params и searchParams
+                               
   const { id } = await params;
   const searchParamsObj = await searchParams;
 
-  // Получаем данные страницы
+                             
   const page = await getPageById(id);
 
   if (!page) {
@@ -61,7 +61,7 @@ export default async function EditPagePage({
               </div>
           )}
 
-          {/* Передаем данные в Client Component */}
+          {                                        }
           <EditPageClient
               page={page}
               pageId={id}

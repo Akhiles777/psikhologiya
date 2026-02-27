@@ -14,7 +14,7 @@ import {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-/** Список всех психологов для админки */
+                                         
 export async function getPsychologistsList() {
   if (!prisma) return [];
   try {
@@ -36,7 +36,7 @@ export async function getPsychologistsList() {
   }
 }
 
-/** Один психолог по id для формы редактирования */
+                                                   
 export async function getPsychologistById(id: string) {
   if (!prisma) return null;
   try {
@@ -50,7 +50,7 @@ export async function getPsychologistById(id: string) {
   }
 }
 
-/** Получить психологов с фильтрами для каталога */
+                                                   
 export async function getFilteredPsychologists(filters: {
   priceMin?: string;
   priceMax?: string;
@@ -189,7 +189,7 @@ export async function getFilteredPsychologists(filters: {
   }
 }
 
-/** Получить уникальные города для автозаполнения */
+                                                    
 export async function getUniqueCities() {
   if (!prisma) return [];
   try {
@@ -209,7 +209,7 @@ export async function getUniqueCities() {
   }
 }
 
-/** Получить статистику по фильтрам */
+                                      
 export async function getFilterStats(filters: {
   priceMin?: string;
   priceMax?: string;
@@ -324,7 +324,7 @@ export async function getFilterStats(filters: {
   }
 }
 
-/** Создать психолога */
+                        
 export async function createPsychologist(formData: FormData) {
   if (!prisma) throw new Error("База данных недоступна");
 
@@ -355,7 +355,7 @@ export async function createPsychologist(formData: FormData) {
 
 }
 
-/** Обновить психолога */
+                         
 export async function updatePsychologist(id: string, formData: FormData) {
   if (!prisma) throw new Error("База данных недоступна");
 
@@ -388,7 +388,7 @@ export async function updatePsychologist(id: string, formData: FormData) {
   redirect("/admin/psychologists");
 }
 
-/** Удалить психолога */
+                        
 export async function deletePsychologist(id: string) {
   if (!prisma) redirect("/admin/psychologists?error=db_unavailable");
   try {

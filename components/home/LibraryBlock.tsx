@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** Блок про библиотеку + изображение. */
+                                         
 export function LibraryBlock() {
   return (
     <section className="bg-[#F5F5F7] px-4 py-10 sm:px-6 sm:py-16 md:px-8 lg:px-12">

@@ -10,10 +10,10 @@ const LEVELS: (1 | 2 | 3)[] = [1, 2, 3];
 
 type Props = {
   initialParams: Record<string, string | string[] | undefined>;
-  onFormSubmit?: () => void; // Новый проп для callback
+  onFormSubmit?: () => void;                           
 };
 
-/** Упрощённая панель фильтров: цена, метод, уровень, сортировка. */
+                                                                    
 export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,7 +28,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     [searchParams, initialParams]
   );
 
-  // Получаем начальные значения для возраста
+                                             
   const getAgeValue = (key: 'ageMin' | 'ageMax'): string => {
     const value = get(key);
     return value || "";
@@ -39,7 +39,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
       const current = searchParams ? searchParamsToObject(searchParams) : {};
       const url = buildCatalogUrl(current, updates);
       startTransition(() => router.push(url));
-      // Вызываем callback если он есть
+                                       
       if (onFormSubmit) {
         onFormSubmit();
       }
@@ -47,17 +47,17 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     [router, searchParams, onFormSubmit]
   );
 
-  // Функция сброса всех фильтров
+                                 
   const resetFilters = () => {
     startTransition(() => {
-      router.push("/psy-list#list"); // Просто переходим на чистый каталог
+      router.push("/psy-list#list");                                      
       if (onFormSubmit) {
         onFormSubmit();
       }
     });
   };
 
-  // Проверяем есть ли активные фильтры
+                                       
   const hasActiveFilters = () => {
     const params = [
       'priceMin', 'priceMax', 'city', 'gender', 'paradigms', 'levels', 
@@ -74,7 +74,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     const form = e.currentTarget;
     const formData = new FormData(form);
     
-    // Базовые фильтры
+                      
     const priceMin = (formData.get("priceMin") as string)?.trim() ?? "";
     const priceMax = (formData.get("priceMax") as string)?.trim() ?? "";
     const city = (formData.get("city") as string)?.trim() ?? "";
@@ -83,7 +83,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     const level = (formData.get("level") as string)?.trim() ?? "";
     const sort = (formData.get("sort") as string)?.trim() ?? "createdAt-desc";
     
-    // Возрастные фильтры
+                         
     const ageMin = (formData.get("ageMin") as string)?.trim() ?? "";
     const ageMax = (formData.get("ageMax") as string)?.trim() ?? "";
     
@@ -110,7 +110,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
   const sortOrder = get("sortOrder") || "desc";
   const sortValue = `${sortBy}-${sortOrder}`;
 
-  // Получаем значения для возраста
+                                   
   const ageMinValue = getAgeValue('ageMin');
   const ageMaxValue = getAgeValue('ageMax');
 
@@ -118,13 +118,13 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
     <aside className="w-full shrink-0 lg:w-[300px]">
       <div className="rounded-2xl border border-neutral-200 bg-white shadow-sm">
         <div className="p-5">
-          {/* Заголовок */}
+          {               }
           <div className="mb-4">
             <h3 className="text-xl font-bold text-foreground">Фильтры</h3>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Цена */}
+            {          }
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Цена (₽)</label>
               <div className="flex gap-2">
@@ -151,7 +151,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
               </div>
             </div>
 
-            {/* Возраст */}
+            {             }
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Возраст психолога</label>
               <div className="flex gap-2">
@@ -181,7 +181,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
             
             </div>
 
-            {/* Город */}
+            {           }
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Город</label>
               <input
@@ -193,7 +193,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
               />
             </div>
 
-            {/* Пол */}
+            {         }
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Пол</label>
               <select
@@ -207,7 +207,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
               </select>
             </div>
 
-            {/* Метод */}
+            {           }
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Метод / Подход</label>
               <select
@@ -224,7 +224,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
               </select>
             </div>
 
-            {/* Уровень сертификации */}
+            {                          }
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Уровень сертификации</label>
               <select
@@ -241,7 +241,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
               </select>
             </div>
 
-            {/* Сортировка */}
+            {                }
             <div>
               <label className="mb-2 block text-sm font-medium text-neutral-dark">Сортировка</label>
               <select
@@ -258,7 +258,7 @@ export function CatalogSidebar({ initialParams, onFormSubmit }: Props) {
               </select>
             </div>
 
-            {/* Кнопки действий */}
+            {                     }
             <div className="space-y-2.5 pt-1">
               <button
                 type="submit"

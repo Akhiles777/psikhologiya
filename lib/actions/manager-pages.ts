@@ -32,7 +32,7 @@ type SystemPageRecord = {
   updatedAt: Date;
 };
 
-/** Список всех страниц для менеджеров (без системных). */
+                                                          
 export async function getPagesList() {
   if (!prisma) return [];
   try {
@@ -134,22 +134,22 @@ async function getOrCreateSystemPage(systemSlug: string): Promise<SystemPageReco
   }
 }
 
-/** Получить или создать системную страницу футера */
+                                                     
 export async function getOrCreateFooterPage() {
   return getOrCreateSystemPage(SYSTEM_PAGE_CONFIG.footer.slug);
 }
 
-/** Получить или создать системную главную страницу */
+                                                      
 export async function getOrCreateHomePage() {
   return getOrCreateSystemPage(SYSTEM_PAGE_CONFIG.home.slug);
 }
 
-/** Получить или создать системную страницу connect */
+                                                      
 export async function getOrCreateConnectPage() {
   return getOrCreateSystemPage(SYSTEM_PAGE_CONFIG.connect.slug);
 }
 
-/** Получить или создать системную страницу каталога */
+                                                       
 export async function getOrCreateCatalogPage() {
   return getOrCreateSystemPage(SYSTEM_PAGE_CONFIG.catalog.slug);
 }
@@ -211,7 +211,7 @@ function revalidatePageTargets(slug?: string | null, oldSlug?: string | null) {
   }
 }
 
-/** Одна страница по id для формы */
+                                    
 export async function getPageById(id: string) {
   if (!prisma) return null;
   try {
@@ -275,7 +275,7 @@ export async function getPageById(id: string) {
   }
 }
 
-/** Создать страницу. При ошибке — редирект с ?error=... */
+                                                           
 export async function createPage(formData: FormData) {
   if (!prisma) redirect("/managers/pages/new?error=db_unavailable");
 
@@ -337,7 +337,7 @@ export async function createPage(formData: FormData) {
   redirect("/managers/pages");
 }
 
-/** Обновить страницу. Вызывается из формы: updatePage(id, formData). */
+                                                                        
 export async function updatePage(id: string, formData: FormData) {
   if (!prisma) redirect("/managers/pages?error=db_unavailable");
 
@@ -405,7 +405,7 @@ export async function updatePage(id: string, formData: FormData) {
   redirect(`/managers/pages/${id}/edit?saved=1`);
 }
 
-/** Обновить верхний и нижний HTML-блоки страницы каталога (/psy-list). */
+                                                                          
 export async function updateCatalogPageSections(formData: FormData) {
   if (!prisma) redirect("/managers/pages/catalog?error=db_unavailable");
 
@@ -438,7 +438,7 @@ export async function updateCatalogPageSections(formData: FormData) {
   redirect("/managers/pages/catalog?saved=1");
 }
 
-/** Удалить страницу и связанные изображения. */
+                                                
 export async function deletePage(id: string) {
   if (!prisma) redirect("/managers/pages?error=db_unavailable");
   try {
@@ -455,7 +455,7 @@ export async function deletePage(id: string) {
           try {
             await fs.unlink(absPath);
           } catch {
-            // Игнорируем ошибки отсутствия файла.
+                                                  
           }
         }
       }

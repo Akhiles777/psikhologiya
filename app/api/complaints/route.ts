@@ -121,7 +121,7 @@ async function callUnisenderClassic<T>(
   unisender: NonNullable<ReturnType<typeof getUnisenderConfig>>,
   params: URLSearchParams
 ): Promise<T> {
-  // Клонируем параметры, чтобы не протекали значения между вызовами разных методов.
+                                                                                    
   const safeParams = new URLSearchParams(params.toString());
   safeParams.set("format", "json");
   safeParams.set("api_key", unisender.apiKey);

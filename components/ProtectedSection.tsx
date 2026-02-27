@@ -25,7 +25,7 @@ export default function ProtectedSection({
 
   const checkPermissions = async () => {
     try {
-      // Проверяем авторизацию и права через API
+                                                
       const res = await fetch('/api/admin/managers/check-permission', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

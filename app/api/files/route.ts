@@ -13,7 +13,7 @@ type ManagedFile = {
   updatedAt: string;
 };
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024;        
 const PUBLIC_ROOT = path.join(process.cwd(), "public");
 const SCOPE_ROOTS: Record<FileScope, string> = {
   articles: path.join(PUBLIC_ROOT, "articles", "files"),

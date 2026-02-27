@@ -1,8 +1,8 @@
-/**
- * Нормализует src изображения для Next/Image: всегда отдаём путь без хоста,
- * чтобы сервер и клиент рендерили одинаково (нет hydration mismatch).
- * Для внешних URL (другой домен) оставляем как есть и используем unoptimized.
- */
+   
+                                                                            
+                                                                      
+                                                                              
+   
 const LOCAL_IMAGE_PATH_PREFIXES = ["/uploads/", "/api/uploads/", "/pages/files/", "/articles/files/"] as const;
 
 function normalizeLocalImagePath(rawPath: string): string | null {

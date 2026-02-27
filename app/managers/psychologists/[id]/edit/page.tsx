@@ -8,17 +8,17 @@ export default async function EditPsychologistPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // Разворачиваем params
+                         
   const { id } = await params;
   
-  // Загружаем данные психолога на сервере
+                                          
   const psychologist = await getPsychologistById(id);
   
   if (!psychologist) {
     notFound();
   }
   
-  // Загружаем справочники на сервере
+                                     
   const [workFormats, certificationLevels] = await Promise.all([
     getDataListItems('work-formats'),
     getDataListItems('certification-levels'),

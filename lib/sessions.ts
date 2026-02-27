@@ -24,8 +24,8 @@ export async function getManagerSession(): Promise<ManagerSession | null> {
 
     const session = JSON.parse(sessionCookie.value) as ManagerSession;
     
-    // Проверяем срок действия сессии (24 часа)
-    const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 часа в миллисекундах
+                                               
+    const SESSION_DURATION = 24 * 60 * 60 * 1000;                           
     if (Date.now() - session.timestamp > SESSION_DURATION) {
       return null;
     }
@@ -47,7 +47,7 @@ export async function setManagerSession(session: ManagerSession) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 24 * 60 * 60, // 24 часа
+      maxAge: 24 * 60 * 60,           
     });
   } catch (error) {
     console.error("Ошибка установки сессии:", error);

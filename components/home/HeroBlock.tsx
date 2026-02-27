@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** Первый блок главной: заголовок, о чём сайт, картинка, кнопка в каталог. Цвета: фон #F5F5F7, синий #5858E2, лайм #A7FF5A */
+                                                                                                                              
 export function HeroBlock() {
   return (
     <section className="relative overflow-hidden border-b-4 border-[#5858E2] bg-[#F5F5F7] px-4 py-10 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:px-12">

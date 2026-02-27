@@ -1,11 +1,11 @@
 export const FOOTER_PAGE_SLUG = "site-footer";
 export const FOOTER_PAGE_TITLE = "Футер сайта";
 
-/**
- * Полный HTML-код футера (без внешнего тега <footer>), который
- * сохраняется в pages и редактируется из админки.
- * Можно использовать {{year}} для автоматической подстановки года.
- */
+   
+                                                               
+                                                  
+                                                                   
+   
 export const FOOTER_DEFAULT_CONTENT = `
 <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
   <div class="flex flex-col items-center gap-6 sm:flex-row sm:justify-between sm:gap-8">

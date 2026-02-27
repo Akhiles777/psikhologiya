@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-// Один экземпляр на всё приложение (в dev не создаём заново при hot reload)
+                                                                            
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | null | undefined };
 
 export const prisma: PrismaClient | null =

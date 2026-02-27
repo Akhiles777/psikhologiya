@@ -3,7 +3,7 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { prisma } from "@/lib/db";
 
-// Импортируем статические парадигмы (этот файл нужно создать)
+                                                              
 import { PARADIGM_OPTIONS } from '@/lib/paradigm-options';
 
 function normalizeStringList(items: unknown): string[] {
@@ -110,7 +110,7 @@ async function syncArticleTagsWithDataList(previousItems: string[], nextItems: s
   }
 }
 
-// Получить все справочники
+                           
 export async function getAllDataLists() {
   try {
     if (!prisma) return [];
@@ -123,7 +123,7 @@ export async function getAllDataLists() {
   }
 }
 
-// Получить конкретный справочник
+                                 
 export async function getDataList(slug: string) {
   try {
     if (!prisma) return null;
@@ -132,7 +132,7 @@ export async function getDataList(slug: string) {
     });
 
     if (!dataList) {
-      // Создаем справочник если его нет
+                                        
       const name = getListNameBySlug(slug);
       const defaultItems = getDefaultItemsBySlug(slug);
       
@@ -152,27 +152,27 @@ export async function getDataList(slug: string) {
   }
 }
 
-// Вспомогательная функция для безопасного преобразования
+                                                         
 function convertJsonToStringArray(items: any): string[] {
   return normalizeStringList(items);
 }
 
-// Получить элементы справочника в правильном формате
-// В admin-references.ts, обновите функцию getDataListItems:
+                                                     
+                                                            
 export async function getDataListItems(slug: string): Promise<string[]> {
   try {
     if (!prisma) return getDefaultItemsBySlug(slug);
-    // Сначала получаем дефолтные значения
+                                          
     const defaultItems =
       slug === "article-tags" ? await getExistingArticleTags() : getDefaultItemsBySlug(slug);
     
-    // Пытаемся найти в базе
+                            
     const dataList = await prisma.dataList.findUnique({
       where: { slug },
     });
 
     if (!dataList) {
-      // Создаем запись с дефолтными значениями
+                                               
       await prisma.dataList.create({
         data: {
           slug,
@@ -183,13 +183,13 @@ export async function getDataListItems(slug: string): Promise<string[]> {
       return defaultItems;
     }
 
-    // Если в базе есть данные, но они старые (мало элементов)
-    // Например, для парадигм должно быть 17 элементов
+                                                              
+                                                      
     const currentItems = convertJsonToStringArray(dataList.items);
     
     if (slug === 'paradigms' && currentItems.length < 10) {
       console.log('⚠️ Обнаружены старые данные парадигм, обновляем...');
-      // Обновляем запись с дефолтными значениями
+                                                 
       await prisma.dataList.update({
         where: { slug },
         data: { items: defaultItems },
@@ -214,11 +214,11 @@ export async function getDataListItems(slug: string): Promise<string[]> {
     if (slug === "article-tags") {
       return await getExistingArticleTags();
     }
-    return getDefaultItemsBySlug(slug); // Всегда возвращаем дефолты при ошибке
+    return getDefaultItemsBySlug(slug);                                        
   }
 }
 
-// Обновить справочник
+                      
 export async function updateDataList(slug: string, items: string[]) {
   try {
     if (!prisma) return { success: false, error: 'База данных недоступна' };
@@ -256,7 +256,7 @@ export async function updateDataList(slug: string, items: string[]) {
   }
 }
 
-// Вспомогательные функции
+                          
 function getListNameBySlug(slug: string): string {
   const names: Record<string, string> = {
     'work-formats': 'Форматы работы',
@@ -270,7 +270,7 @@ function getListNameBySlug(slug: string): string {
 function getDefaultItemsBySlug(slug: string): string[] {
   const defaults: Record<string, string[]> = {
     'work-formats': ['Онлайн и оффлайн', 'Только онлайн', 'Только оффлайн', 'Переписка'],
-    'paradigms': PARADIGM_OPTIONS.map(p => p.value), // Используем статические парадигмы
+    'paradigms': PARADIGM_OPTIONS.map(p => p.value),                                    
     'certification-levels': ['1', '2', '3'],
     'article-tags': [],
   };

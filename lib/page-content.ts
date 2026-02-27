@@ -2,10 +2,10 @@
 
 import { prisma } from "@/lib/db";
 
-/**
- * Возвращает опубликованную страницу по slug для отображения на сайте.
- * Используется для /courses, /lib, /connect, /contacts и /s/[slug].
- */
+   
+                                                                       
+                                                                    
+   
 export async function getPageBySlug(slug: string) {
   if (!prisma) return null;
   try {

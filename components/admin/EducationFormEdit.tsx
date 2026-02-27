@@ -16,18 +16,18 @@ interface Props {
 }
 
 export function EducationFormEdit({ initialData = [], onEducationUpdate }: Props) {
-  // Используем initialData как начальное состояние
+                                                   
   const [education, setEducation] = useState<EducationItem[]>(
     initialData.length > 0 ? initialData : [{ year: '', type: '', organization: '', title: '', isDiploma: false }]
   );
 
-  // Синхронизируем счетчик при изменении массива
+                                                 
   useEffect(() => {
     if (onEducationUpdate) {
       onEducationUpdate(education);
     }
     
-    // Обновляем скрытое поле с JSON-данными
+                                            
     const hiddenInput = document.querySelector('input[name="education"]');
     if (hiddenInput) {
       (hiddenInput as HTMLInputElement).value = JSON.stringify(education);
@@ -55,7 +55,7 @@ export function EducationFormEdit({ initialData = [], onEducationUpdate }: Props
     setEducation(newEducation);
   };
 
-  // Проверяем данные
+                     
   console.log('🎓 EducationFormEdit initialData:', initialData);
   console.log('🎓 EducationFormEdit education state:', education);
 
@@ -63,7 +63,7 @@ export function EducationFormEdit({ initialData = [], onEducationUpdate }: Props
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-800">Образование и квалификация</h2>
       
-      {/* УДАЛИЛИ СКРЫТОЕ ПОЛЕ JSON ЗДЕСЬ - оно будет в родительском компоненте */}
+      {                                                                           }
       
       {education.map((item, index) => (
         <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">

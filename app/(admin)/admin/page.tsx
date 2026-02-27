@@ -9,9 +9,9 @@ export const metadata = buildMetadata({
   noIndex: true,
 });
 
-/**
- * Главная админки: быстрые ссылки.
- */
+   
+                                   
+   
 export default function AdminPage() {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
@@ -22,6 +22,14 @@ export default function AdminPage() {
         Управление контентом сайта «Давай вместе».
       </p>
       <ul className="mt-8 space-y-4">
+        <li>
+          <Link
+            href="/admin/profile"
+            className="block rounded-xl border border-neutral-200 bg-[#F5F5F7] p-4 font-medium text-foreground hover:border-[#5858E2] hover:bg-[#5858E2]/5"
+          >
+            Профиль супер-админа — логин, почта, пароль, восстановление
+          </Link>
+        </li>
         <li>
           <Link
             href="/admin/psychologists"

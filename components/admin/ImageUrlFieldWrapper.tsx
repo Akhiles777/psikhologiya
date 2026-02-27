@@ -1,10 +1,10 @@
-// components/admin/ImageUrlFieldWrapper.tsx
+                                            
 "use client";
 
 import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 
-// Правильный динамический импорт
+                                 
 const ImageUrlsField = dynamic(
   () => import("@/components/admin/ImageUrlsField").then(mod => mod.ImageUrlsField),
   { 
@@ -34,7 +34,7 @@ export function ImageUrlFieldWrapper({
   defaultValue = "", 
   maxUrls = 5 
 }: Props) {
-  // Простая обертка без сложной логики
+                                       
   return (
     <ImageUrlsField 
       name={name} 
@@ -44,7 +44,7 @@ export function ImageUrlFieldWrapper({
   );
 }
 
-// Или более простой вариант:
+                             
 export  default function SimpleImageFieldWrapper({ 
   name = "images", 
   defaultValue = "", 
@@ -73,7 +73,7 @@ export  default function SimpleImageFieldWrapper({
     );
   }
 
-  // Ленивая загрузка на клиенте
+                                
   const ClientImageUrlsField = dynamic(
     () => import("@/components/admin/ImageUrlsField").then(mod => mod.ImageUrlsField),
     { ssr: false }

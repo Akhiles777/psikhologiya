@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-/** Блок «Для психологов» + изображение. */
+                                           
 export function ForPsychologistsBlock() {
   return (
     <section className="border-t border-neutral-200 bg-white px-4 py-10 sm:px-6 sm:py-16 md:px-8 lg:px-12">

@@ -30,34 +30,34 @@ type EducationItem = {
   isDiploma?: boolean;
 };
 
-// Функция для расчета опыта работы
+                                   
 function calculateExperience(firstDiplomaDate: Date | null): string | null {
   if (!firstDiplomaDate) return null;
 
   try {
     const diplomaDate = new Date(firstDiplomaDate);
 
-    // Проверяем, что дата валидна
+                                  
     if (isNaN(diplomaDate.getTime())) return null;
 
     const today = new Date();
     const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth() + 1; // getMonth() возвращает 0-11
+    const currentMonth = today.getMonth() + 1;                              
 
     const diplomaYear = diplomaDate.getFullYear();
     const diplomaMonth = diplomaDate.getMonth() + 1;
 
-    // Рассчитываем разницу в годах и месяцах
+                                             
     let yearsDiff = currentYear - diplomaYear;
     let monthsDiff = currentMonth - diplomaMonth;
 
-    // Корректируем, если текущий месяц меньше месяца диплома
+                                                             
     if (monthsDiff < 0) {
       yearsDiff--;
       monthsDiff += 12;
     }
 
-    // Форматируем результат
+                            
     if (yearsDiff === 0) {
       if (monthsDiff === 0) {
         return "менее месяца";
@@ -85,7 +85,7 @@ function calculateExperience(firstDiplomaDate: Date | null): string | null {
   }
 }
 
-// Вспомогательная функция для правильного склонения слова "месяц"
+                                                                  
 function getMonthWord(months: number): string {
   if (months === 1) return "месяц";
   if (months >= 2 && months <= 4) return "месяца";
@@ -154,10 +154,10 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
   const normalizedLongBio = normalizeEmbeddedLocalAssetUrls(psychologist.longBio || "");
   const normalizedContactInfoHtml = normalizeEmbeddedLocalAssetUrls(contactInfoRaw);
 
-  // Рассчитываем опыт работы
+                             
   const experience = calculateExperience(psychologist.firstDiplomaDate);
 
-  console.log("Парадигмы психолога:", mainParadigm); // Для отладки
+  console.log("Парадигмы психолога:", mainParadigm);               
 
   return (
       <>
@@ -167,7 +167,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
         />
         <div className="min-h-screen bg-white">
           <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-            {/* Кнопка назад */}
+            {                  }
             <Link
                 href="/psy-list"
                 className="mb-3 inline-flex items-center gap-1 text-sm text-gray-600 hover:text-[#5858E2]"
@@ -176,7 +176,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
               <span>Назад в каталог</span>
             </Link>
 
-            {/* Блок неопубликовано */}
+            {                         }
             {!psychologist.isPublished && (
                 <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
                   <p className="text-sm font-medium">Анкета не опубликована</p>
@@ -186,12 +186,12 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                 </div>
             )}
 
-            {/* Основная карточка */}
+            {                       }
             <article className="overflow-hidden rounded-lg border-2 border-lime-500 bg-white">
               <div className="p-4 sm:p-5 md:p-6">
-                {/* Верхний блок */}
+                {                  }
                 <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
-                  {/* Галерея */}
+                  {             }
                   <div className="sm:w-2/5">
                     <ProfileGallery
                         images={psychologist.images ?? []}
@@ -199,7 +199,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                     />
                   </div>
 
-                  {/* Информация */}
+                  {                }
                   <div className="sm:w-3/5">
                     <div className="mb-2 pb-2 border-b border-gray-100">
                       <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
@@ -223,10 +223,10 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                       )}
                     </div>
 
-                    {/* Бейджи и опыт работы */}
+                    {                          }
                     <div className="mb-3 space-y-2">
                       <div className="flex flex-wrap gap-1">
-                        {/* Отображаем все парадигмы */}
+                        {                              }
                         {mainParadigm.length > 0 ? (
                             mainParadigm.map((p, index) => (
                                 <Badge key={`${p}-${index}`} variant="primary">
@@ -238,7 +238,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                         )}
                       </div>
 
-                      {/* Опыт работы */}
+                      {                 }
                       {experience && (
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5">
@@ -250,7 +250,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                           </span>
                             </div>
 
-                            {/* Дополнительная информация о дате первого диплома */}
+                            {                                                      }
                             {psychologist.firstDiplomaDate && (
                                 <span className="text-xs text-gray-500">
                             (с {new Date(psychologist.firstDiplomaDate).toLocaleDateString("ru-RU", {
@@ -263,7 +263,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                       )}
                     </div>
 
-                    {/* Цена и дата */}
+                    {                 }
                     <div className="space-y-1">
                       <p className="text-lg font-bold text-[#5858E2]">
                         {psychologist.price} ₽
@@ -295,7 +295,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* О себе */}
+                {            }
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <h2 className="mb-2 text-lg font-semibold text-gray-900">
                     О себе
@@ -313,7 +313,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                   </div>
                 </div>
 
-                {/* Запись на консультацию */}
+                {                            }
                 {hasContactInfo && (
                     <div id="contact-booking" className="mt-4 pt-4 border-t border-gray-100">
                       <h2 className="mb-2 text-lg font-semibold text-gray-900">
@@ -334,7 +334,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                     </div>
                 )}
 
-                {/* Образование */}
+                {                 }
                 {education.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-100">
                       <div className="flex items-center justify-between mb-2">
@@ -342,7 +342,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                           Образование
                         </h2>
 
-                        {/* Информация о первом дипломе */}
+                        {                                 }
                         {psychologist.firstDiplomaDate && (
                             <div className="text-xs text-gray-500">
                               Первый диплом: {new Date(psychologist.firstDiplomaDate).toLocaleDateString("ru-RU", {
@@ -405,7 +405,7 @@ export default async function PsychologistProfilePage({ params }: PageProps) {
                     </div>
                 )}
 
-                {/* Нижние кнопки */}
+                {                   }
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <Link href="/psy-list">

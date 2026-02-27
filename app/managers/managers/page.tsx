@@ -106,7 +106,7 @@ export default function ManagersPage() {
     <AuthGuard requiredPermission='managers.view'>
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="mx-auto max-w-7xl">
-        {/* Header */}
+        {            }
         <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">Менеджеры</h1>
@@ -125,7 +125,7 @@ export default function ManagersPage() {
           </Link>
         </div>
 
-        {/* Main Content */}
+        {                  }
         <div className="bg-white shadow overflow-hidden rounded-lg">
           {managers.length === 0 ? (
             <div className="text-center py-8 md:py-12 px-4">
@@ -145,7 +145,7 @@ export default function ManagersPage() {
             </div>
           ) : (
             <>
-              {/* Desktop Table */}
+              {                   }
               <div className="hidden md:block overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -231,7 +231,7 @@ export default function ManagersPage() {
                 </table>
               </div>
 
-              {/* Mobile Cards */}
+              {                  }
               <div className="md:hidden">
                 {managers.map((manager) => (
                   <div key={manager.id} className="border-b border-gray-200 last:border-b-0 p-4 hover:bg-gray-50">
@@ -294,7 +294,7 @@ export default function ManagersPage() {
           )}
         </div>
 
-        {/* Info Box */}
+        {              }
         <div className="mt-6 md:mt-8 p-4 bg-blue-50 rounded-lg">
           <div className="flex">
             <div className="flex-shrink-0">

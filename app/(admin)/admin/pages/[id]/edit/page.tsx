@@ -18,9 +18,9 @@ type PageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-/**
- * Форма редактирования страницы.
- */
+   
+                                 
+   
 export default async function EditPageForm({ params, searchParams }: PageProps) {
   const { id } = await params;
   const page = await getPageById(id);

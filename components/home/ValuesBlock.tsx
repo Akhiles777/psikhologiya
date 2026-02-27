@@ -24,7 +24,7 @@ export function ValuesBlock() {
     <div className="bg-white py-32">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         
-        {/* Заголовок */}
+        {               }
         <div className="mb-20">
           <div className="flex items-center gap-4 mb-6">
             <div className="h-px w-16 bg-[#5858E2]"></div>
@@ -37,16 +37,16 @@ export function ValuesBlock() {
           </h2>
         </div>
 
-        {/* Блоки ценностей */}
+        {                     }
         <div className="space-y-20">
           {values.map((value, index) => (
             <div key={index} className="relative">
-              {/* Номер слева */}
+              {                 }
               <div className="absolute -left-8 top-0 text-8xl font-bold text-gray-900/10">
                 {value.number}
               </div>
               
-              {/* Заголовок с цветным маркером */}
+              {                                  }
               <div className="flex items-center gap-4 mb-6">
                 <div 
                   className="w-4 h-4 rounded-full"
@@ -57,12 +57,12 @@ export function ValuesBlock() {
                 </h3>
               </div>
               
-              {/* Описание */}
+              {              }
               <p className="text-lg text-gray-700 leading-relaxed max-w-3xl">
                 {value.description}
               </p>
               
-              {/* Разделитель */}
+              {                 }
               {index < values.length - 1 && (
                 <div className="mt-20 h-px bg-[#BFBFBF]"></div>
               )}
@@ -70,7 +70,7 @@ export function ValuesBlock() {
           ))}
         </div>
 
-        {/* Нижняя строка */}
+        {                   }
         <div className="mt-24 pt-8 border-t border-[#BFBFBF]">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-500">

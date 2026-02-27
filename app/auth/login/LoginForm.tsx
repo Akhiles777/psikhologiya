@@ -142,7 +142,7 @@ export default function LoginForm({
             </button>
           </div>
 
-          {/* Демо кнопки для тестирования */}
+          {                                  }
           <div className="space-y-3">
             <div className="text-center text-sm text-gray-600">
               <p>Быстрый вход для тестирования:</p>

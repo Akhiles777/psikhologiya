@@ -1,7 +1,7 @@
-/**
- * Проверка: ошибка из-за отсутствия таблицы/колонки в БД.
- * В этом случае нужно выполнить: npx prisma db push
- */
+   
+                                                          
+                                                    
+   
 export function isDbSyncError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return (

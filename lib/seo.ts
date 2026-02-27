@@ -9,18 +9,18 @@ export interface PageMeta {
   noIndex?: boolean;
 }
 
-/**
- * Собирает canonical URL для страницы.
- */
+   
+                                       
+   
 export function canonicalUrl(path: string): string {
   const base = SITE.baseUrl.replace(/\/$/, "");
   const p = path.startsWith("/") ? path : `/${path}`;
   return `${base}${p}`;
 }
 
-/**
- * Собирает полные метаданные для страницы (title, description, Open Graph, Twitter).
- */
+   
+                                                                                     
+   
 export function buildMetadata(meta: PageMeta): Metadata {
   const title = meta.title.includes(SITE.name)
     ? meta.title
@@ -56,9 +56,9 @@ export function buildMetadata(meta: PageMeta): Metadata {
   };
 }
 
-/**
- * JSON-LD схема WebSite для главной (поисковики, rich results).
- */
+   
+                                                                
+   
 export function webSiteJsonLd(): string {
   const schema = {
     "@context": "https://schema.org",
@@ -78,9 +78,9 @@ export function webSiteJsonLd(): string {
   return JSON.stringify(schema);
 }
 
-/**
- * JSON-LD Organization (опционально для бренда).
- */
+   
+                                                 
+   
 export function organizationJsonLd(): string {
   const schema = {
     "@context": "https://schema.org",
@@ -92,9 +92,9 @@ export function organizationJsonLd(): string {
   return JSON.stringify(schema);
 }
 
-/**
- * JSON-LD Person для страницы психолога (rich snippets в поиске).
- */
+   
+                                                                  
+   
 export function personJsonLd(data: {
   name: string;
   description: string;

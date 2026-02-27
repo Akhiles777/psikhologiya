@@ -4,9 +4,9 @@ import { type HTMLAttributes, forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  /** Glassmorphism style (backdrop blur + shadow) */
+                                                     
   glass?: boolean;
-  /** Padding variant */
+                        
   padding?: "none" | "sm" | "md" | "lg";
 }
 

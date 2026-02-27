@@ -14,7 +14,7 @@ import {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-/** Список всех психологов для менеджеров */
+                                            
 export async function getPsychologistsList() {
   if (!prisma) return [];
   try {
@@ -36,7 +36,7 @@ export async function getPsychologistsList() {
   }
 }
 
-/** Один психолог по id для формы редактирования (для менеджеров) */
+                                                                    
 export async function getPsychologistById(id: string) {
   if (!prisma) return null;
   try {
@@ -50,7 +50,7 @@ export async function getPsychologistById(id: string) {
   }
 }
 
-/** Создать психолога (для менеджеров) */
+                                         
 export async function createPsychologist(formData: FormData) {
   if (!prisma) throw new Error("База данных недоступна");
 
@@ -60,7 +60,7 @@ export async function createPsychologist(formData: FormData) {
 
   } catch (err: unknown) {
     if (isDbSyncError(err)) {
-      redirect("/managers/psychologists?error=db_sync"); // Менеджерский путь
+      redirect("/managers/psychologists?error=db_sync");                     
     }
     
     const code = err && typeof (err as { code?: string }).code === "string" 
@@ -68,18 +68,18 @@ export async function createPsychologist(formData: FormData) {
       : "";
     
     if (code === "P2002") {
-      redirect("/managers/psychologists/new?error=duplicate_slug"); // Менеджерский путь
+      redirect("/managers/psychologists/new?error=duplicate_slug");                     
     }
     
     throw err;
   }
 
-  revalidatePath("/managers/psychologists"); // Менеджерский путь
+  revalidatePath("/managers/psychologists");                     
   revalidatePath("/psy-list");
-  redirect("/managers/psychologists"); // Менеджерский путь
+  redirect("/managers/psychologists");                     
 }
 
-/** Обновить психолога (для менеджеров) */
+                                          
 export async function updatePsychologist(id: string, formData: FormData) {
   if (!prisma) throw new Error("База данных недоступна");
 
@@ -100,21 +100,21 @@ export async function updatePsychologist(id: string, formData: FormData) {
     }
   } catch (err) {
     if (isDbSyncError(err)) {
-      redirect("/managers/psychologists?error=db_sync"); // Менеджерский путь
+      redirect("/managers/psychologists?error=db_sync");                     
     }
     
     throw err;
   }
 
-  revalidatePath("/managers/psychologists"); // Менеджерский путь
+  revalidatePath("/managers/psychologists");                     
   revalidatePath("/psy-list");
   revalidatePath(`/psy-list/${formData.get("slug")}`);
-  redirect("/managers/psychologists"); // Менеджерский путь
+  redirect("/managers/psychologists");                     
 }
 
-/** Удалить психолога (для менеджеров) */
+                                         
 export async function deletePsychologist(id: string) {
-  if (!prisma) redirect("/managers/psychologists?error=db_unavailable"); // Менеджерский путь
+  if (!prisma) redirect("/managers/psychologists?error=db_unavailable");                     
   try {
     const psychologist = await prisma.psychologist.findUnique({
       where: { id },
@@ -127,15 +127,15 @@ export async function deletePsychologist(id: string) {
     await prisma.psychologist.delete({ where: { id } });
     await removeLocalImages(psychologist.images ?? []);
   } catch (err: unknown) {
-    if (isDbSyncError(err)) redirect("/managers/psychologists?error=db_sync"); // Менеджерский путь
-    redirect("/managers/psychologists?error=delete_failed"); // Менеджерский путь
+    if (isDbSyncError(err)) redirect("/managers/psychologists?error=db_sync");                     
+    redirect("/managers/psychologists?error=delete_failed");                     
   }
-  revalidatePath("/managers/psychologists"); // Менеджерский путь
+  revalidatePath("/managers/psychologists");                     
   revalidatePath("/psy-list");
-  redirect("/managers/psychologists"); // Менеджерский путь
+  redirect("/managers/psychologists");                     
 }
 
-/** Остальные функции (можно оставить те же) */
+                                               
 export async function getFilteredPsychologists(filters: {
   priceMin?: string;
   priceMax?: string;

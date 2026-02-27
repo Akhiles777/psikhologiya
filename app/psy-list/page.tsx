@@ -87,7 +87,7 @@ export default async function PsyListPage({ searchParams }: PageProps) {
       <div className="relative">
         <div className="mx-auto w-full max-w-[1640px] px-4 py-8 sm:px-6 xl:px-8">
 
-          {/* Фильтры и результаты */}
+          {                          }
           <div className="mb-8">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -99,7 +99,7 @@ export default async function PsyListPage({ searchParams }: PageProps) {
                 </div>
               </div>
 
-              {/* Показываем "Фильтры • Сортировка" ТОЛЬКО на мобильных */}
+              {                                                           }
               <div className="text-xs text-[#5858E2] font-medium flex items-center gap-1 sm:hidden">
                 <Filter className="w-3 h-3" />
                 Фильтры • Сортировка
@@ -107,13 +107,13 @@ export default async function PsyListPage({ searchParams }: PageProps) {
             </div>
           </div>
 
-          {/* Контейнер каталога */}
+          {                        }
           <div className="relative">
-            {/* Мобильные фильтры - ТОЛЬКО кнопка */}
+            {                                       }
             <MobileFilters initialParams={params} />
             
             <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-              {/* Десктопная версия фильтров - СКРЫТА НА МОБИЛЬНЫХ */}
+              {                                                      }
               <div className="hidden lg:block w-[300px] shrink-0">
                 <div id="list" className="sticky top-6">
                   <CatalogSidebar initialParams={params} />
@@ -121,7 +121,7 @@ export default async function PsyListPage({ searchParams }: PageProps) {
               </div>
             
               
-              {/* Основной контент */}
+              {                      }
               <div className="flex-1">
                 <CatalogWithModal
                   items={items}

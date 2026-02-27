@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   await fs.mkdir(uploadDir, { recursive: true });
   await fs.writeFile(filePath, buffer);
 
-  // Путь для вставки в HTML
+                            
   const publicUrl = `/pages/${fileName}`;
 
   return NextResponse.json({ url: publicUrl });

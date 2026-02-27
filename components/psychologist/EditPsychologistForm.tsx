@@ -7,7 +7,7 @@ import { EducationFormEdit } from '@/components/admin/EducationFormEdit';
 import { parseEducationFromDB } from "@/lib/education-helpers";
 import DeletePsychologistButton from "@/components/psychologist/DeletePsychologistButton";
 import { ParadigmSelector } from "@/components/admin/ParadigmSelector";
-import { updatePsychologist } from "@/lib/actions/manager-psychologist"; // Импорт напрямую
+import { updatePsychologist } from "@/lib/actions/manager-psychologist";                   
 
 
 interface EditPsychologistFormProps {
@@ -38,18 +38,18 @@ export default function EditPsychologistForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Обработчик изменения slug
+                              
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
-    // Заменяем недопустимые символы
+                                    
     value = value.replace(/[^a-zA-Z0-9\-]/g, '');
     value = value.toLowerCase();
 
     setSlug(value);
   };
 
-  // Обработка выбора файлов
+                            
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
@@ -62,18 +62,18 @@ export default function EditPsychologistForm({
 
       setFiles(prev => [...prev, ...selectedFiles]);
 
-      // Создаем временные URL для предпросмотра
+                                                
       const tempUrls = selectedFiles.map(file => URL.createObjectURL(file));
       setUrls(prev => [...prev, ...tempUrls]);
     }
   };
 
-  // Удалить файл/URL
+                     
   const removeItem = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
     setUrls(prev => {
       const newUrls = [...prev];
-      // Освобождаем временный URL
+                                  
       if (newUrls[index].startsWith('blob:')) {
         URL.revokeObjectURL(newUrls[index]);
       }
@@ -98,12 +98,12 @@ export default function EditPsychologistForm({
     });
   };
 
-  // Добавить URL
+                 
   const addUrl = () => {
     const trimmed = newUrl.trim();
     if (!trimmed || urls.length >= 5) return;
 
-    // Проверяем валидность URL
+                               
     const isValid = /^(https?:\/\/|\/)/.test(trimmed) ||
         /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(trimmed);
 
@@ -117,7 +117,7 @@ export default function EditPsychologistForm({
     setNewUrl("");
   };
 
-  // Отправка формы
+                   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -162,7 +162,7 @@ export default function EditPsychologistForm({
       }
     }
 
-    // Добавляем данные об образовании как JSON
+                                               
     formData.append("education", JSON.stringify(educationData));
 
     console.log("📤 Отправка формы редактирования...");
@@ -173,7 +173,7 @@ export default function EditPsychologistForm({
 
     try {
       await updatePsychologist(psychologistId, formData);
-      // Перенаправление произойдет в server action
+                                                   
     } catch (error) {
       console.error("Ошибка при обновлении:", error);
       setErrorMessage(error instanceof Error ? error.message : "Ошибка обновления психолога");
@@ -181,12 +181,12 @@ export default function EditPsychologistForm({
     }
   };
 
-  // Обработчик обновления данных об образовании
+                                                
   const handleEducationUpdate = (updatedEducation: any[]) => {
     setEducationData(updatedEducation);
   };
 
-  // Очистка временных URL при размонтировании
+                                              
   useEffect(() => {
     return () => {
       urls.forEach(url => {
@@ -215,7 +215,7 @@ export default function EditPsychologistForm({
             )}
 
             <form ref={formRef} onSubmit={handleSubmit} className="mt-8 space-y-8">
-              {/* Основная информация */}
+              {                         }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Основная информация</h2>
 
@@ -292,11 +292,11 @@ export default function EditPsychologistForm({
                 </div>
               </div>
 
-              {/* Профессиональная информация */}
+              {                                 }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Профессиональная информация</h2>
 
-                {/* Формат работы */}
+                {                   }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Формат работы</label>
                   <select
@@ -339,7 +339,7 @@ export default function EditPsychologistForm({
                   </div>
                 </div>
 
-                {/* Парадигмы с умным поиском */}
+                {                               }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Парадигмы
@@ -349,7 +349,7 @@ export default function EditPsychologistForm({
                   />
                 </div>
 
-                {/* Уровень сертификации */}
+                {                          }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Уровень сертификации
@@ -368,7 +368,7 @@ export default function EditPsychologistForm({
                 </div>
               </div>
 
-              {/* О себе */}
+              {            }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">О психологе</h2>
 
@@ -398,7 +398,7 @@ export default function EditPsychologistForm({
                 </div>
               </div>
 
-              {/* Контакты и цена */}
+              {                     }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Контакты и стоимость</h2>
 
@@ -431,7 +431,7 @@ export default function EditPsychologistForm({
                 </div>
               </div>
 
-              {/* Фотографии */}
+              {                }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Фотографии</h2>
                 <div>
@@ -439,7 +439,7 @@ export default function EditPsychologistForm({
                     Фото психолога (основное + до 4 дополнительных)
                   </label>
 
-                  {/* Загрузка файлов */}
+                  {                     }
                   <div className="mb-4">
                     <input
                         type="file"
@@ -453,7 +453,7 @@ export default function EditPsychologistForm({
                     </p>
                   </div>
 
-                  {/* Добавление по URL */}
+                  {                       }
                   <div className="mb-4">
                     <div className="flex gap-2">
                       <input
@@ -475,7 +475,7 @@ export default function EditPsychologistForm({
                     </div>
                   </div>
 
-                  {/* Список выбранных изображений */}
+                  {                                  }
                   {urls.length > 0 && (
                       <div className="mb-4">
                         <p className="text-sm font-medium text-gray-700 mb-2">
@@ -545,7 +545,7 @@ export default function EditPsychologistForm({
                       </div>
                   )}
 
-                  {/* Информация */}
+                  {                }
                   <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
                     <p className="text-sm text-blue-800">
                       <span className="font-medium">Важно:</span> Файлы будут загружены на сервер.
@@ -555,7 +555,7 @@ export default function EditPsychologistForm({
                 </div>
               </div>
 
-              {/* Образование */}
+              {                 }
               <div>
                 <EducationFormEdit
                     initialData={educationData}
@@ -563,7 +563,7 @@ export default function EditPsychologistForm({
                 />
               </div>
 
-              {/* Публикация */}
+              {                }
               <div className="flex items-center">
                 <input
                     type="checkbox"
@@ -577,7 +577,7 @@ export default function EditPsychologistForm({
                 </label>
               </div>
 
-              {/* Кнопки действий */}
+              {                     }
               <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
                 <button
                     type="submit"
@@ -602,7 +602,7 @@ export default function EditPsychologistForm({
               </div>
             </form>
 
-            {/* Удаление */}
+            {              }
             <div className="mt-8 pt-8 border-t border-gray-200">
               <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                 <h3 className="text-lg font-semibold text-red-800">Опасная зона</h3>

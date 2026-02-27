@@ -20,7 +20,7 @@ export async function GET() {
       try {
         managerInfo = JSON.parse(managerData.value);
       } catch {
-        // Не удалось распарсить
+                                
       }
     }
     

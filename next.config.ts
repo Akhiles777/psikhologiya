@@ -6,7 +6,7 @@ typescript:{
 },
   experimental: {
     serverActions: {
-      // FormData для психологов включает изображения; 1MB по умолчанию недостаточно.
+                                                                                     
       bodySizeLimit: "30mb",
     },
   },

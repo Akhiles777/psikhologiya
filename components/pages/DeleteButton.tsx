@@ -14,14 +14,14 @@ export default function DeleteButton({ pageId }: DeleteButtonProps) {
   const handleDelete = async () => {
     if (confirm("Удалить страницу?")) {
       await deletePage(pageId);
-      // Не нужно делать router.refresh() - deletePage уже делает redirect
+                                                                          
     }
   };
 
   return (
     <button
       onClick={handleDelete}
-      type="button" // Важно: type="button", а не "submit"
+      type="button"                                       
       className="inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50 active:bg-red-100 transition-colors w-full sm:w-auto"
     >
       <Trash2 className="h-3.5 w-3.5" />

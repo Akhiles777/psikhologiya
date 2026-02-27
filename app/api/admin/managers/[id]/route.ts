@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../../../lib/prisma'; // Используйте относительный путь
+import { prisma } from '../../../../../lib/prisma';                                  
 
 export const dynamic = 'force-dynamic';
 
-// GET: Получить менеджера по ID
+                                
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Распаковываем params
+                           
     const params = await context.params;
     const id = params.id;
     
@@ -25,7 +25,7 @@ export async function GET(
 
     console.log('🔍 Ищем менеджера с ID:', id);
     
-    // Пробуем найти менеджера
+                              
     const manager = await prisma.manager.findUnique({
       where: { id },
       select: {
@@ -67,7 +67,7 @@ export async function GET(
   }
 }
 
-// PUT: Обновить менеджера
+                          
 export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -85,7 +85,7 @@ export async function PUT(
 
     const data = await request.json();
     
-    // Проверяем, существует ли менеджер
+                                        
     const existingManager = await prisma.manager.findUnique({
       where: { id },
     });
@@ -97,7 +97,7 @@ export async function PUT(
       );
     }
 
-    // Подготовка данных для обновления
+                                       
     const updateData: any = {
       name: data.name,
       email: data.email,
@@ -106,13 +106,13 @@ export async function PUT(
       permissions: data.permissions,
     };
 
-    // Если указан новый пароль
+                               
     if (data.password) {
       const bcrypt = await import('bcryptjs');
       updateData.password = await bcrypt.hash(data.password, 10);
     }
 
-    // Обновляем менеджера
+                          
     const updatedManager = await prisma.manager.update({
       where: { id },
       data: updateData,
@@ -137,7 +137,7 @@ export async function PUT(
   }
 }
 
-// DELETE: Полное удаление менеджера
+                                    
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -151,7 +151,7 @@ export async function DELETE(
         { status: 400 }
       );
     }
-    // Полное удаление менеджера
+                                
     await prisma.manager.delete({ where: { id } });
     return NextResponse.json({ success: true, message: 'Менеджер удалён' });
   } catch (error: any) {

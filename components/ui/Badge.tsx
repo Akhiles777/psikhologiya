@@ -7,7 +7,7 @@ export type BadgeVariant = "accent" | "primary" | "neutral" | "level";
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: BadgeVariant;
-  /** Level 1–3 for certification; only used when variant="level" */
+                                                                    
   level?: 1 | 2 | 3;
 }
 

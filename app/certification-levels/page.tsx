@@ -48,7 +48,7 @@ export default function CertificationLevelsPage() {
   return (
       <div className="min-h-screen bg-gradient-to-b from-white to-[#F5F5F7]">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-          {/* Заголовок */}
+          {               }
           <div className="text-center mb-16">
             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl">
               Уровни сертификации
@@ -63,14 +63,14 @@ export default function CertificationLevelsPage() {
             </div>
           </div>
 
-          {/* Уровни сертификации */}
+          {                         }
           <div className="grid gap-8 md:grid-cols-3">
             {levels.map((item) => (
                 <div
                     key={item.level}
                     className={`relative rounded-3xl border-2 ${item.borderColor} bg-gradient-to-br ${item.color} p-8 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}
                 >
-                  {/* Иконка и бейдж */}
+                  {                    }
                   <div className="mb-6 flex items-center justify-between">
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/80 text-3xl shadow-sm">
                       {item.icon}
@@ -80,7 +80,7 @@ export default function CertificationLevelsPage() {
                 </span>
                   </div>
 
-                  {/* Заголовок */}
+                  {               }
                   <h2 className={`font-display text-2xl font-bold ${item.textColor}`}>
                     {item.title}
                   </h2>
@@ -88,12 +88,12 @@ export default function CertificationLevelsPage() {
                     {item.subtitle}
                   </p>
 
-                  {/* Описание */}
+                  {              }
                   <p className="mt-6 leading-relaxed text-neutral-800">
                     {item.description}
                   </p>
 
-                  {/* Декоративный элемент */}
+                  {                          }
                   <div className="mt-8 pt-6 border-t border-white/50">
                     <div className="flex items-center gap-2">
                       <div className="flex-1 h-1 rounded-full bg-white/50"></div>
@@ -106,7 +106,7 @@ export default function CertificationLevelsPage() {
             ))}
           </div>
 
-          {/* Сравнительная таблица */}
+          {                           }
           <div className="mt-20 rounded-3xl border border-neutral-200 bg-white/80 p-8 shadow-sm">
             <h2 className="font-display text-2xl font-bold text-foreground text-center mb-8">
               Сравнение уровней
@@ -145,7 +145,7 @@ export default function CertificationLevelsPage() {
             </div>
           </div>
 
-          {/* Информационный блок */}
+          {                         }
           <div className="mt-12 text-center">
             <div className="inline-flex flex-col gap-6 rounded-2xl bg-gradient-to-r from-[#5858E2]/10 to-[#F5F5F7] p-8">
               <h3 className="font-display text-2xl font-bold text-foreground">
@@ -171,7 +171,7 @@ export default function CertificationLevelsPage() {
             </div>
           </div>
 
-          {/* Навигация */}
+          {               }
           <div className="mt-16 flex flex-wrap justify-center gap-6">
             <Link
                 href="/psy-list"
@@ -189,7 +189,7 @@ export default function CertificationLevelsPage() {
             </Link>
           </div>
 
-          {/* Декоративный элемент внизу */}
+          {                                }
           <div className="mt-20 text-center">
             <div className="inline-flex items-center gap-2 text-sm text-neutral-500">
               <div className="h-px w-12 bg-neutral-300"></div>

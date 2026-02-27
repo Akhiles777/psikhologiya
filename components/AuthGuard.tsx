@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 interface AuthGuardProps {
   children: React.ReactNode;
-  requiredPermission: string; // Например: 'psychologists.view', 'pages.edit', 'managers.view'
+  requiredPermission: string;                                                                 
   redirectTo?: string;
 }
 
@@ -25,7 +25,7 @@ export default function AuthGuard({
 
     async function checkPermission() {
       try {
-        // 1. Проверяем авторизацию
+                                   
         const authResponse = await fetch('/api/auth/check');
         const authData = await authResponse.json();
 
@@ -34,7 +34,7 @@ export default function AuthGuard({
           return;
         }
 
-        // 2. Проверяем что пользователь менеджер или админ
+                                                           
         if (!['ADMIN', 'MANAGER'].includes(authData.user.role)) {
           router.push('/auth/login?error=Доступ+только+для+менеджеров');
           return;
@@ -42,16 +42,16 @@ export default function AuthGuard({
 
         const user = authData.user;
 
-        // 3. Разбиваем пермишен на модуль и действие
+                                                     
         const [module, action] = requiredPermission.split('.');
 
-        // 4. Для страницы менеджеров - проверяем роль
+                                                      
         if (module === 'managers' && user.role !== 'ADMIN') {
           router.push('/managers?error=Только+администратор+может+управлять+менеджерами');
           return;
         }
 
-        // 5. Проверяем права доступа к конкретному модулю
+                                                          
         if (user.permissions?.[module]?.[action]) {
           setHasAccess(true);
         } else {
@@ -81,7 +81,7 @@ export default function AuthGuard({
   }
 
   if (!hasAccess) {
-    return null; // Реддирект уже произошел
+    return null;                           
   }
 
   return <>{children}</>;

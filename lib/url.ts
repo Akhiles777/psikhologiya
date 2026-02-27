@@ -1,16 +1,16 @@
 import { ReadonlyURLSearchParams } from "next/navigation";
-/**
- * Утилиты для работы с URL каталога (фильтры и пагинация в searchParams).
- */
+   
+                                                                          
+   
 export type SearchParams = Record<string, string | string[] | undefined>;
 
 export type CatalogUrlOverrides = Record<string, string | string[]>;
 
-/**
- * Собирает URL каталога из текущих параметров и переопределений.
- * Используется для «Показать ещё» (cursor) и для формы фильтров.
- * Пустая строка в overrides удаляет параметр; массив — несколько значений (paradigms, levels).
- */
+   
+                                                                 
+                                                                 
+                                                                                               
+   
 export function buildCatalogUrl(
   current: SearchParams,
   overrides: CatalogUrlOverrides
@@ -39,10 +39,10 @@ export function buildCatalogUrl(
   return query ? `${base}?${query}` : base;
 }
 
-/**
- * Преобразует URLSearchParams (или ReadonlyURLSearchParams) в объект SearchParams.
- * Нужно для передачи в buildCatalogUrl из клиентских компонентов.
- */
+   
+                                                                                   
+                                                                  
+   
 export function searchParamsToObject(
   params: URLSearchParams | ReadonlyURLSearchParams
 ): SearchParams {

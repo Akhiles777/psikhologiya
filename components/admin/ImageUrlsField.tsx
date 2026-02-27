@@ -18,12 +18,12 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
   const [newUrl, setNewUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Добавить URL
+                 
   const addUrl = () => {
     const trimmed = newUrl.trim();
     if (!trimmed || urls.length >= maxUrls) return;
     
-    // Проверяем валидность URL
+                               
     const isValid = /^(https?:\/\/|\/)/.test(trimmed) || 
                    /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(trimmed);
     
@@ -36,25 +36,25 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
     setNewUrl("");
   };
 
-  // Удалить элемент
+                    
   const removeItem = (index: number) => {
     setUrls(prev => {
       const newUrls = [...prev];
-      // Если удаляем URL, созданный из файла, освобождаем blob URL
+                                                                   
       if (newUrls[index]?.startsWith('blob:')) {
         URL.revokeObjectURL(newUrls[index]);
       }
       return newUrls.filter((_, i) => i !== index);
     });
     
-    // Обновляем files, если индекс соответствует файлу
+                                                       
     const fileIndex = index - initialUrls.length;
     if (fileIndex >= 0 && fileIndex < files.length) {
       setFiles(prev => prev.filter((_, i) => i !== fileIndex));
     }
   };
 
-  // Обработка выбора файлов
+                            
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     
@@ -66,20 +66,20 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
       return;
     }
     
-    // Добавляем файлы
+                      
     setFiles(prev => [...prev, ...selectedFiles]);
     
-    // Создаем временные URL для предпросмотра
+                                              
     const tempUrls = selectedFiles.map(file => URL.createObjectURL(file));
     setUrls(prev => [...prev, ...tempUrls]);
     
-    // Сбрасываем input
+                       
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
 
-  // Очистка временных URL при размонтировании
+                                              
   useEffect(() => {
     return () => {
       urls.forEach(url => {
@@ -90,13 +90,13 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
     };
   }, []);
 
-  // Отделяем URL от файлов для отправки
+                                        
   const externalUrls = urls.filter(url => !url.startsWith('blob:'));
   const fileUrls = urls.filter(url => url.startsWith('blob:'));
 
   return (
     <div className="space-y-4">
-      {/* Основной input для файлов */}
+      {                               }
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Загрузить файлы
@@ -115,7 +115,7 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
         </p>
       </div>
 
-      {/* Поле для добавления по URL */}
+      {                                }
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
           Или добавить по URL
@@ -140,7 +140,7 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
         </div>
       </div>
 
-      {/* Список выбранных изображений */}
+      {                                  }
       {(urls.length > 0) && (
         <div>
           <p className="text-sm font-medium text-foreground mb-2">
@@ -160,7 +160,7 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
                   className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 p-3"
                 >
                   <div className="flex items-center gap-3">
-                    {/* Превью изображения */}
+                    {                        }
                     <div className="h-10 w-10 rounded border border-neutral-300 overflow-hidden bg-white">
                       <img 
                         src={url} 
@@ -201,7 +201,7 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
         </div>
       )}
 
-      {/* Скрытое поле для существующих изображений (только при редактировании) */}
+      {                                                                           }
       {initialUrls.length > 0 && (
         <input 
           type="hidden" 
@@ -210,14 +210,14 @@ export function ImageUrlsField({ name = "imageUrls", defaultValue = "", maxUrls 
         />
       )}
 
-      {/* Скрытое поле для URL изображений */}
+      {                                      }
       <input 
         type="hidden" 
         name={name} 
         value={externalUrls.join("\n")} 
       />
 
-      {/* Информация */}
+      {                }
       <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
         <p className="text-sm text-blue-800">
           <span className="font-medium">Важно:</span> Файлы будут загружены на сервер. 

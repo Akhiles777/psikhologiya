@@ -1,4 +1,4 @@
-// types/manager.ts
+                   
 export interface Manager {
   id: number;
   name: string;
@@ -75,7 +75,7 @@ export const ACTION_LABELS: Record<string, string> = {
   delete: 'Удаление',
 };
 
-// Добавляем недостающие экспорты:
+                                  
 export const roleOptions = [
   { value: 'ADMIN' as const, label: 'Администратор' },
   { value: 'MANAGER' as const, label: 'Менеджер' },
@@ -86,7 +86,7 @@ export const statusOptions = [
   { value: 'INACTIVE' as const, label: 'Неактивен' },
 ];
 
-// Вспомогательные функции
+                          
 export function getRoleLabel(role: 'ADMIN' | 'MANAGER'): string {
   return ROLE_LABELS[role];
 }

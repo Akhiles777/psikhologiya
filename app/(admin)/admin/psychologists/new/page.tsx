@@ -34,7 +34,7 @@ function NewPsychologistFormContent() {
   const submittingRef = useRef(false);
   const loadedReferencesRef = useRef(false);
 
-  // Загружаем справочники
+                          
   useEffect(() => {
     const loadReferences = async () => {
       if (loadedReferencesRef.current) return;
@@ -51,7 +51,7 @@ function NewPsychologistFormContent() {
         setCertificationLevels(levels);
       } catch (error) {
         console.error('Error loading references:', error);
-        // Запасные варианты
+                            
         setWorkFormats(['Онлайн и оффлайн', 'Только онлайн', 'Только оффлайн', 'Переписка']);
         setCertificationLevels(['1', '2', '3']);
       } finally {
@@ -62,7 +62,7 @@ function NewPsychologistFormContent() {
     loadReferences();
   }, []);
 
-  // Обработка выбора файлов
+                            
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
@@ -87,18 +87,18 @@ function NewPsychologistFormContent() {
 
       setFiles(prev => [...prev, ...selectedFiles]);
 
-      // Создаем временные URL для предпросмотра
+                                                
       const tempUrls = selectedFiles.map(file => URL.createObjectURL(file));
       setUrls(prev => [...prev, ...tempUrls]);
     }
   };
 
-  // Удалить файл/URL
+                     
   const removeItem = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
     setUrls(prev => {
       const newUrls = [...prev];
-      // Освобождаем временный URL
+                                  
       if (newUrls[index].startsWith('blob:')) {
         URL.revokeObjectURL(newUrls[index]);
       }
@@ -123,12 +123,12 @@ function NewPsychologistFormContent() {
     });
   };
 
-  // Добавить URL
+                 
   const addUrl = () => {
     const trimmed = newUrl.trim();
     if (!trimmed || urls.length >= 5) return;
 
-    // Проверяем валидность URL
+                               
     const isValid = /^(https?:\/\/|\/)/.test(trimmed) ||
         /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(trimmed);
 
@@ -142,21 +142,21 @@ function NewPsychologistFormContent() {
     setNewUrl("");
   };
 
-  // Обработчик изменения slug - теперь напрямую фильтрует ввод
+                                                               
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
-    // Заменяем кириллицу и спецсимволы на пустую строку
+                                                        
     value = value.replace(/[^a-zA-Z0-9\-]/g, '');
 
-    // Приводим к нижнему регистру
+                                  
     value = value.toLowerCase();
 
-    // Обновляем значение в поле
+                                
     e.target.value = value;
   };
 
-  // Отправка формы
+                   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submittingRef.current) return;
@@ -214,7 +214,7 @@ function NewPsychologistFormContent() {
     }
   };
 
-  // Очистка временных URL при размонтировании
+                                              
   useEffect(() => {
     return () => {
       urls.forEach(url => {
@@ -249,7 +249,7 @@ function NewPsychologistFormContent() {
             )}
 
             <form ref={formRef} onSubmit={handleSubmit} className="mt-8 space-y-8">
-              {/* Основная информация */}
+              {                         }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Основная информация</h2>
 
@@ -325,11 +325,11 @@ function NewPsychologistFormContent() {
                 </div>
               </div>
 
-              {/* Профессиональная информация */}
+              {                                 }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Профессиональная информация</h2>
 
-                {/* Формат работы */}
+                {                   }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Формат работы</label>
                   {referencesLoading ? (
@@ -375,7 +375,7 @@ function NewPsychologistFormContent() {
                   </div>
                 </div>
 
-                {/* Парадигмы с умным поиском */}
+                {                               }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Парадигмы
@@ -385,7 +385,7 @@ function NewPsychologistFormContent() {
                   />
                 </div>
 
-                {/* Уровень сертификации */}
+                {                          }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Уровень сертификации
@@ -409,7 +409,7 @@ function NewPsychologistFormContent() {
                 </div>
               </div>
 
-              {/* О себе */}
+              {            }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">О психологе</h2>
 
@@ -445,7 +445,7 @@ function NewPsychologistFormContent() {
                 </div>
               </div>
 
-              {/* Контакты и цена */}
+              {                     }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Контакты и стоимость</h2>
 
@@ -481,7 +481,7 @@ function NewPsychologistFormContent() {
                 </div>
               </div>
 
-              {/* Фотографии */}
+              {                }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Фотографии</h2>
                 <div>
@@ -489,7 +489,7 @@ function NewPsychologistFormContent() {
                     Фото психолога (основное + до 4 дополнительных)
                   </label>
 
-                  {/* Загрузка файлов */}
+                  {                     }
                   <div className="mb-4">
                     <input
                         type="file"
@@ -503,7 +503,7 @@ function NewPsychologistFormContent() {
                     </p>
                   </div>
 
-                  {/* Добавление по URL */}
+                  {                       }
                   <div className="mb-4">
                     <div className="flex gap-2">
                       <input
@@ -525,7 +525,7 @@ function NewPsychologistFormContent() {
                     </div>
                   </div>
 
-                  {/* Список выбранных изображений */}
+                  {                                  }
                   {urls.length > 0 && (
                       <div className="mb-4">
                         <p className="text-sm font-medium text-gray-700 mb-2">
@@ -595,7 +595,7 @@ function NewPsychologistFormContent() {
                       </div>
                   )}
 
-                  {/* Информация */}
+                  {                }
                   <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
                     <p className="text-sm text-blue-800">
                       <span className="font-medium">Важно:</span> Файлы будут загружены на сервер.
@@ -605,13 +605,13 @@ function NewPsychologistFormContent() {
                 </div>
               </div>
 
-              {/* Образование */}
+              {                 }
               <div>
                 <h2 className="text-xl font-semibold text-gray-800 mb-6">Образование и квалификация</h2>
                 <EducationForm />
               </div>
 
-              {/* Публикация */}
+              {                }
               <div className="flex items-center">
                 <input
                     type="checkbox"
@@ -625,7 +625,7 @@ function NewPsychologistFormContent() {
                 </label>
               </div>
 
-              {/* Кнопки действий */}
+              {                     }
               <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
                 <button
                     type="submit"

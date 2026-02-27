@@ -12,9 +12,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_slug: "Slug может содержать только латинские буквы, цифры, дефисы (-) и нижние подчеркивания (_). Без пробелов и спецсимволов.",
 };
 
-/**
- * Форма создания страницы. Ошибки показываются из ?error=...
- */
+   
+                                                             
+   
 export default async function NewPageForm({
                                             searchParams,
                                           }: {
@@ -73,7 +73,7 @@ export default async function NewPageForm({
                   className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-foreground focus:border-[#5858E2] focus:ring-2 focus:ring-[#5858E2]/20 outline-none transition"
               />
 
-              {/* Предпросмотр URL - статичный, без JS */}
+              {                                          }
               <p className="mt-2 text-xs text-gray-500 flex items-center gap-1">
                 <span className="text-gray-400">📌</span>
                 Будет доступно по адресу: <span className="font-mono text-[#5858E2] bg-[#5858E2]/5 px-1.5 py-0.5 rounded">/s/[ваш-slug]</span>
@@ -94,7 +94,7 @@ export default async function NewPageForm({
           </div>
 
           <div>
-            {/* Поле добавления файлов для страницы */}
+            {                                         }
             <div className="mt-4">
               <h3 className="text-sm font-medium text-foreground mb-2">Добавить файлы для страницы</h3>
               <div className="w-full">

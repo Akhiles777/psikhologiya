@@ -26,25 +26,25 @@ export async function SiteHeader() {
       <header id="site-header" className="sticky top-0 z-50 border-b border-gray-200/50 bg-white/90 backdrop-blur-md supports-[backdrop-filter]:bg-white/80">
         <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
           <div className="flex items-center justify-between">
-            {/* Логотип */}
+            {             }
             <Link
                 href="/"
                 className="-ml-1 inline-flex items-center gap-3 text-lg font-bold text-gray-900 transition-colors hover:text-[#5858E2] sm:-ml-2 sm:text-xl"
             >
-              {/* Логотип увеличен и сдвинут левее */}
+              {                                      }
               <Image
                 src="/logo.png"
                 alt="Логотип Давай вместе"
-                width={56}  // Увеличено с 44 до 56
-                height={56} // Увеличено с 44 до 56
-                className="h-14 w-14 rounded-md object-cover -ml-0.5" // Добавлен отрицательный отступ слева
+                width={56}                         
+                height={56}                        
+                className="h-14 w-14 rounded-md object-cover -ml-0.5"                                       
                 priority
               />
-              {/* Текст сдвинут правее */}
+              {                          }
               <span className="ml-1.5 sm:ml-2.5">Давай вместе</span>
             </Link>
 
-            {/* Десктопное меню */}
+            {                     }
             <nav className="hidden md:flex items-center gap-1" aria-label="Главное меню">
               {menu.map((item) =>
                 isExternalHref(item.href) ? (
@@ -69,7 +69,7 @@ export async function SiteHeader() {
               )}
             </nav>
 
-            {/* Мобильное меню */}
+            {                    }
             <details className="group md:hidden">
               <summary className="flex cursor-pointer items-center gap-1 rounded-lg p-2 text-gray-700 hover:bg-[#5858E2]/10 hover:text-[#5858E2] transition-all duration-200 list-none">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -78,19 +78,19 @@ export async function SiteHeader() {
                 <span className="sr-only">Меню</span>
               </summary>
 
-              {/* Оверлей */}
+              {             }
               <div className="fixed inset-0 z-40 mt-14 bg-black/20 backdrop-blur-sm" aria-hidden="true"></div>
 
-              {/* Меню - центрированное и компактное */}
+              {                                        }
               <div className="fixed left-1/2 top-14 z-50 w-[90vw] max-w-sm -translate-x-1/2 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="relative">
-                  {/* Эффект стекла Lucid Glas */}
+                  {                              }
                   <div className="rounded-2xl border border-white/20 bg-white/95 backdrop-blur-xl shadow-2xl shadow-black/10 ring-1 ring-white/50">
 
-                    {/* Декоративный верхний градиент */}
+                    {                                   }
                     <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl bg-gradient-to-r from-[#5858E2] to-lime-400"></div>
 
-                    {/* Контент меню */}
+                    {                  }
                     <div className="p-4">
                       <div className="space-y-1">
                         {menu.map((item) =>
@@ -124,7 +124,7 @@ export async function SiteHeader() {
                         )}
                       </div>
 
-                      {/* Декоративный элемент */}
+                      {                          }
                       <div className="mt-4 pt-4 border-t border-gray-200/30">
                         <div className="flex items-center justify-center gap-2">
                           <div className="h-px w-12 bg-gradient-to-r from-transparent to-gray-300"></div>
@@ -138,7 +138,7 @@ export async function SiteHeader() {
                     </div>
                   </div>
 
-                  {/* Стрелочка вверх */}
+                  {                     }
                   <div className="absolute -top-2 left-1/2 -translate-x-1/2">
                     <div className="h-4 w-4 rotate-45 border-t border-l border-white/20 bg-white/95 backdrop-blur-xl"></div>
                   </div>

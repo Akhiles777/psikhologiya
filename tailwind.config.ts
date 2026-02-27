@@ -1,8 +1,8 @@
-/**
- * Давай вместе — Design System
- * Tailwind: в v4 основная тема задаётся через @theme в globals.css;
- * этот конфиг дублирует токены для совместимости и как единый источник правды.
- */
+   
+                               
+                                                                    
+                                                                               
+   
 
 import type { Config } from "tailwindcss";
 
@@ -30,7 +30,7 @@ const config: Config = {
           dark: "#8c8c8c",
         },
         background: {
-          DEFAULT: "#F8F7F4", // лёгкий серый / слоновая кость
+          DEFAULT: "#F8F7F4",                                 
           subtle: "#F0EFEB",
         },
       },

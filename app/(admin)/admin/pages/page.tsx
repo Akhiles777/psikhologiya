@@ -3,9 +3,9 @@ import { getPagesList } from "@/lib/actions/admin-pages";
 import { DB_SYNC_MESSAGE } from "@/lib/db-error";
 import { Plus, Edit, ExternalLink, FileText, Globe } from "lucide-react";
 
-/**
- * Список страниц сайта в админке.
- */
+   
+                                  
+   
 export default async function PagesListPage({
   searchParams,
 }: {
@@ -260,7 +260,7 @@ export default async function PagesListPage({
                 </div>
               </div>
 
-              {/* ИНФОРМАЦИЯ О СТРАНИЦАХ - УБРАН onClick */}
+              {                                            }
               <div className="mt-4 flex flex-col gap-3 rounded-lg bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                 <div className="text-xs text-gray-600 sm:text-sm">
                   <span className="font-medium">{list.length}</span> страниц
@@ -274,7 +274,7 @@ export default async function PagesListPage({
                     <div className="flex h-2 w-2 rounded-full bg-amber-500"></div>
                     <span className="text-xs text-gray-600">Черновик</span>
                   </div>
-                  {/* Простая ссылка вместо кнопки с onClick */}
+                  {                                            }
                   <a href="#" className="text-xs font-medium text-[#5858E2] hover:text-[#4848d0]">
                     Наверх ↑
                   </a>

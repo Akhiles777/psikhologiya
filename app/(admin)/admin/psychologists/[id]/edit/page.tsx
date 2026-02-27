@@ -10,7 +10,7 @@ import { DeletePsychologistButton } from "@/components/admin/DeletePsychologistB
 import { getDataListItems } from "@/lib/actions/admin-references";
 import { ParadigmSelector } from "@/components/admin/ParadigmSelector";
 
-// Внутренний компонент
+                       
 function EditPsychologistForm() {
   const searchParams = useSearchParams();
   const params = useParams();
@@ -27,7 +27,7 @@ function EditPsychologistForm() {
               ? "Файл слишком большой. Максимальный размер: 5MB"
               : null;
 
-  // Состояния
+              
   const [psychologist, setPsychologist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<(File | null)[]>([]);
@@ -42,7 +42,7 @@ function EditPsychologistForm() {
   const loadedPsychologistIdRef = useRef<string | null>(null);
   const loadedReferencesRef = useRef(false);
 
-  // Загружаем данные психолога
+                               
   useEffect(() => {
     const loadPsychologist = async () => {
       if (!id) {
@@ -79,7 +79,7 @@ function EditPsychologistForm() {
     loadPsychologist();
   }, [id, router]);
 
-  // Загружаем справочники
+                          
   useEffect(() => {
     const loadReferences = async () => {
       if (loadedReferencesRef.current) return;
@@ -96,7 +96,7 @@ function EditPsychologistForm() {
         setCertificationLevels(levels);
       } catch (error) {
         console.error('Error loading references:', error);
-        // Запасные варианты
+                            
         setWorkFormats(['Онлайн и оффлайн', 'Только онлайн', 'Только оффлайн', 'Переписка']);
         setCertificationLevels(['1', '2', '3']);
       } finally {
@@ -107,7 +107,7 @@ function EditPsychologistForm() {
     loadReferences();
   }, []);
 
-  // Обработка выбора файлов
+                            
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
@@ -120,18 +120,18 @@ function EditPsychologistForm() {
 
       setFiles(prev => [...prev, ...selectedFiles]);
 
-      // Создаем временные URL для предпросмотра
+                                                
       const tempUrls = selectedFiles.map(file => URL.createObjectURL(file));
       setUrls(prev => [...prev, ...tempUrls]);
     }
   };
 
-  // Удалить файл/URL
+                     
   const removeItem = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
     setUrls(prev => {
       const newUrls = [...prev];
-      // Освобождаем временный URL
+                                  
       if (newUrls[index].startsWith('blob:')) {
         URL.revokeObjectURL(newUrls[index]);
       }
@@ -156,12 +156,12 @@ function EditPsychologistForm() {
     });
   };
 
-  // Добавить URL
+                 
   const addUrl = () => {
     const trimmed = newUrl.trim();
     if (!trimmed || urls.length >= 5) return;
 
-    // Проверяем валидность URL
+                               
     const isValid = /^(https?:\/\/|\/)/.test(trimmed) ||
         /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(trimmed);
 
@@ -175,21 +175,21 @@ function EditPsychologistForm() {
     setNewUrl("");
   };
 
-  // Обработчик изменения slug
+                              
   const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
 
-    // Заменяем недопустимые символы на пустую строку
+                                                     
     value = value.replace(/[^a-zA-Z0-9\-]/g, '');
 
-    // Приводим к нижнему регистру
+                                  
     value = value.toLowerCase();
 
-    // Обновляем значение в поле
+                                
     e.target.value = value;
   };
 
-  // Отправка формы
+                   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -232,7 +232,7 @@ function EditPsychologistForm() {
       }
     }
 
-    // Добавляем данные об образовании как JSON
+                                               
     formData.append("education", JSON.stringify(educationData));
 
     console.log("📤 Отправка формы редактирования...");
@@ -250,12 +250,12 @@ function EditPsychologistForm() {
     }
   };
 
-  // Обработчик обновления данных об образовании
+                                                
   const handleEducationUpdate = (updatedEducation: any[]) => {
     setEducationData(updatedEducation);
   };
 
-  // Очистка временных URL при размонтировании
+                                              
   useEffect(() => {
     return () => {
       urls.forEach(url => {
@@ -266,7 +266,7 @@ function EditPsychologistForm() {
     };
   }, [urls]);
 
-  // Показываем загрузку
+                        
   if (loading) {
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -284,7 +284,7 @@ function EditPsychologistForm() {
     );
   }
 
-  // Если психолог не найден
+                            
   if (!psychologist) {
     return (
         <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -325,7 +325,7 @@ function EditPsychologistForm() {
             )}
 
             <form ref={formRef} onSubmit={handleSubmit} className="mt-8 space-y-8">
-              {/* Основная информация */}
+              {                         }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Основная информация</h2>
 
@@ -402,11 +402,11 @@ function EditPsychologistForm() {
                 </div>
               </div>
 
-              {/* Профессиональная информация */}
+              {                                 }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Профессиональная информация</h2>
 
-                {/* Формат работы */}
+                {                   }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Формат работы</label>
                   {referencesLoading ? (
@@ -455,7 +455,7 @@ function EditPsychologistForm() {
                   </div>
                 </div>
 
-                {/* Парадигмы с умным поиском */}
+                {                               }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Парадигмы
@@ -465,7 +465,7 @@ function EditPsychologistForm() {
                   />
                 </div>
 
-                {/* Уровень сертификации */}
+                {                          }
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Уровень сертификации
@@ -490,7 +490,7 @@ function EditPsychologistForm() {
                 </div>
               </div>
 
-              {/* О себе */}
+              {            }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">О психологе</h2>
 
@@ -520,7 +520,7 @@ function EditPsychologistForm() {
                 </div>
               </div>
 
-              {/* Контакты и цена */}
+              {                     }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Контакты и стоимость</h2>
 
@@ -553,7 +553,7 @@ function EditPsychologistForm() {
                 </div>
               </div>
 
-              {/* Фотографии */}
+              {                }
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold text-gray-800">Фотографии</h2>
                 <div>
@@ -561,7 +561,7 @@ function EditPsychologistForm() {
                     Фото психолога (основное + до 4 дополнительных)
                   </label>
 
-                  {/* Загрузка файлов */}
+                  {                     }
                   <div className="mb-4">
                     <input
                         type="file"
@@ -575,7 +575,7 @@ function EditPsychologistForm() {
                     </p>
                   </div>
 
-                  {/* Добавление по URL */}
+                  {                       }
                   <div className="mb-4">
                     <div className="flex gap-2">
                       <input
@@ -597,7 +597,7 @@ function EditPsychologistForm() {
                     </div>
                   </div>
 
-                  {/* Список выбранных изображений */}
+                  {                                  }
                   {urls.length > 0 && (
                       <div className="mb-4">
                         <p className="text-sm font-medium text-gray-700 mb-2">
@@ -667,7 +667,7 @@ function EditPsychologistForm() {
                       </div>
                   )}
 
-                  {/* Информация */}
+                  {                }
                   <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
                     <p className="text-sm text-blue-800">
                       <span className="font-medium">Важно:</span> Файлы будут загружены на сервер.
@@ -677,7 +677,7 @@ function EditPsychologistForm() {
                 </div>
               </div>
 
-              {/* Образование */}
+              {                 }
               <div>
                 <EducationFormEdit
                     initialData={educationData}
@@ -685,7 +685,7 @@ function EditPsychologistForm() {
                 />
               </div>
 
-              {/* Публикация */}
+              {                }
               <div className="flex items-center">
                 <input
                     type="checkbox"
@@ -699,7 +699,7 @@ function EditPsychologistForm() {
                 </label>
               </div>
 
-              {/* Кнопки действий */}
+              {                     }
               <div className="flex flex-wrap gap-4 pt-6 border-t border-gray-200">
                 <button
                     type="submit"
@@ -716,7 +716,7 @@ function EditPsychologistForm() {
               </div>
             </form>
 
-            {/* Удаление */}
+            {              }
             <div className="mt-8 pt-8 border-t border-gray-200">
               <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                 <h3 className="text-lg font-semibold text-red-800">Опасная зона</h3>
@@ -734,7 +734,7 @@ function EditPsychologistForm() {
   );
 }
 
-// Главный компонент с Suspense
+                               
 export default function EditPsychologistPage() {
   return (
       <Suspense fallback={

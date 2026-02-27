@@ -35,37 +35,37 @@ export default function AdminArticlesPage() {
   const [authorFilter, setAuthorFilter] = useState("");
   const [catalogFilter, setCatalogFilter] = useState("");
 
-  // Загружаем все данные через один API
+                                        
   useEffect(() => {
     Promise.all([
-      fetch("/api/articles", { cache: "no-store" }).then(res => res.json()),  // Получаем статьи
+      fetch("/api/articles", { cache: "no-store" }).then(res => res.json()),                    
     ])
         .then(([articlesData]) => {
           if (articlesData.success && articlesData.articles) {
-            // Сохраняем оригинальные статьи
+                                            
             const originalArticles = articlesData.articles;
             setAllArticles(originalArticles);
             setArticles(originalArticles);
 
-            // Собираем уникальные тэги из всех статей
+                                                      
             const tagsSet = new Set<string>();
 
-            // Используем Map для авторов, чтобы гарантировать уникальность по ID
+                                                                                 
             const authorsMap = new Map<string, any>();
 
-            // Собираем уникальные каталоги
+                                           
             const catalogsSet = new Set<string>();
 
             originalArticles.forEach((article: Article) => {
-              // Собираем тэги
+                              
               article.tags?.forEach(tag => tagsSet.add(tag));
 
-              // Собираем авторов (уникальные по ID)
+                                                    
               if (article.author) {
                 authorsMap.set(article.author.id, article.author);
               }
 
-              // Собираем каталоги
+                                  
               if (article.catalogSlug) {
                 catalogsSet.add(article.catalogSlug);
               }
@@ -80,9 +80,9 @@ export default function AdminArticlesPage() {
         .finally(() => setLoading(false));
   }, []);
 
-  // Фильтрация статей
+                      
   useEffect(() => {
-    // Фильтруем уже загруженные статьи
+                                       
     let filtered = allArticles;
 
     if (search.trim()) {
@@ -113,7 +113,7 @@ export default function AdminArticlesPage() {
     return article.publishedAt !== null;
   };
 
-  // Группировка статей по каталогам
+                                    
   const groupedByCatalog = articles.reduce((groups, article) => {
     const catalog = article.catalogSlug || "Без каталога";
     if (!groups[catalog]) {
@@ -193,7 +193,7 @@ export default function AdminArticlesPage() {
             </Button>
           </div>
 
-          {/* Статистика */}
+          {                }
           <div className="mb-4 text-sm text-neutral-500">
             Найдено статей: {articles.length}
             {catalogFilter && ` в каталоге "${catalogFilter}"`}
@@ -201,7 +201,7 @@ export default function AdminArticlesPage() {
             {authorFilter && ` автора ${allAuthors.find(a => a.id === authorFilter)?.fullName}`}
           </div>
 
-          {/* Если выбран конкретный каталог - показываем список */}
+          {                                                        }
           {catalogFilter ? (
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-[#5858E2] border-b pb-2">
@@ -214,7 +214,7 @@ export default function AdminArticlesPage() {
                 </div>
               </div>
           ) : (
-              // Иначе группируем по каталогам
+                                              
               <div className="space-y-8">
                 {Object.entries(groupedByCatalog).map(([catalog, catalogArticles]) => (
                     <div key={catalog}>
@@ -269,7 +269,7 @@ function ArticlesLoadingState({ addHref }: { addHref: string }) {
   );
 }
 
-// Выносим карточку статьи в отдельный компонент для чистоты кода
+                                                                 
 function ArticleCard({ article }: { article: Article }) {
   const isPublished = article.publishedAt !== null;
 

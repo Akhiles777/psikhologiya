@@ -1,119 +1,65 @@
-// app/api/auth/login/route.ts - УПРОЩЕННАЯ ВЕРСИЯ
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { getValidSessionToken } from "@/lib/auth-admin";
+import { authenticateSuperAdmin } from "@/lib/super-admin";
 
-// ВРЕМЕННО: Простая проверка без БД
-function checkAdminCredentials(login: string, password: string): boolean {
-  const adminLogin = process.env.ADMIN_LOGIN || "Gasan123";
-  const adminPassword = process.env.ADMIN_PASSWORD || "1111";
-  return login === adminLogin && password === adminPassword;
-}
+const IS_PROD = process.env.NODE_ENV === "production";
 
-function createSessionToken(userId: number): string {
-  return Buffer.from(`${userId}:${Date.now()}`).toString('base64');
-}
-
-export async function POST(request: Request) {
-  try {
-    // Пробуем получить тело запроса
-    let body;
-    try {
-      body = await request.json();
-    } catch (jsonError) {
-      console.log('Ошибка парсинга JSON:', jsonError);
-      return NextResponse.json(
-        { success: false, message: 'Неверный формат запроса' },
-        { status: 400 }
-      );
-    }
-    
-    const { login, password } = body;
-    
-    console.log('🔐 Попытка входа:', { login, hasPassword: !!password });
-    
-    if (!login || !password) {
-      return NextResponse.json(
-        { success: false, message: 'Заполните логин и пароль' },
-        { status: 400 }
-      );
-    }
-
-    // Проверяем администратора
-    const isAdmin = checkAdminCredentials(login, password);
-    
-    if (isAdmin) {
-      console.log('✅ Вход как администратор');
-      
-      const sessionToken = createSessionToken(1);
-      const response = NextResponse.json({
-        success: true,
-        message: 'Успешный вход как администратор',
-        userType: 'admin',
-      });
-
-      response.cookies.set('admin_session', sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-        path: '/',
-      });
-
-      console.log('✅ Отправлен ответ для админа');
-      return response;
-    }
-    
-    // ВРЕМЕННО: Тестовый менеджер
-    if (login === 'manager' && password === 'manager123') {
-      console.log('✅ Вход как тестовый менеджер');
-      
-      const sessionToken = createSessionToken(2);
-      const response = NextResponse.json({
-        success: true,
-        message: 'Успешный вход как менеджер',
-        userType: 'manager',
-      });
-
-      response.cookies.set('manager_session', sessionToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24,
-        path: '/',
-      });
-
-      console.log('✅ Отправлен ответ для менеджера');
-      return response;
-    }
-    
-    console.log('❌ Неверные данные');
-    return NextResponse.json(
-      { success: false, message: 'Неверный логин или пароль' },
-      { status: 401 }
-    );
-    
-  } catch (error) {
-    console.error('❌ Критическая ошибка API:', error);
-    
-    // Всегда возвращаем JSON, даже при ошибке
-    return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Ошибка сервера',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// Добавим GET метод для тестирования
-export async function GET() {
-  return NextResponse.json({
-    success: true,
-    message: 'API входа работает',
-    test: {
-      admin: { login: 'Gasan123', password: '1111' },
-      manager: { login: 'manager', password: 'manager123' }
-    }
+function setSessionCookie(response: NextResponse, name: string, value: string) {
+  response.cookies.set(name, value, {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 7,
+    path: "/",
   });
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const identifier = String(body?.identifier ?? body?.login ?? body?.email ?? "").trim();
+    const password = String(body?.password ?? "");
+
+    if (!identifier || !password) {
+      return NextResponse.json({ success: false, message: "Укажите логин/email и пароль." }, { status: 400 });
+    }
+
+    const admin = await authenticateSuperAdmin(identifier, password);
+    if (!admin) {
+      return NextResponse.json({ success: false, message: "Неверный логин/email или пароль." }, { status: 401 });
+    }
+
+    const token = getValidSessionToken();
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: admin.id,
+        login: admin.login,
+        email: admin.email,
+        role: "ADMIN",
+      },
+    });
+
+    setSessionCookie(response, "admin_session", token);
+    setSessionCookie(response, "admin-session", token);
+    setSessionCookie(
+      response,
+      "auth-session",
+      JSON.stringify({
+        id: admin.id,
+        email: admin.email,
+        name: admin.login,
+        role: "ADMIN",
+        isActive: true,
+        isDefaultAdmin: true,
+        createdAt: new Date().toISOString(),
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      })
+    );
+
+    return response;
+  } catch (error) {
+    console.error("admin.api.login failed", error);
+    return NextResponse.json({ success: false, message: "Внутренняя ошибка сервера." }, { status: 500 });
+  }
 }
